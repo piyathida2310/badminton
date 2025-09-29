@@ -28,7 +28,7 @@ async function bootstrap() {
     origin: [/^http:\/\/localhost:\d+$/, 'http://127.0.0.1'],
     credentials: true,
   });
-  await app.listen(authConfig.app.port ?? 3000);
+  await app.listen(authConfig.app.port ?? 8000);
 }
 bootstrap().catch((error) => {
   console.error('Failed to start application:', error);
