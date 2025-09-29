@@ -1,17 +1,31 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, MinLength, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, MinLength, IsNotEmpty, IsEnum, IsEmail, IsOptional } from 'class-validator';
+
+export enum Role {
+  ADMIN = 'ADMIN',
+  ORGANIZER = 'ORGANIZER',
+  PLAYER = 'PLAYER',
+}
 
 export class AuthRegisterDto {
   @ApiProperty({
-    description: 'Username',
-    example: 'johndoe',
+    description: 'ชื่อ-นามสกุล',
+    example: 'สมชาย ใจดี',
   })
   @IsString()
   @IsNotEmpty()
-  username: string;
+  fullName: string;
 
   @ApiProperty({
-    description: 'User password',
+    description: 'อีเมล',
+    example: 'somchai@example.com',
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({
+    description: 'รหัสผ่าน',
     example: 'password123',
   })
   @IsString()
@@ -19,39 +33,29 @@ export class AuthRegisterDto {
   @MinLength(8)
   password: string;
 
-  @ApiPropertyOptional({
-    description: 'Employee prefix',
-    example: 'Mr.',
-    nullable: true,
-  })
-  prefix?: string | null;
-
   @ApiProperty({
-    description: 'Employee first name',
-    example: 'Jane',
+    description: 'ยืนยันรหัสผ่าน',
+    example: 'password123',
   })
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  @MinLength(8)
+  confirmPassword: string;
 
   @ApiProperty({
-    description: 'Employee last name',
-    example: 'Doe',
+    description: 'Username (optional)',
+    example: 'johndoe',
+    required: false,
   })
   @IsString()
-  @IsNotEmpty()
-  lastName: string;
+  @IsOptional()
+  username?: string;
 
-  @ApiPropertyOptional({
-    description: 'Employee phone number',
-    example: '+66912345678',
+  @ApiProperty({
+    description: 'User role',
+    example: 'PLAYER',
+    enum: Role,
   })
-  phone?: string;
-
-  @ApiPropertyOptional({
-    description: 'Employee description',
-    example: 'ผู้พัฒนาระบบหลัก',
-    nullable: true,
-  })
-  description?: string | null;
+  @IsEnum(Role)
+  role: Role;
 }
