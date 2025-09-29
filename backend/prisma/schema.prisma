@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ms_Role {
+  id              String              @id @default(uuid())
+  name            String              @unique
+  nameValue       String
+  description     String?
+  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @db.Timestamptz(6)
+  createdBy       String?
+  updatedBy       String?
+  isDeleted       Boolean             @default(false)
+  rolePermissions sa_RolePermission[]
+  userRoles       sa_UserRole[]
+
+  @@index([isDeleted])
+}
+
+model ms_Permission {
+  id              String              @id @default(uuid())
+  name            String              @unique
+  description     String?
+  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @db.Timestamptz(6)
+  createdBy       String?
+  updatedBy       String?
+  isDeleted       Boolean             @default(false)
+  rolePermissions sa_RolePermission[]
+
+  @@index([isDeleted])
+}
+
+model ss_User {
+  id                     String            @id @default(uuid())
+  username               String            @unique @db.VarChar(255)
+  createdAt              DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime          @updatedAt @db.Timestamptz(6)
+  isVerify               Boolean           @default(true)
+  passwordHash           String?
+  prefix                 String?
+  firstName              String
+  lastName               String
+  phone                  String?
+  description            String?
+  isActive               Boolean           @default(true)
+  isDeleted              Boolean           @default(false)
+  createdBy              String?
+  updatedBy              String?
+  profilePictureBucket   String?
+  profilePictureKey      String?
+  profilePictureUrl      String?
+  tokens                 sa_RefreshToken[]
+  roles                  sa_UserRole[]
+
+  @@index([isActive])
+  @@index([isDeleted])
+}
+
+model sa_RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  deviceInfo String?
+  ipAddress  String?
+  expiresAt  DateTime @db.Timestamptz(6)
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+  user       ss_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, revoked])
+  @@index([expiresAt])
+}
+
+model sa_UserRole {
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  createdBy String?
+  updatedBy String?
+  role      ms_Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      ss_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model sa_RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
+  createdBy    String?
+  updatedBy    String?
+  permission   ms_Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         ms_Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
