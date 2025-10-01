@@ -9,7 +9,6 @@ import {
 } from 'class-validator';
 
 export enum Role {
-  ADMIN = 'ADMIN',
   ORGANIZER = 'ORGANIZER',
   PLAYER = 'PLAYER',
 }
