@@ -16,7 +16,7 @@ datasource db {
 // Enums
 // =========================
 enum Role {
-  ADMIN
+  
   ORGANIZER
   PLAYER
 }
@@ -24,13 +24,13 @@ enum Role {
 enum PlayType {
   SINGLE
   DOUBLE
-  MIXED
+
 }
 
 enum TeamType {
   SINGLE
   DOUBLE
-  MIXED
+  
 }
 
 enum RegisterStatus {

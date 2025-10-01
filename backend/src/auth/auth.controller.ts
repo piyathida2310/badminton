@@ -16,10 +16,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../common/guards/access-token.guard';
-import {
-  LoginDto,
-  ChangePasswordDto,
-} from './dto/auth.dto';
+import { LoginDto, ChangePasswordDto } from './dto/auth.dto';
 import { AuthRegisterDto } from './dto/auth-registor.dto';
 import type { AuthenticatedRequest } from './auth.types';
 
@@ -54,9 +51,7 @@ export class AuthController {
     status: 409,
     description: 'Username already exists',
   })
-  async register(
-    @Body() dto: AuthRegisterDto,
-  ): Promise<TokenResponse> {
+  async register(@Body() dto: AuthRegisterDto): Promise<TokenResponse> {
     return this.authService.register(dto);
   }
 

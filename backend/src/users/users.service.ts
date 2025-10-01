@@ -7,12 +7,12 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(
-    email: string, 
-    firstName: string, 
-    lastName: string, 
-    passwordHash: string, 
+    email: string,
+    firstName: string,
+    lastName: string,
+    passwordHash: string,
     role: Role = Role.PLAYER,
-    userName?: string
+    userName?: string,
   ) {
     // Check if email already exists
     const emailExists = await this.prisma.user.findUnique({
@@ -25,17 +25,18 @@ export class UsersService {
       const usernameExists = await this.prisma.user.findFirst({
         where: { userName },
       });
-      if (usernameExists) throw new BadRequestException('Username already registered');
+      if (usernameExists)
+        throw new BadRequestException('Username already registered');
     }
 
     return this.prisma.user.create({
-      data: { 
+      data: {
         email,
         firstName,
         lastName,
         userName,
-        password: passwordHash, 
-        role 
+        password: passwordHash,
+        role,
       },
     });
   }

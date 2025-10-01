@@ -31,13 +31,17 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
-  private signAccessToken(userId: number, username: string, role: string): TokenResponse {
+  private signAccessToken(
+    userId: number,
+    username: string,
+    role: string,
+  ): TokenResponse {
     const payload: JwtPayload = { sub: userId.toString(), username, role };
     const accessToken = jwt.sign(payload, jwtConfig.access.secret, {
       expiresIn: jwtConfig.access.expiresIn,
     } as jwt.SignOptions);
     const expiresIn = this.parseExpiresIn(jwtConfig.access.expiresIn);
-    
+
     return {
       accessToken,
       expiresIn,
@@ -89,15 +93,19 @@ export class AuthService {
       lastName,
       hashedPassword,
       dto.role,
-      dto.username
+      dto.username,
     );
-    return this.signAccessToken(user.id, user.userName || user.email, user.role);
+    return this.signAccessToken(
+      user.id,
+      user.userName || user.email,
+      user.role,
+    );
   }
 
   async login(dto: LoginDto): Promise<TokenResponse> {
     // Find user by email
     const user = await this.users.findByEmail(dto.email);
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -107,7 +115,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.signAccessToken(user.id, user.userName || user.email, user.role);
+    return this.signAccessToken(
+      user.id,
+      user.userName || user.email,
+      user.role,
+    );
   }
 
   async getUserProfile(userId: string) {
@@ -141,7 +153,10 @@ export class AuthService {
     }
 
     // Verify old password
-    const isOldPasswordValid = await bcrypt.compare(dto.oldPassword, user.password);
+    const isOldPasswordValid = await bcrypt.compare(
+      dto.oldPassword,
+      user.password,
+    );
     if (!isOldPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
