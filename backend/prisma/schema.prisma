@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// -------------------------
+// schema.prisma
+// =========================
+// Models
+// =========================
+
+// =========================
+// Enums
+// =========================
+enum Role {
+  
+  ORGANIZER
+  PLAYER
+}
+
+enum PlayType {
+  SINGLE
+  DOUBLE
+
+}
+
+enum TeamType {
+  SINGLE
+  DOUBLE
+  
+}
+
+enum RegisterStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+}
+
+enum BracketStage {
+  GROUP
+  KNOCKOUT
+  QUARTER_FINAL
+  SEMI_FINAL
+  FINAL
+}
+
+enum MatchResult {
+  WIN
+  LOSS
+  DRAW
+}
+
+// =========================
+// Models
+// =========================
+
+// 1) Users
+model User {
+  id         Int        @id @default(autoincrement()) @map("user_id")
+  userName   String?    @map("user_name")
+  firstName  String     @map("first_name")
+  lastName   String     @map("last_name")
+  email      String     @unique
+  password   String
+  age        Int?
+  role       Role       @default(PLAYER)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  rank       Int?
+  playType   PlayType?  @map("play_type")
+
+  // Relations
+  organizedTournaments Tournament[] @relation("OrganizerTournaments")
+  registrations        Register[]
+  confirmedPayments    Payment[]     @relation("PaymentConfirmedBy")
+
+  histories            History[]
+  // Indexes
+  @@index([firstName, lastName])
+  @@index([email])
+  @@map("users")
+}
+
+// 2) Teams
+model Team {
+  id        Int       @id @default(autoincrement())
+  teamName  String    @map("team_name")
+  teamType  TeamType? @map("team_type")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  registrations Register[]
+  matchesAsTeam1 Match[] @relation("MatchTeam1")
+  matchesAsTeam2 Match[] @relation("MatchTeam2")
+  matchesAsWinner Match[] @relation("MatchWinnerTeam")
+
+  @@unique([teamName, teamType])
+  @@map("teams")
+}
+
+// 3) Tournament
+model Tournament {
+  id          Int       @id @default(autoincrement())
+  organizerId Int       @map("organizer_id")
+  name        String
+  description String?
+  location    String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  entryFee    Decimal?  @map("entry_fee") @db.Decimal(10, 2)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // บางภาพมี field ชื่อซ้ำ/พิมพ์คล้ายกัน จึงแมปไว้เป็นคอลัมน์เดิม
+  adPoster    String?   @map("adposter")
+  addPoster   String?   @map("addposter")
+
+  maxPlayers  Int?      @map("max_players")
+  status      String?
+
+  // Relations
+  organizer   User      @relation("OrganizerTournaments", fields: [organizerId], references: [id])
+  registrations Register[]
+  matches       Match[]
+  brackets      Bracket[]
+  histories     History[]
+
+  @@index([organizerId])
+  @@map("tournament")
+}
+
+// 4) Register
+model Register {
+  id            Int            @id @default(autoincrement())
+  tournamentId  Int            @map("tournament_id")
+  playerId      Int            @map("player_id")
+  status        RegisterStatus @default(PENDING)
+  paymentProof  String?        @map("payment_proof")
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  rankScore     Int?           @map("rank_score")
+  teamId        Int?           @map("team_id")
+  birthday      DateTime?
+  video         String?
+  groupNo       Int?           @map("group_no")
+  groupRank     Int?           @map("group_rank")
+  manager       Boolean?       @default(false)
+
+  // Relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  player     User       @relation(fields: [playerId], references: [id])
+  team       Team?      @relation(fields: [teamId], references: [id])
+  payments   Payment[]
+
+  @@index([tournamentId])
+  @@index([playerId])
+  @@index([teamId])
+  @@map("register")
+}
+
+// 5) Payment
+model Payment {
+  id           Int           @id @default(autoincrement())
+  registerId   Int           @map("register_id")
+  amount       Decimal       @db.Decimal(10, 2)
+  status       PaymentStatus @default(PENDING)
+  payAt        DateTime?     @map("pay_at")
+  confirmedBy  Int?          @map("confirmed_by")
+
+  // Relations
+  register     Register      @relation(fields: [registerId], references: [id])
+  confirmedByUser User?      @relation("PaymentConfirmedBy", fields: [confirmedBy], references: [id])
+
+  @@index([registerId])
+  @@index([confirmedBy])
+  @@map("payment")
+}
+
+// 6) Matches
+model Match {
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int         @map("tournament_id")
+  round         Int?
+  team1Id       Int?        @map("team1_id")
+  team2Id       Int?        @map("team2_id")
+  winnerTeamId  Int?        @map("winner_team_id")
+  scheduledTime DateTime?   @map("scheduled_time")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  scorePlayer1  Int?        @map("score_player1")
+  scorePlayer2  Int?        @map("score_player2")
+  statusMatch   MatchStatus @default(SCHEDULED) @map("status_match")
+
+  // Relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  team1      Team?      @relation("MatchTeam1", fields: [team1Id], references: [id])
+  team2      Team?      @relation("MatchTeam2", fields: [team2Id], references: [id])
+  winnerTeam Team?      @relation("MatchWinnerTeam", fields: [winnerTeamId], references: [id])
+
+  shuttleUsages ShuttleUsage[]
+  brackets       Bracket[]
+  histories      History[]
+
+  @@index([tournamentId])
+  @@index([team1Id])
+  @@index([team2Id])
+  @@index([winnerTeamId])
+  @@map("matches")
+}
+
+// 7) Shuttle_Usage
+model ShuttleUsage {
+  id          Int      @id @default(autoincrement())
+  matchId     Int      @map("match_id")
+  usedCount   Int      @default(0) @map("used_count")
+  brokenCount Int      @default(0) @map("broken_count")
+  shuttlePrice Decimal? @map("shuttle_price") @db.Decimal(10, 2)
+
+  // Relations
+  match Match @relation(fields: [matchId], references: [id])
+
+  @@index([matchId])
+  @@map("shuttle_usage")
+}
+
+// 8) Brackets
+model Bracket {
+  id           Int          @id @default(autoincrement())
+  tournamentId Int          @map("tournament_id")
+  round        Int?
+  matchId      Int?         @map("match_id")
+  position     Int?
+  bracketStage BracketStage @map("bracket_stage")
+
+  // Relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  match      Match?     @relation(fields: [matchId], references: [id])
+
+  @@index([tournamentId])
+  @@index([matchId])
+  @@map("brackets")
+}
+
+// 9) History
+model History {
+  id           Int         @id @default(autoincrement())
+  playerId     Int         @map("player_id")
+  tournamentId Int         @map("tournament_id")
+  matchId      Int?        @map("match_id")
+  result       MatchResult?
+  score        Int?
+  playedAt     DateTime?   @map("played_at")
+
+  // Relations
+  player     User       @relation(fields: [playerId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  match      Match?     @relation(fields: [matchId], references: [id])
+
+  @@index([playerId])
+  @@index([tournamentId])
+  @@index([matchId])
+  @@map("history")
+}
