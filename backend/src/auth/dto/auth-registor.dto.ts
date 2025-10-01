@@ -36,7 +36,6 @@ export class AuthRegisterDto {
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(8)
   password: string;
 
   @ApiProperty({
@@ -45,7 +44,6 @@ export class AuthRegisterDto {
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(8)
   confirmPassword: string;
 
   @ApiProperty({

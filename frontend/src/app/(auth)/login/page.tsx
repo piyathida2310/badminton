@@ -165,7 +165,7 @@ const LoginPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full blur-lg opacity-75 animate-pulse"></div>
                 <Image
                   src="/images/bad.svg"
-                  alt="Badminton Club"
+                  alt="Badminton COMPETITION MANAGEMENT "
                   width={50}
                   height={50}
                   className="relative mr-3 drop-shadow-2xl"
@@ -181,7 +181,7 @@ const LoginPage = () => {
                 >
                   BADMINTON
                 </motion.h1>
-                <p className="text-sm text-cyan-300 font-medium">CLUB MANAGEMENT</p>
+                <p className="text-sm text-cyan-300 font-medium">COMPETITION MANAGEMENT</p>
               </div>
             </div>
           </motion.div>
