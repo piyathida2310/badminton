@@ -91,7 +91,14 @@ const RegisterPage = () => {
     setLoading(true);
     setError('');
 
-    // Validate password confirmation
+    // ✅ เช็ครหัสผ่าน >= 8 ตัว
+    if (form.password.length < 8) {
+      setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+      setLoading(false);
+      return;
+    }
+
+    // ✅ เช็ครหัสผ่านตรงกัน
     if (form.password !== form.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
       setLoading(false);
@@ -104,12 +111,12 @@ const RegisterPage = () => {
         ...form,
         fullName: `${form.firstName} ${form.lastName}`.trim()
       };
-      
+
       const response = await api.post<RegisterResponse>('/auth/register', requestData);
-      
+
       // Store token in localStorage
       localStorage.setItem('accessToken', response.data.accessToken);
-      
+
       // Redirect to dashboard or home page
       router.push('/login');
     } catch (err: any) {
@@ -194,7 +201,7 @@ const RegisterPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full blur-lg opacity-75 animate-pulse"></div>
                 <Image
                   src="/images/bad.svg"
-                  alt="Badminton Club"
+                  alt="Badminton COMPETITION MANAGEMENT "
                   width={50}
                   height={50}
                   className="relative mr-3 drop-shadow-2xl"
@@ -210,7 +217,7 @@ const RegisterPage = () => {
                 >
                   BADMINTON
                 </motion.h1>
-                <p className="text-sm text-cyan-300 font-medium">CLUB MANAGEMENT</p>
+                <p className="text-sm text-cyan-300 font-medium">COMPETITION MANAGEMENT </p>
               </div>
             </div>
           </motion.div>
@@ -283,12 +290,6 @@ const RegisterPage = () => {
                     />
                     <span className="text-white group-hover:text-green-300 transition-colors font-medium">ผู้จัดแข่งขัน</span>
                   </motion.label>
-                  <motion.label 
-                    className="flex items-center cursor-pointer group"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-               </motion.label>
                 </motion.div>
 
                 {/* Form Fields with magical styling */}
@@ -312,7 +313,6 @@ const RegisterPage = () => {
                         required
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15"
                       />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                   <div className="group">
@@ -329,7 +329,6 @@ const RegisterPage = () => {
                         required
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15"
                       />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                 </motion.div>
@@ -354,7 +353,6 @@ const RegisterPage = () => {
                         required
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15"
                       />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                 </motion.div>
@@ -379,7 +377,6 @@ const RegisterPage = () => {
                         required
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15"
                       />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                   <div className="group">
@@ -396,7 +393,6 @@ const RegisterPage = () => {
                         required
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15"
                       />
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                 </motion.div>
