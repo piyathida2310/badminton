@@ -21,7 +21,7 @@ interface RegisterResponse {
   expiresIn: number;
 }
 
-// Floating shuttlecock component
+
 const FloatingShuttlecock = ({ delay = 0, duration = 8, x = 0, y = 0 }: { delay?: number; duration?: number; x?: number; y?: number }) => (
   <motion.div
     className="absolute text-white/20 text-4xl pointer-events-none"
@@ -42,7 +42,7 @@ const FloatingShuttlecock = ({ delay = 0, duration = 8, x = 0, y = 0 }: { delay?
   </motion.div>
 );
 
-// Magical particle component
+
 const MagicalParticle = ({ delay = 0 }: { delay?: number }) => {
   const seed = delay * 1.732050807569; // Square root of 3
   return (
@@ -91,14 +91,14 @@ const RegisterPage = () => {
     setLoading(true);
     setError('');
 
-    // ✅ เช็ครหัสผ่าน >= 8 ตัว
+    
     if (form.password.length < 8) {
       setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
       setLoading(false);
       return;
     }
 
-    // ✅ เช็ครหัสผ่านตรงกัน
+    
     if (form.password !== form.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
       setLoading(false);
@@ -106,7 +106,7 @@ const RegisterPage = () => {
     }
 
     try {
-      // Combine firstName and lastName for backend compatibility
+     
       const requestData = {
         ...form,
         fullName: `${form.firstName} ${form.lastName}`.trim()
@@ -121,7 +121,7 @@ const RegisterPage = () => {
       router.push('/login');
     } catch (err: any) {
       if (err.response) {
-        // Handle different error cases
+        
         const errorMessage = err.response?.data?.message || err.response?.data?.error?.message;
         if (errorMessage === 'Email already registered') {
           setError('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
