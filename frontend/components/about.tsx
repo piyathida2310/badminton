@@ -7,13 +7,13 @@ export default function About() {
     {
       name: "สุขหทัย พลยะเรศ",
       role: "Frontend Developer",
-      email: "sukhathai@example.com",
+      email: "sukhathai7331@gmail.com",
       img: "/images/cream.jpg",
     },
     {
       name: "ปิยธิดา  อันชม",
       role: "Backend Developer",
-      email: "piyathida@example.com",
+      email: "18987m210@gmail.com",
       img: "/images/faii.jpg",
     },
   ];
