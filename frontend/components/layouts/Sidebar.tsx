@@ -50,15 +50,22 @@ export default function Sidebar({
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-white shadow-md p-6 z-40">
         <h2 className="text-xl font-bold text-blue-600 mb-6">เมนู</h2>
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          <Link href="/" className="hover:text-blue-600">
-            หน้าแรก
+          <Link href="/manage" className="hover:text-blue-600">
+            รายการแข่งขัน
           </Link>
-          <Link href="/about" className="hover:text-blue-600">
-            เกี่ยวกับ
+          <Link href="/manage/timeline" className="hover:text-blue-600">
+            แผนผังการแข่ง
           </Link>
-          <Link href="/contact" className="hover:text-blue-600">
-            ติดต่อ
+          <Link href="/manage/players-status" className="hover:text-blue-600">
+            สถานะผู้แข่ง
           </Link>
+          <Link href="/manage/match-history" className="hover:text-blue-600">
+            ประวัติการแข่งขัน
+          </Link>
+          <Link href="/manage/profile" className="hover:text-blue-600">
+            ข้อมูลส่วนตัว
+          </Link>
+          
         </nav>
       </aside>
     </>

@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+// app/(your-layout)/layout.tsx
+import type { Metadata } from "next"; 
 import Navbar from "../../../../components/layouts/์Navbar";
-import { div } from "framer-motion/client";
 
 export const metadata: Metadata = {
   title: "MyApp | Navbar + Sidebar",
@@ -13,10 +13,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="flex">
+      {/* Navbar และ Sidebar อยู่ fixed อยู่แล้ว */}
       <Navbar />
 
-      <div className="py-28 pl-40">{children}</div>
+      {/* สำหรับ Desktop ให้เว้นข้างซ้าย 64px (ขนาด sidebar) */}
+      <div className="flex-1 pt-16 md:pl-64">
+        {children}
+      </div>
     </div>
   );
 }
