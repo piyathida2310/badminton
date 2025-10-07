@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Navbar from "../../../../components/layouts/Navbar";
 
 export const metadata: Metadata = {
-  title: "MyApp | Navbar + Sidebar",
+  title: "Badminton",
   description: "Next.js Layout with Sidebar example",
 };
 
