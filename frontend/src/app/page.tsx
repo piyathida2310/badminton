@@ -15,7 +15,7 @@ export default function Home() {
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex justify-between items-center px-4 sm:px-6 md:px-12 lg:px-16 xl:px-24 py-3 max-h-[60px] shadow-sm bg-gradient-to-r from-amber-200 to-pink-600 relative"
+        className="flex justify-between items-center px-4 sm:px-6 md:px-12 lg:px-16 xl:px-24 py-3 max-h-[60px] shadow-sm bg-gradient-to-r from-amber-200 to-pink-600 relative "
       >
         {/* Logo */}
         <div className="flex items-center gap-2">
