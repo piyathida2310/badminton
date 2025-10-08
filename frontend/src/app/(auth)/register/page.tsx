@@ -21,28 +21,9 @@ interface RegisterResponse {
   expiresIn: number;
 }
 
-// Floating shuttlecock component
-const FloatingShuttlecock = ({ delay = 0, duration = 8, x = 0, y = 0 }: { delay?: number; duration?: number; x?: number; y?: number }) => (
-  <motion.div
-    className="absolute text-white/20 text-4xl pointer-events-none"
-    initial={{ x, y, rotate: 0 }}
-    animate={{
-      x: [x, x + 200, x - 100, x + 150, x],
-      y: [y, y - 150, y + 100, y - 200, y],
-      rotate: [0, 180, 360, 540, 720],
-    }}
-    transition={{
-      duration,
-      repeat: Infinity,
-      delay,
-      ease: "easeInOut",
-    }}
-  >
-    🏸
-  </motion.div>
-);
 
-// Magical particle component
+
+
 const MagicalParticle = ({ delay = 0 }: { delay?: number }) => {
   const seed = delay * 1.732050807569; // Square root of 3
   return (
@@ -91,14 +72,14 @@ const RegisterPage = () => {
     setLoading(true);
     setError('');
 
-    // ✅ เช็ครหัสผ่าน >= 8 ตัว
+    
     if (form.password.length < 8) {
       setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
       setLoading(false);
       return;
     }
 
-    // ✅ เช็ครหัสผ่านตรงกัน
+    
     if (form.password !== form.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
       setLoading(false);
@@ -106,7 +87,7 @@ const RegisterPage = () => {
     }
 
     try {
-      // Combine firstName and lastName for backend compatibility
+     
       const requestData = {
         ...form,
         fullName: `${form.firstName} ${form.lastName}`.trim()
@@ -121,7 +102,7 @@ const RegisterPage = () => {
       router.push('/login');
     } catch (err: any) {
       if (err.response) {
-        // Handle different error cases
+        
         const errorMessage = err.response?.data?.message || err.response?.data?.error?.message;
         if (errorMessage === 'Email already registered') {
           setError('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
@@ -139,7 +120,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className="h-screen  relative overflow-hidden   bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* Animated background with stars */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
@@ -168,12 +149,7 @@ const RegisterPage = () => {
         })}
       </div>
 
-      {/* Floating shuttlecocks */}
-      <FloatingShuttlecock delay={0} duration={10} x={100} y={100} />
-      <FloatingShuttlecock delay={2} duration={12} x={300} y={200} />
-      <FloatingShuttlecock delay={4} duration={8} x={500} y={150} />
-      <FloatingShuttlecock delay={6} duration={14} x={700} y={300} />
-      <FloatingShuttlecock delay={1} duration={9} x={50} y={400} />
+     
 
       {/* Magical particles */}
       {Array.from({ length: 20 }, (_, i) => {
@@ -183,11 +159,12 @@ const RegisterPage = () => {
         );
       })}
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+      <div className="relative z-10 flex items-center justify-center h-screen px-4 sm:px-6 lg:px-8">
+
+        <div className="max-w-md w-full -mt-4 sm:-mt-6 lg:-mt-10">
           {/* Logo with glow effect */}
           <motion.div 
-            className="text-center mb-8"
+            className="text-center mb-6 md:mb-8"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -198,14 +175,7 @@ const RegisterPage = () => {
                 whileHover={{ scale: 1.1 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full blur-lg opacity-75 animate-pulse"></div>
-                <Image
-                  src="/images/bad.svg"
-                  alt="Badminton COMPETITION MANAGEMENT "
-                  width={50}
-                  height={50}
-                  className="relative mr-3 drop-shadow-2xl"
-                />
+                
               </motion.div>
               <div>
                 <motion.h1 
@@ -232,7 +202,7 @@ const RegisterPage = () => {
             {/* Magical border glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
             
-            <div className="relative  bg-gradient-to-br from-blue-900/80 via-purple-900/80 to-indigo-900/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+            <div className="relative    bg-gradient-to-br from-blue-900/80 via-purple-900/80 to-indigo-900/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
               <motion.h2 
                 className="text-3xl font-bold text-center bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent mb-6"
                 initial={{ opacity: 0 }}
