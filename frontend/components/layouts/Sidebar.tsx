@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -12,9 +13,6 @@ import {
   Trophy,
   Clock,
   Users,
-  Home,
-  Info,
-  Phone,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -49,8 +47,8 @@ export default function Navbar() {
               <Image
                 src="/images/bad_logo.png"
                 alt="Badminton Logo"
-                width={150}
-                height={150}
+                width={120}
+                height={120}
                 className="rounded-full drop-shadow-lg"
               />
             </motion.div>
@@ -164,7 +162,9 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-pink-600 tracking-wide">MENU</h2>
+          <h2 className="text-xl font-bold text-pink-600 tracking-wide">
+            MENU
+          </h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-pink-200 transition"
@@ -189,26 +189,51 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         </div>
 
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" onClick={onClose}/>
-          <SidebarLink href="/manage/timeline" icon={<Clock size={18} />} label="แผนผังการแข่ง" onClick={onClose}/>
-          <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose}/>
-          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ประวัติการแข่งขัน" onClick={onClose}/>
-          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose}/>
+          <SidebarLink
+            href="/manage"
+            icon={<Trophy size={18} />}
+            label="รายการแข่งขัน"
+            onClick={onClose}
+          />
+          <SidebarLink
+            href="/manage/timeline"
+            icon={<Clock size={18} />}
+            label="แผนผังการแข่ง"
+            onClick={onClose}
+          />
+          <SidebarLink
+            href="/manage/players-status"
+            icon={<Users size={18} />}
+            label="สถานะผู้แข่ง"
+            onClick={onClose}
+          />
+          <SidebarLink
+            href="/manage/match-history"
+            icon={<Clock size={18} />}
+            label="ประวัติการแข่งขัน"
+            onClick={onClose}
+          />
+          <SidebarLink
+            href="/manage/profile"
+            icon={<UserCircle2 size={18} />}
+            label="ข้อมูลส่วนตัว"
+            onClick={onClose}
+          />
         </nav>
       </motion.aside>
 
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-6 z-40 border-r border-pink-200">
-        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide relative z-10">
+      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-60 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-6 z-40 border-r border-pink-200">
+        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">
           MENU
         </h2>
 
-        <nav className="flex flex-col gap-5 text-gray-700 font-medium relative z-10">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน"/>
-          <SidebarLink href="/manage/timeline" icon={<Clock size={18} />} label="แผนผังการแข่ง"/>
-          <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง"/>
-          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ประวัติการแข่งขัน"/>
-          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว"/>
+        <nav className="flex flex-col gap-5 text-gray-700 font-medium">
+          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />
+          <SidebarLink href="/manage/timeline" icon={<Clock size={18} />} label="แผนผังการแข่ง" />
+          <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" />
+          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ประวัติการแข่งขัน" />
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
         </nav>
       </aside>
     </>
@@ -226,19 +251,31 @@ function SidebarLink({
   label: string;
   onClick?: () => void;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
     <motion.div whileHover={{ x: 6, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
       <Link
         href={href}
         onClick={onClick}
-        className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
-          hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50
-          hover:shadow-md hover:text-pink-600 group"
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+          ${
+            isActive
+              ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
+              : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+          }`}
       >
-        <motion.span whileHover={{ rotate: 8 }} transition={{ type: "spring", stiffness: 200 }} className="text-pink-600">
+        <motion.span
+          whileHover={{ rotate: 8 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className={`${
+            isActive ? "text-pink-700" : "text-pink-600 group-hover:text-pink-700"
+          }`}
+        >
           {icon}
         </motion.span>
-        <span className="group-hover:font-semibold">{label}</span>
+        <span>{label}</span>
       </Link>
     </motion.div>
   );
