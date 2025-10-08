@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation"; // ✅ เพิ่มตรงนี้
 
 interface Tournament {
   id: number;
@@ -13,6 +14,8 @@ interface Tournament {
 }
 
 export default function TournamentPage() {
+  const router = useRouter(); // ✅ เพิ่มตรงนี้
+
   const [tournaments, setTournaments] = useState<Tournament[]>([
     { id: 1, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster5.jpg", canceled: false },
     { id: 2, title: "BADMINTON COMPETITION 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
@@ -55,7 +58,10 @@ export default function TournamentPage() {
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gradient bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-lg">
           รายการแข่งขัน
         </h1>
-        <button className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:scale-105 hover:brightness-110 transition-all transform">
+        <button
+          onClick={() => router.push("/manage/manage-match")} // ✅ เพิ่ม onclick เพื่อเปลี่ยนหน้า
+          className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:scale-105 hover:brightness-110 transition-all transform"
+        >
           จัดแข่ง
         </button>
       </div>
