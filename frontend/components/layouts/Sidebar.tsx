@@ -223,7 +223,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
       </motion.aside>
 
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-60 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-6 z-40 border-r border-pink-200">
+      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
         <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">
           MENU
         </h2>
