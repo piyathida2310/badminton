@@ -17,26 +17,7 @@ interface LoginResponse {
   expiresIn: number;
 }
 
-// Floating shuttlecock component
-const FloatingShuttlecock = ({ delay = 0, duration = 8, x = 0, y = 0 }: { delay?: number; duration?: number; x?: number; y?: number }) => (
-  <motion.div
-    className="absolute text-white/20 text-4xl pointer-events-none"
-    initial={{ x, y, rotate: 0 }}
-    animate={{
-      x: [x, x + 200, x - 100, x + 150, x],
-      y: [y, y - 150, y + 100, y - 200, y],
-      rotate: [0, 180, 360, 540, 720],
-    }}
-    transition={{
-      duration,
-      repeat: Infinity,
-      delay,
-      ease: "easeInOut",
-    }}
-  >
-    🏸
-  </motion.div>
-);
+
 
 // Magical particle component
 const MagicalParticle = ({ delay = 0 }: { delay?: number }) => {
@@ -132,12 +113,7 @@ const LoginPage = () => {
         })}
       </div>
 
-      {/* Floating shuttlecocks */}
-      <FloatingShuttlecock delay={0} duration={10} x={100} y={100} />
-      <FloatingShuttlecock delay={2} duration={12} x={300} y={200} />
-      <FloatingShuttlecock delay={4} duration={8} x={500} y={150} />
-      <FloatingShuttlecock delay={6} duration={14} x={700} y={300} />
-      <FloatingShuttlecock delay={1} duration={9} x={50} y={400} />
+  
 
       {/* Magical particles */}
       {Array.from({ length: 20 }, (_, i) => {
@@ -163,13 +139,7 @@ const LoginPage = () => {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full blur-lg opacity-75 animate-pulse"></div>
-                <Image
-                  src="/images/bad.svg"
-                  alt="Badminton COMPETITION MANAGEMENT "
-                  width={50}
-                  height={50}
-                  className="relative mr-3 drop-shadow-2xl"
-                />
+                
               </motion.div>
               <div>
                 <motion.h1 
