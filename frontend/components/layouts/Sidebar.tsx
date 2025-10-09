@@ -24,18 +24,9 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200/80 via-pink-400/70 to-pink-600/80 shadow-lg border-b border-white/20"
-      >
-        <motion.div
-          className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60"
-          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-        />
+      {/* ✅ Navbar ปกติ — ไม่มี motion ตอนโหลด */}
+      <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200/80 via-pink-400/70 to-pink-600/80 shadow-lg border-b border-white/20">
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60 animate-[gradient_4s_linear_infinite]" />
 
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
           {/* โลโก้ */}
@@ -118,9 +109,9 @@ export default function Navbar() {
             <Menu size={24} />
           </motion.button>
         </div>
-      </motion.nav>
+      </nav>
 
-      {/* Sidebar */}
+      {/* ✅ Sidebar เดิม (ไม่แก้ไขเลย) */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -130,6 +121,9 @@ export default function Navbar() {
   );
 }
 
+/* -------------------------------
+   ✅ Sidebar Section (เดิมทั้งหมด)
+--------------------------------*/
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
