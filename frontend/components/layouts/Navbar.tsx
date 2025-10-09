@@ -3,9 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, User, Settings, LogOut } from "lucide-react"; // ✅ เพิ่ม icons ที่หายไป
+import { Menu, User, Settings, LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
-import { motion } from "framer-motion";
 
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,25 +13,15 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200  to-pink-600 shadow-lg border-b border-white/20"
-      >
-        <motion.div
-          className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60"
-          animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-        />
+      <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200 to-pink-600 shadow-lg border-b border-white/20">
+        {/* เส้นบน Navbar */}
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60 animate-[gradient_4s_linear_infinite]" />
 
-        {/* ✅ ปรับโลโก้ให้ชิดซ้ายขึ้น */}
+        {/* โลโก้ + ปุ่มต่าง ๆ */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
+          {/* โลโก้ */}
           <Link href="/" className="flex items-center gap-3 group">
-            <motion.div
-              whileHover={{ rotate: 360, scale: 1.1 }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="transition-transform duration-500 group-hover:rotate-[360deg] group-hover:scale-110">
               <Image
                 src="/images/bad_logo.png"
                 alt="Badminton Logo"
@@ -40,7 +29,7 @@ export default function Navbar() {
                 height={150}
                 className="rounded-full drop-shadow-lg"
               />
-            </motion.div>
+            </div>
           </Link>
 
           {/* ชื่อผู้ใช้ (Desktop) + Dropdown */}
@@ -67,13 +56,7 @@ export default function Navbar() {
             </button>
 
             {isDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 top-[110%] mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200"
-              >
+              <div className="absolute right-0 top-[110%] mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
@@ -89,21 +72,21 @@ export default function Navbar() {
                   <LogOut size={16} />
                   <span>ออกจากระบบ</span>
                 </button>
-              </motion.div>
+              </div>
             )}
           </div>
 
           {/* ปุ่มเมนู (Mobile) */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
+          <button
             onClick={() => setIsSidebarOpen(true)}
             className="text-white md:hidden p-2 rounded-md hover:bg-white/20 transition"
           >
             <Menu size={24} />
-          </motion.button>
+          </button>
         </div>
-      </motion.nav>
+      </nav>
 
+      {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
     </>
   );
