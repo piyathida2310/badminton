@@ -15,6 +15,9 @@ import {
   Users,
   Settings,
   LogOut,
+  Swords,
+  BookOpen,
+  Medal, 
 } from "lucide-react";
 
 export default function Navbar() {
@@ -24,7 +27,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ✅ Navbar ปกติ — ไม่มี motion ตอนโหลด */}
       <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200/80 via-pink-400/70 to-pink-600/80 shadow-lg border-b border-white/20">
         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60 animate-[gradient_4s_linear_infinite]" />
 
@@ -64,11 +66,7 @@ export default function Navbar() {
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
@@ -111,19 +109,13 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ✅ Sidebar เดิม (ไม่แก้ไขเลย) */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        user={user}
-      />
+      {/* Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
     </>
   );
 }
 
-/* -------------------------------
-   ✅ Sidebar Section (เดิมทั้งหมด)
---------------------------------*/
+/* Sidebar Section */
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -156,13 +148,8 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-pink-600 tracking-wide">
-            MENU
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-pink-200 transition"
-          >
+          <h2 className="text-xl font-bold text-pink-600 tracking-wide">MENU</h2>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-pink-200 transition">
             <X size={22} className="text-pink-600" />
           </button>
         </div>
@@ -172,61 +159,39 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <UserCircle2 size={24} className="text-pink-600" />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{user.name}</span>
-            <Link
-              href="/manage/profile"
-              className="text-sm text-pink-600 hover:underline"
-              onClick={onClose}
-            >
+            <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
               โปรไฟล์ของฉัน
             </Link>
           </div>
         </div>
 
+        {/* Sidebar มือถือ */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          <SidebarLink
-            href="/manage"
-            icon={<Trophy size={18} />}
-            label="รายการแข่งขัน"
-            onClick={onClose}
-          />
-          <SidebarLink
-            href="/manage/timeline"
-            icon={<Clock size={18} />}
-            label="แผนผังการแข่ง"
-            onClick={onClose}
-          />
-          <SidebarLink
-            href="/manage/players-status"
-            icon={<Users size={18} />}
-            label="สถานะผู้แข่ง"
-            onClick={onClose}
-          />
-          <SidebarLink
-            href="/manage/match-history"
-            icon={<Clock size={18} />}
-            label="ประวัติการแข่งขัน"
-            onClick={onClose}
-          />
-          <SidebarLink
-            href="/manage/profile"
-            icon={<UserCircle2 size={18} />}
-            label="ข้อมูลส่วนตัว"
-            onClick={onClose}
-          />
+          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" onClick={onClose} />
+          <SidebarLink href="/manage/manage-rules" icon={<BookOpen size={18} />} label="กติกา" onClick={onClose} />
+          <SidebarLink href="/manage/group" icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" onClick={onClose} />
+          <SidebarLink href="/manage/bracket" icon={<Swords size={18} />} label="สายการแข่งขัน" onClick={onClose} />
+          
+          <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose} />
+          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ตารางเวลา" onClick={onClose} />
+          <SidebarLink href="/manage/results-competition" icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} /> 
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
       </motion.aside>
 
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
-        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">
-          MENU
-        </h2>
+        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">MENU</h2>
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
           <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />
-          <SidebarLink href="/manage/timeline" icon={<Clock size={18} />} label="แผนผังการแข่ง" />
+          <SidebarLink href="/manage/manage-rules" icon={<BookOpen size={18} />} label="กติกา" />
+          <SidebarLink href="/manage/group" icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" />
+          <SidebarLink href="/manage/bracket" icon={<Swords size={18} />} label="สายการแข่งขัน" />
+          
           <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" />
-          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ประวัติการแข่งขัน" />
+          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ตารางเวลา" />
+          <SidebarLink href="/manage/results-competition" icon={<Medal size={18} />} label="ผลการแข่งขัน" /> 
           <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
         </nav>
       </aside>
@@ -263,9 +228,7 @@ function SidebarLink({
         <motion.span
           whileHover={{ rotate: 8 }}
           transition={{ type: "spring", stiffness: 200 }}
-          className={`${
-            isActive ? "text-pink-700" : "text-pink-600 group-hover:text-pink-700"
-          }`}
+          className={`${isActive ? "text-pink-700" : "text-pink-600 group-hover:text-pink-700"}`}
         >
           {icon}
         </motion.span>
