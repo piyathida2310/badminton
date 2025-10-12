@@ -295,7 +295,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
       </div>
 
       {rounds.length === 0 && (
-        <div className="text-center py-6 text-white/80 text-sm italic">
+        <div className="text-center py-6 text-white/80 text-2xl italic">
           ยังไม่มีข้อมูลรอบการแข่งขัน
         </div>
       )}
@@ -375,59 +375,70 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
 
 
         {/* ---------- หน้า 3: กติกาและข้อควรระวัง ---------- */}
-        {page === "rules" && (
-          <motion.div
-            key="rules"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.5 }}
-            className="w-[90%] max-w-4xl bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-[0_20px_80px_rgba(0,0,0,0.45)] p-6 text-white py-8 mt-12 mb-16"
-          >
-            <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 drop-shadow">
-              กติกาและข้อควรระวัง
-            </h1>
+       {page === "rules" && (
+  <motion.div
+    key="rules"
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -30 }}
+    transition={{ duration: 0.5 }}
+    className="w-[90%] max-w-4xl 
+               bg-gradient-to-br from-[#FFB6B9] via-[#FFDAB9] to-[#FFDFAE]
+               backdrop-blur-xl rounded-3xl border border-white/40 
+               shadow-[0_20px_80px_rgba(255,182,193,0.3)]
+               p-6 text-slate-700 py-8 mt-12 mb-16"
+  >
+    <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-pink-600 drop-shadow-sm">
+      กติกาและข้อควรระวัง
+    </h1>
 
-            <div className="overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#B47AFF]/50 hover:scrollbar-thumb-[#D9B3FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
-              <label className="block text-white/90 text-sm">
-                <div className="mb-2 font-medium">แก้ไขเนื้อหากติกา</div>
-                <textarea
-                  value={rulesText}
-                  onChange={(e) => setRulesText(e.target.value)}
-                  className="w-full min-h-[320px] rounded-lg bg-white/5 border border-white/20 px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#9b4fff]/60 text-sm leading-relaxed"
-                  placeholder="พิมพ์กติกาและข้อควรระวังที่นี่"
-                />
-              </label>
-            </div>
+    <div className="overflow-y-auto max-h-[55vh] 
+                    scrollbar-thin scrollbar-thumb-pink-300 
+                    hover:scrollbar-thumb-pink-400 
+                    scrollbar-track-transparent scrollbar-thumb-rounded-full">
+     
+      
+        <textarea
+          value={rulesText}
+          onChange={(e) => setRulesText(e.target.value)}
+          className="w-full min-h-[320px] rounded-lg bg-white/90 border border-pink-200 
+                     px-3 py-2 text-slate-700 placeholder:text-slate-400 
+                     focus:outline-none focus:ring-2 focus:ring-pink-300 
+                     text-sm leading-relaxed shadow-inner"
+          placeholder="พิมพ์กติกาและข้อควรระวังที่นี่"
+        />
+     
+    </div>
 
-            <div className="flex justify-between mt-6">
-             <motion.button
-  whileHover={{
-    scale: 1.07,
-  }}
-  whileTap={{ scale: 0.95 }}
-  onClick={() => setPage("schedule")}
-  className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
-  bg-gradient-to-r from-indigo-400 via-purple-500 to-sky-400"
->
-   ย้อนกลับ
-</motion.button>
+    <div className="flex justify-between mt-6">
+      {/* ปุ่มย้อนกลับ */}
+      <motion.button
+        whileHover={{ scale: 1.07 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setPage("schedule")}
+        className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
+                   bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
+                   hover:from-pink-400 hover:to-yellow-400 
+                   shadow-md transition-all duration-300"
+      >
+        ย้อนกลับ
+      </motion.button>
 
-              <motion.button
-  whileHover={{
-    scale: 1.08,
-  }}
-  whileTap={{ scale: 0.95 }}
-  onClick={() => router.push("/manage")}
-  className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
-  bg-gradient-to-r from-purple-400 via-violet-500 to-pink-400"
->
-  ลงทะเบียน
-</motion.button>
-
-            </div>
-          </motion.div>
-        )}
+      {/* ปุ่มลงทะเบียน */}
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => router.push('/manage')}
+        className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
+                   bg-gradient-to-r from-amber-400 via-pink-400 to-pink-500 
+                   hover:from-pink-500 hover:to-amber-400 
+                   shadow-md transition-all duration-300"
+      >
+        ลงทะเบียน
+      </motion.button>
+    </div>
+  </motion.div>
+)}
       </AnimatePresence>
 
       {/* ---------- Popup (Modal) ---------- */}
