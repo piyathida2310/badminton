@@ -6,15 +6,23 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { jwtConfig } from '../../config/auth.config';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 
 interface JwtPayload {
   sub: string;
-  username: string;
-  role: string;
+  email: string;
   iat?: number;
   exp?: number;
+}
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    sub: string;
+    email: string;
+    permissions: string[];
+    roles: string[];
+  };
 }
 
 @Injectable()
@@ -22,19 +30,23 @@ export class AccessTokenGuard implements CanActivate {
   constructor(private prisma: PrismaService) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
-    const request = ctx.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const req = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
 
-    if (!token) {
-      throw new UnauthorizedException('Access token not found');
+    const accessToken = req.cookies?.at as string | undefined;
+    if (!accessToken) {
+      throw new UnauthorizedException('Missing access token');
     }
 
     try {
-      const decoded = jwt.verify(token, jwtConfig.access.secret);
+      const jwtSecret = process.env.JWT_ACCESS_SECRET;
+      if (!jwtSecret) {
+        throw new UnauthorizedException('JWT secret not configured');
+      }
+      const decoded = jwt.verify(accessToken, jwtSecret);
 
       if (
-        !decoded ||
         typeof decoded === 'string' ||
+        !decoded ||
         typeof decoded !== 'object'
       ) {
         throw new UnauthorizedException('Invalid token format');
@@ -42,18 +54,27 @@ export class AccessTokenGuard implements CanActivate {
 
       const payload = decoded as JwtPayload;
 
-      if (!payload.sub || !payload.username) {
+      if (!payload.sub || !payload.email) {
         throw new UnauthorizedException('Invalid token payload');
       }
-
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prisma.ss_User.findUnique({
         where: {
-          id: parseInt(payload.sub),
+          id: payload.sub,
         },
-        select: {
-          id: true,
-          userName: true,
-          role: true,
+        include: {
+          roles: {
+            include: {
+              role: {
+                include: {
+                  rolePermissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -61,26 +82,34 @@ export class AccessTokenGuard implements CanActivate {
         throw new UnauthorizedException('User not found');
       }
 
-      (request as any).user = {
+      if (!user.isVerify) {
+        throw new UnauthorizedException(
+          'Please verify your email before accessing protected resources',
+        );
+      }
+      const roles = user.roles.map((userRole) => userRole.role.name);
+      const permissions = Array.from(
+        new Set(
+          user.roles.flatMap((userRole) =>
+            userRole.role.rolePermissions.map((rp) => rp.permission.name),
+          ),
+        ),
+      );
+      console.log('permissions', permissions);
+      console.log('roles', roles);
+      req.user = {
         sub: payload.sub,
-        username: user.userName,
-        role: user.role,
+        email: payload.email,
+        roles,
+        permissions,
       };
 
       return true;
     } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new UnauthorizedException('Invalid token');
+      if (error instanceof UnauthorizedException) {
+        throw error;
       }
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new UnauthorizedException('Token expired');
-      }
-      throw new UnauthorizedException('Token verification failed');
+      throw new UnauthorizedException('Invalid/expired access token');
     }
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
   }
 }
