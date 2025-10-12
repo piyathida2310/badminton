@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 
 import React, { useState } from 'react';
@@ -422,5 +421,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-=======
->>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
