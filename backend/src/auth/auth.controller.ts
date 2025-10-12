@@ -18,6 +18,10 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../common/guards/access-token.guard';
+<<<<<<< HEAD
+import { LoginDto, ChangePasswordDto } from './dto/auth.dto';
+import { AuthRegisterDto } from './dto/auth-registor.dto';
+=======
 import {
   SignupDto,
   LoginDto,
@@ -41,6 +45,7 @@ import {
   SetPasswordDto,
   SetPasswordResponseDto,
 } from './dto';
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
 import type { AuthenticatedRequest } from './auth.types';
 import {
   extractDeviceInfo,
@@ -93,6 +98,10 @@ export class AuthController {
     description: 'Token ไม่ถูกต้องหรือหมดอายุ',
     type: ErrorResponse,
   })
+<<<<<<< HEAD
+  async register(@Body() dto: AuthRegisterDto): Promise<TokenResponse> {
+    return this.authService.register(dto);
+=======
   async verifyEmail(
     @Body() dto: VerifyEmailDto,
   ): Promise<VerifyEmailResponseDto> {
@@ -103,6 +112,7 @@ export class AuthController {
       message: result.message,
       userId: result.userId,
     };
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
   }
 
   @Post('login')

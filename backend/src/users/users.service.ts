@@ -7,15 +7,66 @@ import { NewpassWordDto } from './dto';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
+<<<<<<< HEAD
+  async create(
+    email: string,
+    firstName: string,
+    lastName: string,
+    passwordHash: string,
+    role: Role = Role.PLAYER,
+    userName?: string,
+  ) {
+    // Check if email already exists
+    const emailExists = await this.prisma.user.findUnique({
+      where: { email },
+=======
   async create(email: string, passwordHash: string) {
     const normalizedEmail = email.toLowerCase();
     const exists = await this.prisma.ss_User.findUnique({
       where: { email: normalizedEmail },
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
     });
     if (exists) throw new BadRequestException('Email already registered');
 
+<<<<<<< HEAD
+    // Check if username already exists (if provided)
+    if (userName) {
+      const usernameExists = await this.prisma.user.findFirst({
+        where: { userName },
+      });
+      if (usernameExists)
+        throw new BadRequestException('Username already registered');
+    }
+
+    return this.prisma.user.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        userName,
+        password: passwordHash,
+        role,
+      },
+    });
+  }
+
+  findByUsername(userName: string) {
+    return this.prisma.user.findFirst({
+      where: { userName },
+      select: {
+        id: true,
+        userName: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        password: true,
+        role: true,
+        createdAt: true,
+      },
+=======
     return this.prisma.ss_User.create({
       data: { email: normalizedEmail, passwordHash },
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
     });
   }
 

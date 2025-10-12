@@ -33,6 +33,19 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
+<<<<<<< HEAD
+  private signAccessToken(
+    userId: number,
+    username: string,
+    role: string,
+  ): TokenResponse {
+    const payload: JwtPayload = { sub: userId.toString(), username, role };
+    const accessToken = jwt.sign(payload, jwtConfig.access.secret, {
+      expiresIn: jwtConfig.access.expiresIn,
+    } as jwt.SignOptions);
+    const expiresIn = this.parseExpiresIn(jwtConfig.access.expiresIn);
+
+=======
   private signAccessToken(userId: string, username: string): string {
     return jwt.sign({ sub: userId, username }, jwtConfig.access.secret, {
       expiresIn: jwtConfig.access.expiresIn,
@@ -50,6 +63,7 @@ export class AuthService {
   private buildTokens(userId: string, username: string): JwtPair {
     const accessToken = this.signAccessToken(userId, username);
     const expiresInSeconds = this.parseExpiresIn(jwtConfig.access.expiresIn);
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
     return {
       accessToken: { token: accessToken, expiresIn: expiresInSeconds },
       refreshToken: this.signRefreshToken(userId, username),
@@ -92,6 +106,55 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
+<<<<<<< HEAD
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const user = await this.users.create(
+      dto.email,
+      firstName,
+      lastName,
+      hashedPassword,
+      dto.role,
+      dto.username,
+    );
+    return this.signAccessToken(
+      user.id,
+      user.userName || user.email,
+      user.role,
+    );
+  }
+
+  async login(dto: LoginDto): Promise<TokenResponse> {
+    // Find user by email
+    const user = await this.users.findByEmail(dto.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.signAccessToken(
+      user.id,
+      user.userName || user.email,
+      user.role,
+    );
+  }
+
+  async getUserProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: parseInt(userId) },
+      select: {
+        id: true,
+        userName: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        createdAt: true,
+=======
     const user = await this.prisma.ss_User.create({
       data: {
         username: normalizedUsername,
@@ -102,6 +165,7 @@ export class AuthService {
         phone: dto.phone,
         description: dto.description,
         isVerify: true, // User is verified by default
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
       },
     });
 
@@ -234,11 +298,21 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
+<<<<<<< HEAD
+    // Verify old password
+    const isOldPasswordValid = await bcrypt.compare(
+      dto.oldPassword,
+      user.password,
+    );
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+=======
     if (user.isDeleted) {
       throw new UnauthorizedException('Account has been deleted');
     }
     if (!user.isActive) {
       throw new UnauthorizedException('Account has been deactivated');
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

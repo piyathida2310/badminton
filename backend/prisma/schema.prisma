@@ -7,6 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+<<<<<<< HEAD
+// =========================
+// Enums
+// =========================
+enum Role {
+  
+  ORGANIZER
+  PLAYER
+}
+
+enum PlayType {
+  SINGLE
+  DOUBLE
+
+}
+
+enum TeamType {
+  SINGLE
+  DOUBLE
+  
+=======
 model ms_Role {
   id              String              @id @default(uuid())
   name            String              @unique
@@ -61,6 +82,7 @@ model ss_User {
 
   @@index([isActive])
   @@index([isDeleted])
+>>>>>>> parent of 6b10c1e (login กับ registor เสร็จเเล้ว backend กับ frontend)
 }
 
 model sa_RefreshToken {
