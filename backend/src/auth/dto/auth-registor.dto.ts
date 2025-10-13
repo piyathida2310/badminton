@@ -7,7 +7,11 @@ import {
   IsEmail,
   IsOptional,
 } from 'class-validator';
-import { Role } from '../../common/enums/role.enum';
+
+export enum Role {
+  ORGANIZER = 'ORGANIZER',
+  PLAYER = 'PLAYER',
+}
 
 export class AuthRegisterDto {
   @ApiProperty({
