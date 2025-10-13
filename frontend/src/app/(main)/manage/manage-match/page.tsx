@@ -240,7 +240,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                 className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-white text-base transition-all duration-300
                   ${
                     isFormComplete
-                      ? "bg-gradient-to-r from-orange-400 via-pink-500 to-amber-500 hover:from-pink-500 hover:to-orange-400"
+                      ? "bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 hover:from-pink-400 hover:to-yellow-400"
                       : "bg-gray-300/50 text-gray-500 cursor-not-allowed"
                   }`}
                 onClick={handleNext}
@@ -260,7 +260,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
     exit={{ opacity: 0, y: -30 }}
     transition={{ duration: 0.5 }}
     className="w-[90%] max-w-4xl 
-      bg-gradient-to-br from-[#f3a5e7] via-[#fbbe95] to-[#f8db83] 
+      bg-gradient-to-br from-[#ffaff3] via-[#fbbe95] to-[#f8db83] 
       backdrop-blur-xl rounded-3xl border border-white/30 shadow-[0_10px_60px_rgba(0,0,0,0.25)] 
       p-6 text-slate-800 py-8 mt-12 mb-16 transition-all duration-500"
   >
@@ -289,7 +289,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                  scrollbar-track-transparent scrollbar-thumb-rounded-full"
     >
       {/* Header ตาราง */}
-      <div className="grid grid-cols-2 text-2xl bg-gradient-to-r from-pink-400 via-pink-400 to-sky-400 text-white font-bold text-center py-3 rounded-t-lg shadow-inner">
+      <div className="grid grid-cols-2 text-2xl bg-gradient-to-r from-[#ffdf6a] via-[#ffadad] to-[#ff6ca2]  text-white font-bold text-center py-3 rounded-t-lg shadow-inner">
         <div>เวลาประมาณ</div>
         <div>กำหนดการ</div>
       </div>
@@ -355,7 +355,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileTap={{ scale: 0.95 }}
         onClick={() => setPage("organize")}
         className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
-          bg-gradient-to-r from-red-400 via-red-400 to-orange-400 hover:from-orange-400 hover:to-red-400 shadow-md"
+          bg-[#bdbdbd]  shadow-md"
       >
         ย้อนกลับ
       </motion.button>
@@ -365,7 +365,8 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileTap={{ scale: 0.95 }}
         onClick={() => setPage("rules")}
         className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
-          bg-gradient-to-r from-emerald-500 via-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-400 shadow-md"
+          bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
+                   hover:from-pink-400 hover:to-yellow-400 shadow-md"
       >
         ถัดไป
       </motion.button>
@@ -417,8 +418,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileTap={{ scale: 0.95 }}
         onClick={() => setPage("schedule")}
         className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
-                   bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
-                   hover:from-pink-400 hover:to-yellow-400 
+                   bg-[#bdbdbd]
                    shadow-md transition-all duration-300"
       >
         ย้อนกลับ
@@ -430,8 +430,8 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileTap={{ scale: 0.95 }}
         onClick={() => router.push('/manage')}
         className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
-                   bg-gradient-to-r from-amber-400 via-pink-400 to-pink-500 
-                   hover:from-pink-500 hover:to-amber-400 
+                  bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
+                   hover:from-pink-400 hover:to-yellow-400
                    shadow-md transition-all duration-300"
       >
         ลงทะเบียน
