@@ -173,7 +173,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <SidebarLink href="/manage/bracket" icon={<Swords size={18} />} label="สายการแข่งขัน" onClick={onClose} />
           
           <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose} />
-          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ตารางเวลา" onClick={onClose} />
+          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="Court Running " onClick={onClose} />
           <SidebarLink href="/manage/results-competition" icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} /> 
           <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
@@ -190,7 +190,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <SidebarLink href="/manage/bracket" icon={<Swords size={18} />} label="สายการแข่งขัน" />
           
           <SidebarLink href="/manage/players-status" icon={<Users size={18} />} label="สถานะผู้แข่ง" />
-          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="ตารางเวลา" />
+          <SidebarLink href="/manage/match-history" icon={<Clock size={18} />} label="Court Running " />
           <SidebarLink href="/manage/results-competition" icon={<Medal size={18} />} label="ผลการแข่งขัน" /> 
           <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
         </nav>
