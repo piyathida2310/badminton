@@ -18,31 +18,54 @@ export default function TournamentGroupPage() {
           color:
             "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
           header: "bg-yellow-400/80 text-yellow-900",
-          teams: ["Smash Warriors", "Shuttle Kings", "Net Masters", "Power Drive"],
+          teams: [
+            "Smash Warriors",
+            "Shuttle Kings",
+            "Net Masters",
+            "Power Drive",
+          ],
         },
         {
           name: "Group B",
           color: "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
           header: "bg-blue-400/80 text-blue-900",
-          teams: ["Lightning Shots", "Speed Feathers", "Sky Smashers", "Drop Shot Crew"],
+          teams: [
+            "Lightning Shots",
+            "Speed Feathers",
+            "Sky Smashers",
+            "Drop Shot Crew",
+          ],
         },
         {
           name: "Group C",
           color: "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
           header: "bg-pink-400/80 text-pink-900",
-          teams: ["Net Killers", "Clear Fighters", "Birdie Hunters", "Spin Attack"],
+          teams: [
+            "Net Killers",
+            "Clear Fighters",
+            "Birdie Hunters",
+            "Spin Attack",
+          ],
         },
         {
           name: "Group D",
-          color: "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
+          color:
+            "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
           header: "bg-green-400/80 text-green-900",
-          teams: ["Thunder Racquets", "Rapid Smash", "Ace Strikers", "Golden Shuttle"],
+          teams: [
+            "Thunder Racquets",
+            "Rapid Smash",
+            "Ace Strikers",
+            "Golden Shuttle",
+          ],
         },
       ],
     },
   };
 
-  const [groups, setGroups] = useState<any[]>(dataByTypeAndDate[matchType][selectedDate]);
+  const [groups, setGroups] = useState<any[]>(
+    dataByTypeAndDate[matchType][selectedDate]
+  );
   useEffect(() => {
     setGroups(dataByTypeAndDate[matchType][selectedDate] || []);
   }, [selectedDate, matchType]);
@@ -63,8 +86,8 @@ export default function TournamentGroupPage() {
         className="text-center mb-10 z-10"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
-          รายการแข่ง Rank BG ประเภท{" "}
-          {matchType === "single" ? "เดี่ยว" : "คู่"} {totalTeams} ทีม
+          รายการแข่ง Rank BG ประเภท {matchType === "single" ? "เดี่ยว" : "คู่"}{" "}
+          {totalTeams} ทีม
         </h1>
         <p className="text-blue-700 font-semibold text-base sm:text-lg mt-2">
           วันที่{" "}
@@ -119,7 +142,7 @@ export default function TournamentGroupPage() {
             key={group.name}
             whileHover={{ scale: 1.04 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            onClick={() => router.push("/manage/group/group-stage-scores")} // 🆕 เมื่อคลิกแล้วเด้งไปหน้าใหม่
+            onClick={() => router.push(`/manage/group/group-stage-scores?group=${group.name}`)}// 🆕 เมื่อคลิกแล้วเด้งไปหน้าใหม่
             className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${group.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
           >
             <div
