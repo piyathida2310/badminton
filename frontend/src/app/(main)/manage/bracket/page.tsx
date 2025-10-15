@@ -1,214 +1,201 @@
 "use client";
 
-import { Bracket, Seed, SeedItem, SeedTeam, IRoundProps } from "react-brackets";
+import React from "react";
+import Link from "next/link";
+
+//  เส้นที่ปรับองศา/ความยาวได้ง่าย
+const Line = ({
+  length = 100,
+  angle = 0,
+  thickness = 2,
+  color = "#000",
+  top = 0,
+  left = 0,
+}: {
+  length?: number;
+  angle?: number;
+  thickness?: number;
+  color?: string;
+  top?: number;
+  left?: number;
+}) => {
+  return (
+    <div
+      className="absolute origin-left"
+      style={{
+        top,
+        left,
+        width: `${length}px`,
+        height: `${thickness}px`,
+        backgroundColor: color,
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: "left center",
+      }}
+    />
+  );
+};
 
 export default function TournamentBracket() {
-  const teamCount = 12; // 👈 เปลี่ยนจำนวนทีมได้ (12, 24, 32)
-  const { upperRounds, lowerRounds } = generateDoubleElimination(teamCount);
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#F9FAFB] to-[#F0F4FF] flex flex-col items-center py-10">
-      {/* Title */}
-      <h1 className="text-3xl md:text-4xl font-extrabold text-blue-700 mb-10 text-center drop-shadow-sm">
-        🏸 แผนผังการแข่งขันประเภทเดี่ยว {teamCount} ทีม
+    <div className="min-h-screen bg-[#f9f9f0] flex flex-col items-center py-10 relative overflow-hidden">
+       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
+        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม (บน)
       </h1>
+      {/* Header */}
+      <div className="flex justify-between w-[80%] mb-6 text-sm text-gray-700 font-medium">
+        <div className="w-1/4 text-center">Round of 16</div>
+        <div className="w-1/4 text-center">Round of 8</div>
+        <div className="w-1/4 text-center">Semi - Finals</div>
+        <div className="w-1/4 text-center">Finals</div>
+      </div>
 
-      {/*  สายบน  */}
-      <section className="w-full flex flex-col items-center mb-16">
-        <h2 className="text-lg md:text-xl font-semibold text-blue-600 mb-4">
-          🏆 สายบน (Upper Bracket)
-        </h2>
-        <div
-          className="flex justify-center w-full max-w-[1200px]"
-          style={{
-            transform: "scale(0.8)",
-            transformOrigin: "top center",
-          }}
-        >
-          <Bracket
-            rounds={upperRounds}
-            renderSeedComponent={(props) => <CustomSeed {...props} type="upper" />}
-            swipeable={false}
-          />
+      {/* Bracket Container */}
+      <div className="flex justify-center gap-10 w-full px-10">
+        {/* Column 1 */}
+        <div className="flex flex-col justify-between h-[600px]">
+          {[
+            ["Smash Warriors", true],
+            ["Net Masters", false],
+            ["Speed Feathers", false],
+            ["Sky Smashers", true],
+            ["Clear Fighters", true],
+            ["Birdie Hunters", false],
+            ["Rapid Smash", true],
+            ["Golden Shuttle", false],
+          ].map(([team, win], i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1"
+            >
+              <span className="text-sm font-medium text-gray-800">
+                {team as string}
+              </span>
+              <div
+                className={`w-4 h-4 rounded-sm ${
+                  win ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+            </div>
+          ))}
         </div>
-      </section>
 
-      {/*  สายล่าง  */}
-      <section className="w-full flex flex-col items-center">
-        <h2 className="text-lg md:text-xl font-semibold text-amber-600 mb-4">
-          🔄 สายล่าง (Lower Bracket)
-        </h2>
-        <div
-          className="flex justify-center w-full max-w-[1200px]"
-          style={{
-            transform: "scale(0.8)",
-            transformOrigin: "top center",
-          }}
-        >
-          <Bracket
-            rounds={lowerRounds}
-            renderSeedComponent={(props) => <CustomSeed {...props} type="lower" />}
-            swipeable={false}
-          />
+        {/* Column 2 */}
+        <div className="flex flex-col justify-between h-[520px] mt-10">
+          {[
+            ["Smash Warriors", true],
+            ["Sky Smashers", false],
+            ["Clear Fighters", true],
+            ["Rapid Smash", false],
+          ].map(([team, win], i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1"
+            >
+              <span className="text-sm font-medium text-gray-800">
+                {team as string}
+              </span>
+              <div
+                className={`w-4 h-4 rounded-sm ${
+                  win ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+            </div>
+          ))}
         </div>
-      </section>
 
-      <button className="mt-12 bg-gradient-to-r from-blue-600 to-amber-400 hover:opacity-90 text-white font-bold px-10 py-2 rounded-full shadow-md transition-all">
-        ต่อไป
-      </button>
-    </main>
+        {/* Column 3 */}
+        <div className="flex flex-col justify-between h-[360px] mt-30">
+          {[
+            ["Smash Warriors", true],
+            ["Clear Fighters", false],
+          ].map(([team, win], i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1"
+            >
+              <span className="text-sm font-medium text-gray-800">
+                {team as string}
+              </span>
+              <div
+                className={`w-4 h-4 rounded-sm ${
+                  win ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Column 4 */}
+        <div className="flex flex-col justify-center h-[300px] mt-35">
+          <div className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1">
+            <span className="text-sm font-medium text-gray-800">
+              Smash Warriors
+            </span>
+            <div className="w-4 h-4 rounded-sm bg-green-500"></div>
+          </div>
+        </div>
+      </div>
+
+      {/*  เส้นเชื่อมแบบปรับได้ 1*/}
+      <div>
+        <Line top={175} left={380} length={20} angle={1} color="#555" />
+        <Line top={255} left={380} length={20} angle={1} color="#555" />
+        <Line top={175} left={400} length={81} angle={90} color="#555" />
+        <Line top={215} left={400} length={21} angle={1} color="#555" />
+      </div>
+
+      {/*  เส้นเชื่อมแบบปรับได้ 2*/}
+      <div>
+        <Line top={335} left={380} length={20} angle={1} color="#555" />
+        <Line top={420} left={380} length={20} angle={1} color="#555" />
+        <Line top={335} left={400} length={86} angle={90} color="#555" />
+        <Line top={380} left={400} length={21} angle={1} color="#555" />
+      </div>
+      
+      <div>
+        <Line top={500} left={380} length={20} angle={1} color="#555" />
+        <Line top={580} left={380} length={20} angle={1} color="#555" />
+        <Line top={500} left={400} length={82} angle={90} color="#555" />
+        <Line top={540} left={400} length={21} angle={1} color="#555" />
+      </div>
+
+      <div>
+        <Line top={665} left={380} length={20} angle={1} color="#555" />
+        <Line top={745} left={380} length={20} angle={1} color="#555" />
+        <Line top={665} left={400} length={81} angle={90} color="#555" />
+        <Line top={705} left={400} length={21} angle={1} color="#555" />
+      </div>
+
+      {/* เส้นของ column2-3*/}    
+      <div>
+        <Line top={215} left={613} length={20} angle={1} color="#555" />
+        <Line top={380} left={613} length={20} angle={1} color="#555" />
+        <Line top={215} left={632} length={165} angle={90} color="#555" />
+        <Line top={295} left={630} length={23} angle={1} color="#555" />
+      </div>
+      
+      <div>
+        <Line top={540} left={613} length={20} angle={1} color="#555" />
+        <Line top={705} left={613} length={20} angle={1} color="#555" />
+        <Line top={540} left={632} length={166} angle={90} color="#555" />
+        <Line top={625} left={630} length={23} angle={1} color="#555" />
+      </div>
+
+      {/* เส้นของ column3-4*/}    
+      <div>
+        <Line top={295} left={845} length={20} angle={1} color="#555" />
+        <Line top={625} left={845} length={20} angle={1} color="#555" />
+        <Line top={295} left={865} length={330} angle={90} color="#555" />
+        <Line top={450} left={865} length={20} angle={1} color="#555" />
+      </div>
+      {/* Button Next */}
+      <Link
+        href="/manage/bracket/lowmatch"
+        className="absolute bottom-10 right-10 bg-amber-500 text-white font-medium rounded-md px-6 py-2 hover:bg-amber-600 transition"
+      >
+        ถัดไป
+      </Link>
+
+    </div>
   );
-}
-
-/* -------------------- Custom Seed Component -------------------- */
-function CustomSeed({ seed, breakpoint, type }: any) {
-  const { teams } = seed;
-
-  return (
-    <Seed mobileBreakpoint={breakpoint}>
-      <SeedItem className="bg-transparent border-none shadow-none">
-        <div className="flex flex-col space-y-1">
-          {teams.map((team: any, idx: number) => {
-            const isWinner = team.win;
-            const colorScheme =
-              type === "upper"
-                ? isWinner
-                  ? "border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]"
-                  : "border-blue-300"
-                : isWinner
-                  ? "border-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.4)]"
-                  : "border-gray-300";
-
-            return (
-              <SeedTeam
-                key={idx}
-                className={`flex justify-between items-center w-48 px-3 py-1 text-sm md:text-base rounded-full border ${colorScheme} bg-white transition-all duration-200`}
-              >
-                <span className="text-gray-900 font-semibold truncate">
-                  {team.name || "—"}
-                </span>
-                <span
-                  className={`w-2.5 h-2.5 rounded-full ${
-                    isWinner ? "bg-amber-400" : "bg-gray-300"
-                  }`}
-                />
-              </SeedTeam>
-            );
-          })}
-        </div>
-      </SeedItem>
-    </Seed>
-  );
-}
-
-/*   Mock ทีมสายบน-ล่าง */
-function generateDoubleElimination(teamCount: number) {
-  const mockNames = [
-    "Smash Warriors", "Sky Smashers", "Birdie Blazers",
-    "Shuttle Kings", "Clear Fighters", "Feather Force", "Rapid Smash",
-    "Golden Shuttle", "Racket Raiders", "Power Drops", "Net Ninjas",
-    "Spin Serves", "Ace Hunters", "Court Crushers", "Lightning Birds",
-    "Speed Feathers", "Fire Flickers", "Air Smashers", "Drop Dominators",
-    "Backhand Bandits", "Rally Riders", "Birdie Breakers", "Net Stormers",
-    "Clear Commanders", "Ace Angels", "Shuttle Snipers", "Winged Warriors",
-    "Blazing Birds", "Strike Hawks", "Feathered Fury", "Racket Rockets",
-  ];
-
-  const teams = Array.from({ length: teamCount }, (_, i) => ({
-    name: mockNames[i % mockNames.length],
-  }));
-
-  /* ---------------- สายบน ---------------- */
-  const upperRounds: IRoundProps[] = [];
-  let currentTeams = [...teams];
-  let roundNum = 1;
-
-  while (currentTeams.length > 1) {
-    const nextRound: any[] = [];
-    const seeds = [];
-
-    for (let i = 0; i < currentTeams.length; i += 2) {
-      const teamA = currentTeams[i];
-      const teamB = currentTeams[i + 1];
-      if (!teamB) {
-        seeds.push({
-          id: i / 2 + 1,
-          teams: [{ name: teamA.name, win: true }, { name: "BYE", win: false }],
-        });
-        nextRound.push(teamA);
-      } else {
-        const winner = Math.random() > 0.5 ? teamA : teamB;
-        seeds.push({
-          id: i / 2 + 1,
-          teams: [
-            { name: teamA.name, win: winner === teamA },
-            { name: teamB.name, win: winner === teamB },
-          ],
-        });
-        nextRound.push(winner);
-      }
-    }
-
-    upperRounds.push({
-      title:
-        currentTeams.length === 2
-          ? "Finals"
-          : currentTeams.length === 4
-          ? "Semi Finals"
-          : `Round ${roundNum}`,
-      seeds,
-    });
-
-    currentTeams = nextRound;
-    roundNum++;
-  }
-
-  /* ---------------- สายล่าง ---------------- */
-  const lowerTeams = teams.slice(0, Math.ceil(teamCount / 2));
-  const lowerRounds: IRoundProps[] = [];
-  let lowerCurrent = lowerTeams;
-  let lowerRoundNum = 1;
-
-  while (lowerCurrent.length > 1) {
-    const next: any[] = [];
-    const seeds = [];
-
-    for (let i = 0; i < lowerCurrent.length; i += 2) {
-      const teamA = lowerCurrent[i];
-      const teamB = lowerCurrent[i + 1];
-
-      if (!teamB) {
-        seeds.push({
-          id: i / 2 + 1,
-          teams: [{ name: teamA.name, win: true }, { name: "BYE", win: false }],
-        });
-        next.push(teamA);
-      } else {
-        const winner = Math.random() > 0.5 ? teamA : teamB;
-        seeds.push({
-          id: i / 2 + 1,
-          teams: [
-            { name: teamA.name, win: winner === teamA },
-            { name: teamB.name, win: winner === teamB },
-          ],
-        });
-        next.push(winner);
-      }
-    }
-
-    lowerRounds.push({
-      title:
-        lowerCurrent.length === 2
-          ? "Lower Finals"
-          : lowerCurrent.length === 4
-          ? "Lower Semi Finals"
-          : `Lower Round ${lowerRoundNum}`,
-      seeds,
-    });
-
-    lowerCurrent = next;
-    lowerRoundNum++;
-  }
-
-  return { upperRounds, lowerRounds };
 }
