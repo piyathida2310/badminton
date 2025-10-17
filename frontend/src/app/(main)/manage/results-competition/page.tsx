@@ -43,22 +43,6 @@ const resultsByDate: Record<string, SectionData[]> = {
           player1: "อนุสรณ์ (แท็บ)",
           player2: "สุภาภรณ์ (ยุ้ย)",
         },
-        {
-          position: "รองชนะเลิศอันดับ 2 (ร่วม)",
-          rank: "3rd (1)",
-          code: "NB1A",
-          team: "หน่าแข็ม",
-          player1: "ลูกแพร",
-          player2: "ต่อมแต้ม",
-        },
-        {
-          position: "รองชนะเลิศอันดับ 2 (ร่วม)",
-          rank: "3rd (2)",
-          code: "NB1G",
-          team: "โรจน์",
-          player1: "มนตรี (ชายแดน)",
-          player2: "วัชรัช (กร้อ)",
-        },
       ],
     },
     {
@@ -80,19 +64,20 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "NET KING",
           player1: "ศุภวิชญ์ (เบส)",
         },
+      ],
+    },
+    {
+      title: "BG ประเภทคู่",
+      color: "from-purple-100 to-pink-100",
+      type: "double",
+      matches: [
         {
-          position: "รองชนะเลิศอันดับ 2 (ร่วม)",
-          rank: "3rd (1)",
-          code: "N1C",
-          team: "POWER DROP",
-          player1: "ธนกฤต (อาร์ม)",
-        },
-        {
-          position: "รองชนะเลิศอันดับ 2 (ร่วม)",
-          rank: "3rd (2)",
-          code: "N1D",
-          team: "CLEAR WINNER",
-          player1: "ณัฐภัทร (ตูน)",
+          position: "ชนะเลิศ",
+          rank: "1st",
+          code: "BG1A",
+          team: "LUCKY BIRD",
+          player1: "พีรพงศ์",
+          player2: "ชัชวาลย์",
         },
       ],
     },
@@ -102,14 +87,27 @@ const resultsByDate: Record<string, SectionData[]> = {
 export default function ResultSummaryPage() {
   const [selectedDate, setSelectedDate] = useState("2025-06-15");
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
+  const [selectedRank, setSelectedRank] = useState("all"); // ✅ Rank filter
 
   const results = resultsByDate[selectedDate] || [];
 
-  // 🎯 กรองข้อมูลตามประเภท
-  const filteredResults =
+  // 🎯 กรองข้อมูลตามประเภท (single/double)
+  let filteredResults =
     filterType === "all"
       ? results
       : results.filter((section) => section.type === filterType);
+
+  // 🎯 เพิ่มกรองตาม Rank (BG, NB, N, S, P+, P−)
+  if (selectedRank !== "all") {
+    filteredResults = filteredResults
+      .map((section) => ({
+        ...section,
+        matches: section.matches.filter((m) =>
+          m.code.startsWith(selectedRank)
+        ),
+      }))
+      .filter((section) => section.matches.length > 0);
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
@@ -124,6 +122,7 @@ export default function ResultSummaryPage() {
 
           {/* ปฏิทิน + Dropdown filter */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
+            {/* วันที่แข่งขัน */}
             <div className="flex items-center gap-2">
               <label htmlFor="competition-date" className="font-medium text-gray-800">
                 วันที่แข่งขัน:
@@ -137,6 +136,7 @@ export default function ResultSummaryPage() {
               />
             </div>
 
+            {/* ประเภท */}
             <div className="flex items-center gap-2">
               <label htmlFor="filter-type" className="font-medium text-gray-800">
                 ประเภท:
@@ -150,6 +150,27 @@ export default function ResultSummaryPage() {
                 <option value="all">ทั้งหมด</option>
                 <option value="double">ประเภทคู่ 👫</option>
                 <option value="single">ประเภทเดี่ยว 🏸</option>
+              </select>
+            </div>
+
+            {/* ✅ Rank Dropdown */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="rank-filter" className="font-medium text-gray-800">
+                Rank:
+              </label>
+              <select
+                id="rank-filter"
+                value={selectedRank}
+                onChange={(e) => setSelectedRank(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+              >
+                <option value="all">ทั้งหมด</option>
+                <option value="BG">BG</option>
+                <option value="NB">NB</option>
+                <option value="N">N</option>
+                <option value="S">S</option>
+                <option value="P+">P+</option>
+                <option value="P-">P-</option>
               </select>
             </div>
           </div>
@@ -172,7 +193,7 @@ export default function ResultSummaryPage() {
         </div>
       ) : (
         <div className="text-center text-gray-600 mt-10">
-          <p>📅 ยังไม่มีผลการแข่งขันสำหรับวันที่ {selectedDate}</p>
+          <p>📅 ยังไม่มีผลการแข่งขันตามเงื่อนไขที่เลือก</p>
         </div>
       )}
     </main>
@@ -189,7 +210,7 @@ function Section({
   color: string;
   matches: Match[];
 }) {
-  const hasDouble = matches.some((m) => m.player2); // ตรวจว่ามีผู้เล่น 2 หรือไม่
+  const hasDouble = matches.some((m) => m.player2);
 
   return (
     <section
