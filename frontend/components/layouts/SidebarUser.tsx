@@ -14,7 +14,7 @@ import {
   BookOpen,
   Swords,
   UserCircle2,
-  History, 
+  History,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -32,8 +32,12 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
     { href: "/user/match-rules", icon: <BookOpen size={18} />, label: "กติกา" },
     { href: "/user/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
     { href: "/user/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+
+    
+    { href: "/user/court-running", icon: <Clock size={18} />, label: "Court Running" },
+
     { href: "/user/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: "/user/user-history", icon: <History size={18} />, label: "ประวัติการแข่งขัน" }, 
+    { href: "/user/user-history", icon: <History size={18} />, label: "ประวัติการแข่งขัน" },
     { href: "/user/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
   ];
 
