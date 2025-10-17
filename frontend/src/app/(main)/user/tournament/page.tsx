@@ -63,7 +63,7 @@ export default function TournamentPage() {
         <p className="text-center text-gray-500 mt-20">ยังไม่มีข้อมูลการแข่งขัน</p>
       ) : (
         <>
-          {/* 🏸 แสดงรายการการแข่งขัน */}
+          {/* แสดงรายการการแข่งขัน */}
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {currentTournaments.map((t) => (
               <motion.div
