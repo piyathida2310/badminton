@@ -157,7 +157,7 @@ export default function MatchTable() {
   return (
     <div className="mt-6 w-full">
       {/*ปุ่มย้อนกลับ */}
-      <div className="flex items-center mb-5 px-2">
+      {/* <div className="flex items-center mb-5 px-2">
         <Link
           href="/manage/group"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full
@@ -169,7 +169,7 @@ export default function MatchTable() {
           <ArrowLeft size={18} className="text-pink-600" />
           <span className="text-sm">ย้อนกลับ</span>
         </Link>
-      </div>
+      </div> */}
 
       {/* 🔹 Filter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
