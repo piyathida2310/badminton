@@ -8,15 +8,15 @@ import {
   Filter,
   User,
   Users,
-  ArrowLeft, 
+  ArrowLeft,
 } from "lucide-react";
-import Link from "next/link"; //สำหรับลิงก์
+import Link from "next/link";
 
 interface Match {
   id: number;
   court: string;
   status: "รอแข่ง" | "กำลังแข่ง" | "แข่งสำเร็จ";
-  matchType: "single" | "double"; 
+  matchType: "single" | "double";
   timeIn: string;
   timeOut: string;
   duration: string;
@@ -42,7 +42,7 @@ const mockData: Match[] = [
     timeOut: "21:23",
     duration: "00:44",
     type: "N",
-    round: "QF",
+    round: "Round1",
     group: "N1A",
     team1: "MASTERPIECE",
     player1A: "ลดัสซน์",
@@ -60,8 +60,8 @@ const mockData: Match[] = [
     timeIn: "20:04",
     timeOut: "-",
     duration: "-",
-    type: "N",
-    round: "QF",
+    type: "S",
+    round: "Semi-Final",
     group: "N1C",
     team1: "YESMINTON",
     player1A: "ศุภชัย",
@@ -77,8 +77,8 @@ const mockData: Match[] = [
     timeIn: "-",
     timeOut: "-",
     duration: "-",
-    type: "N",
-    round: "QF",
+    type: "P+",
+    round: "Round1",
     group: "N1E",
     team1: "MUSE by แม่เปิ้ล",
     player1A: "ญาณภัทร",
@@ -110,7 +110,9 @@ export default function MatchTable() {
       "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border backdrop-blur-sm";
     if (status === "รอแข่ง")
       return (
-        <span className={`${base} border-yellow-200 bg-yellow-100/70 text-yellow-800`}>
+        <span
+          className={`${base} border-yellow-200 bg-yellow-100/70 text-yellow-800`}
+        >
           <Clock size={12} /> {status}
         </span>
       );
@@ -156,21 +158,6 @@ export default function MatchTable() {
 
   return (
     <div className="mt-6 w-full">
-      {/*ปุ่มย้อนกลับ */}
-      {/* <div className="flex items-center mb-5 px-2">
-        <Link
-          href="/manage/group"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full
-            bg-gradient-to-r from-pink-100 to-amber-100 border border-pink-200 
-            text-pink-700 font-medium shadow-sm hover:shadow-md 
-            hover:from-pink-200 hover:to-amber-200 active:scale-95 
-            transition-all duration-200"
-        >
-          <ArrowLeft size={18} className="text-pink-600" />
-          <span className="text-sm">ย้อนกลับ</span>
-        </Link>
-      </div> */}
-
       {/* 🔹 Filter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
         <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
@@ -184,7 +171,11 @@ export default function MatchTable() {
             value={filter}
             onChange={(e) =>
               setFilter(
-                e.target.value as "ทั้งหมด" | "รอแข่ง" | "กำลังแข่ง" | "แข่งสำเร็จ"
+                e.target.value as
+                  | "ทั้งหมด"
+                  | "รอแข่ง"
+                  | "กำลังแข่ง"
+                  | "แข่งสำเร็จ"
               )
             }
             className="w-full appearance-none py-2 px-4 rounded-xl text-sm font-medium text-gray-700
@@ -213,6 +204,7 @@ export default function MatchTable() {
                 {[
                   "แมทช์",
                   "ประเภท",
+                  "รอบ",
                   "Court",
                   "สถานะ",
                   "เวลาเข้า",
@@ -243,9 +235,8 @@ export default function MatchTable() {
                   }`}
                 >
                   <td className="p-2 border border-gray-300">{m.id}</td>
-                  <td className="p-2 border border-gray-300">
-                    {m.matchType === "single" ? "เดี่ยว" : "คู่"}
-                  </td>
+                  <td className="p-2 border border-gray-300">{m.type}</td>
+                  <td className="p-2 border border-gray-300">{m.round}</td>
                   <td className="p-2 border border-gray-300">{m.court}</td>
                   <td className="p-2 border border-gray-300">
                     {renderStatusBadge(m.status)}
@@ -301,7 +292,9 @@ export default function MatchTable() {
               <p className="font-semibold text-gray-800">
                 {m.group} | {m.type} ({m.round})
               </p>
-              <div className="mt-1">{renderPlayers(m.matchType, m.player1A, m.player1B)}</div>
+              <div className="mt-1">
+                {renderPlayers(m.matchType, m.player1A, m.player1B)}
+              </div>
               <p className="text-center font-bold text-gray-600 mt-1 mb-1">⚔️ VS ⚔️</p>
               <div>{renderPlayers(m.matchType, m.player2A, m.player2B)}</div>
             </div>
