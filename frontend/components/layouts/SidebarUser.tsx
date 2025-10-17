@@ -14,6 +14,7 @@ import {
   BookOpen,
   Swords,
   UserCircle2,
+  History, 
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -27,18 +28,18 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
   const links = [
     // { href: "/", icon: <Home size={18} />, label: "หน้าแรก" },
-    { href: "/user", icon: <Trophy size={18} />, label: "รายการแข่งขัน" },
-    { href: "/rules", icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: "/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: "/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: "/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: "/players", icon: <Users size={18} />, label: "รายชื่อนักกีฬา" },
-    { href: "/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
+    { href: "/user/tournament", icon: <Trophy size={18} />, label: "รายการแข่งขัน" },
+    { href: "/user/match-rules", icon: <BookOpen size={18} />, label: "กติกา" },
+    { href: "/user/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
+    { href: "/user/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+    { href: "/user/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
+    { href: "/user/user-history", icon: <History size={18} />, label: "ประวัติการแข่งขัน" }, 
+    { href: "/user/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
   ];
 
   return (
     <>
-      {/* 🩶 Overlay มือถือ */}
+      {/*  Overlay มือถือ */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -51,7 +52,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
         )}
       </AnimatePresence>
 
-      {/* 💖 Sidebar มือถือ (Slide) */}
+      {/*  Sidebar มือถือ (Slide) */}
       <motion.aside
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? 0 : "-100%" }}
@@ -70,7 +71,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
           </button>
         </div>
 
-        {/* 👤 โปรไฟล์บนมือถือ */}
+        {/* โปรไฟล์บนมือถือ */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/40 backdrop-blur-sm shadow-sm cursor-pointer">
           <Image
             src="/images/bad_logo.png"
@@ -91,7 +92,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
           </div>
         </div>
 
-        {/* 🔗 ลิงก์ใน Sidebar (มือถือ) */}
+        {/*  ลิงก์ใน Sidebar (มือถือ) */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
           {links.map((link) => (
             <motion.div
@@ -116,7 +117,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
           ))}
         </nav>
 
-        {/* ⚙️ ปุ่มออกจากระบบ */}
+        {/* ปุ่มออกจากระบบ */}
         <button
           onClick={() => alert("ออกจากระบบสำเร็จ")}
           className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
@@ -126,7 +127,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
         </button>
       </motion.aside>
 
-      {/* 🌸 Sidebar Desktop ถาวร */}
+      {/*  Sidebar Desktop ถาวร */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
         <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">
           MENU
