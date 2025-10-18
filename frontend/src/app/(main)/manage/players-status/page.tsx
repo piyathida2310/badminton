@@ -54,6 +54,9 @@ export default function RegisterStatusPage() {
   const [modalIndex, setModalIndex] = useState<number | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [videoScore, setVideoScore] = useState<number>(0);
+  // เพิ่ม state สำหรับกรองแรงค์และประเภท
+  const [selectedRank, setSelectedRank] = useState<string>("ทั้งหมด");
+  const [selectedType, setSelectedType] = useState<string>("ทั้งหมด");
 
   // เมื่อกดปุ่ม “ยืนยัน” หรือ “ยกเลิก”
   const handleStatusChange = (
@@ -83,158 +86,226 @@ export default function RegisterStatusPage() {
     }
   };
 
+  // กรองข้อมูลตามแรงค์และประเภทที่เลือก
+  const filteredPlayers = players.filter(
+    (p) =>
+      (selectedRank === "ทั้งหมด" || p.rank === selectedRank) &&
+      (selectedType === "ทั้งหมด" || p.type === selectedType)
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-100 to-amber-50 p-6">
-      <div className="max-w-6xl mx-auto bg-white/90 shadow-xl rounded-2xl overflow-hidden">
-        <h1 className="text-center text-2xl font-bold bg-gradient-to-r bg-gradient-to-r from-[#FFE29F] via-[#FFB6B9] to-[#FA7E9C]  py-4 text-black/70">
-          สถานะการสมัคร
-        </h1>
+      <div className="max-w-6xl mx-auto">
+      <h1
+  className=" text-[36px] font-extrabold text-[#2e2d2d] mb-8 text-center"
+>
+   สถานะการสมัคร 
+</h1>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm md:text-base">
-            <thead className="bg-gradient-to-r from-pink-100 to-amber-100 text-gray-800">
-              <tr>
-                <th className="border p-2">ชื่อทีม</th>
-                <th className="border p-2">ชื่อ-นามสกุล</th>
-                <th className="border p-2">แรงค์</th>
-                <th className="border p-2">ประเภท</th>
-                <th className="border p-2">วิดีโอ</th>
-                <th className="border p-2">คะแนน</th>
-                <th className="border p-2">สถานะ</th>
-                <th className="border p-2">รูปภาพการชำระเงิน</th>
-                <th className="border p-2">สถานะการชำระเงิน</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((p, i) => (
-                <tr
-                  key={i}
-                  className="even:bg-rose-50 odd:bg-pink-50 hover:bg-amber-50 transition-all text-center"
-                >
-                  <td className="border p-2">{p.team}</td>
-                  <td className="border p-2">{p.name}</td>
-                  <td className="border p-2">{p.rank}</td>
-                  <td className="border p-2">{p.type}</td>
 
-                  {/* ปุ่มดูวิดีโอ */}
-                  <td className="border p-2">
-                    <button
-                      onClick={() => {
-                        setModalVideo(p.videoUrl);
-                        setModalIndex(i);
-                      }}
-                      className="px-3 py-1 bg-pink-400 text-white rounded-lg hover:bg-pink-500"
-                    >
-                      ดูวิดีโอ
-                    </button>
-                  </td>
 
-                  {/* คะแนน */}
-                  <td className="border p-2 text-pink-700 font-semibold">
-                    {p.score ? `${p.score} / 10` : "-"}
-                  </td>
 
-                  {/* สถานะ */}
-                  <td className="border p-2">
-                    <div className="flex flex-col items-center gap-2">
-                      <div
-                        className={`text-sm font-semibold ${
-                          p.status === "ผ่าน"
-                            ? "text-green-600"
-                            : p.status === "ไม่ผ่าน"
-                            ? "text-red-500"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {p.status}
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            handleStatusChange(i, "status", "ยืนยัน")
-                          }
-                          className={`px-3 py-1 rounded-lg ${
-                            p.status === "ผ่าน"
-                              ? "bg-green-500 text-white"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          ยืนยัน
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(i, "status", "ยกเลิก")
-                          }
-                          className={`px-3 py-1 rounded-lg ${
-                            p.status === "ไม่ผ่าน"
-                              ? "bg-red-500 text-white"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          ยกเลิก
-                        </button>
-                      </div>
-                    </div>
-                  </td>
 
-                  {/* รูปภาพ slip */}
-                  <td className="border p-2">
-                    <button
-                      onClick={() => setModalImage(p.slipUrl)}
-                      className="px-3 py-1 bg-[#c874d6] text-white rounded-lg hover:bg-gray-500"
-                    >
-                      ดูรูปภาพ
-                    </button>
-                  </td>
 
-                  {/* สถานะการชำระเงิน */}
-                  <td className="border p-2">
-                    <div className="flex flex-col items-center gap-2">
-                      <div
-                        className={`text-sm font-semibold ${
-                          p.paymentStatus === "สำเร็จ"
-                            ? "text-green-600"
-                            : p.paymentStatus === "ไม่สำเร็จ"
-                            ? "text-red-500"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {p.paymentStatus}
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            handleStatusChange(i, "payment", "ยืนยัน")
-                          }
-                          className={`px-3 py-1 rounded-lg ${
-                            p.paymentStatus === "สำเร็จ"
-                              ? "bg-green-500 text-white"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          ยืนยัน
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(i, "payment", "ยกเลิก")
-                          }
-                          className={`px-3 py-1 rounded-lg ${
-                            p.paymentStatus === "ไม่สำเร็จ"
-                              ? "bg-red-500 text-white"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          ยกเลิก
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+
+
+
+        {/* แถบกรองแรงค์และประเภท */}
+        <div className="mt-4 mb-6 flex flex-wrap items-center justify-start gap-3 px-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">แรงค์</span>
+            <select
+              value={selectedRank}
+              onChange={(e) => setSelectedRank(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-pink-50 border border-pink-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            >
+              <option value="ทั้งหมด">ทั้งหมด</option>
+              <option value="BG">BG</option>
+              <option value="NB">NB</option>
+              <option value="N">N</option>
+              <option value="S">S</option>
+              <option value="P-">P-</option>
+              <option value="P+">P+</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">ประเภท</span>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            >
+              <option value="ทั้งหมด">ทั้งหมด</option>
+              <option value="เดี่ยว">เดี่ยว</option>
+              <option value="คู่">คู่</option>
+            </select>
+          </div>
         </div>
+
+        {/* -------- ตารางแสดงสถานะการสมัคร -------- */}
+<div className="overflow-x-auto">
+  {Object.entries(
+    filteredPlayers.reduce((acc: Record<string, Player[]>, p) => {
+      if (!acc[p.team]) acc[p.team] = [];
+      acc[p.team].push(p);
+      return acc;
+    }, {})
+  ).map(([teamName, members]) => (
+    <div
+      key={teamName}
+      className="mb-10 border-4 border-pink-200 rounded-2xl overflow-hidden shadow-lg"
+    >
+      {/* 🩷 หัวทีม */}
+      <h2 className="text-xl font-bold text-center bg-gradient-to-r from-pink-200 to-amber-100 py-3 text-gray-800">
+        ทีม {teamName}
+      </h2>
+
+      <table className="w-full border-collapse text-sm md:text-base">
+        <thead className="bg-gradient-to-r from-pink-100 to-amber-100 text-slate-700">
+          <tr>
+            <th className="border p-2">ชื่อ-นามสกุล</th>
+            <th className="border p-2">แรงค์</th>
+            <th className="border p-2">ประเภท</th>
+            <th className="border p-2">วิดีโอ</th>
+            <th className="border p-2">คะแนน</th>
+            <th className="border p-2">สถานะ</th>
+            <th className="border p-2">รูปภาพการชำระเงิน</th>
+            <th className="border p-2">สถานะการชำระเงิน</th>
+          </tr>
+        </thead>
+        <tbody>
+          {members.map((p, i) => (
+            <tr
+              key={i}
+              className="even:bg-rose-50 odd:bg-pink-50 hover:bg-pink-100 transition-all text-center"
+            >
+              <td className="border p-2">{p.name}</td>
+              <td className="border p-2">{p.rank}</td>
+              <td className="border p-2">{p.type}</td>
+
+              {/* ปุ่มดูวิดีโอ */}
+              <td className="border p-2">
+                <button
+                  onClick={() => {
+                    setModalVideo(p.videoUrl);
+                    setModalIndex(players.indexOf(p));
+                  }}
+                  className="px-3 py-1 bg-pink-400 text-white rounded-lg hover:bg-pink-500"
+                >
+                  ดูวิดีโอ
+                </button>
+              </td>
+
+              {/* คะแนน */}
+              <td className="border p-2 text-pink-700 font-semibold">
+                {p.score ? `${p.score} / 10` : "-"}
+              </td>
+
+              {/* สถานะ */}
+              <td className="border p-2">
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className={`text-sm font-semibold ${
+                      p.status === "ผ่าน"
+                        ? "text-green-600"
+                        : p.status === "ไม่ผ่าน"
+                        ? "text-red-500"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {p.status}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        handleStatusChange(players.indexOf(p), "status", "ยืนยัน")
+                      }
+                      className={`px-3 py-1 rounded-lg ${
+                        p.status === "ผ่าน"
+                          ? "bg-green-500 text-white"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      ยืนยัน
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleStatusChange(players.indexOf(p), "status", "ยกเลิก")
+                      }
+                      className={`px-3 py-1 rounded-lg ${
+                        p.status === "ไม่ผ่าน"
+                          ? "bg-red-500 text-white"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
+                </div>
+              </td>
+
+              {/* รูป slip */}
+              <td className="border p-2">
+                <button
+                  onClick={() => setModalImage(p.slipUrl)}
+                  className="px-3 py-1 bg-[#c874d6] text-white rounded-lg hover:bg-gray-500"
+                >
+                  ดูรูปภาพ
+                </button>
+              </td>
+
+              {/* สถานะการชำระเงิน */}
+              <td className="border p-2">
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className={`text-sm font-semibold ${
+                      p.paymentStatus === "สำเร็จ"
+                        ? "text-green-600"
+                        : p.paymentStatus === "ไม่สำเร็จ"
+                        ? "text-red-500"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {p.paymentStatus}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        handleStatusChange(players.indexOf(p), "payment", "ยืนยัน")
+                      }
+                      className={`px-3 py-1 rounded-lg ${
+                        p.paymentStatus === "สำเร็จ"
+                          ? "bg-green-500 text-white"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      ยืนยัน
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleStatusChange(players.indexOf(p), "payment", "ยกเลิก")
+                      }
+                      className={`px-3 py-1 rounded-lg ${
+                        p.paymentStatus === "ไม่สำเร็จ"
+                          ? "bg-red-500 text-white"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+         </div>
+  ))}
+</div>
       </div>
+      
 
       {/* Modal วิดีโอ */}
       {modalVideo && (
