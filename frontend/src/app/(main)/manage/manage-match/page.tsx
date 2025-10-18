@@ -27,8 +27,8 @@ export default function TournamentManagePage() {
       "- เวลาที่ระบุในตารางเวลาเป็นเพียงเวลาประมาณการเท่านั้น กรณีที่การแข่งขันดำเนินไปเร็วกว่าที่กำหนด ทางทีมงานสามารถเรียกนักกีฬาเข้าทำการแข่งขันได้ก่อนเวลา แต่จะไม่เรียกเร็วกว่าช่วงเวลาที่กำหนดให้มาลงทะเบียนรายงานตัว ดังนั้นขอให้นักกีฬามารายงานตัวไม่เกินเวลาที่ระบุ เพื่อป้องกันการถูกตัดสิทธิ์การแข่งขัน",
       "- ทีมงานจะยึดตาม ‘ลำดับแมทช์’ ในการเรียกนักกีฬาเข้าทำการแข่งขันเป็นหลัก ขอให้นักกีฬาเตรียมตัวให้พร้อม เมื่อประกาศเรียกลงสนามแล้ว หากภายใน 5 นาที นักกีฬายังไม่มาแสดงตัว หรือมาแต่ไม่พร้อมลงสนาม (เช่น ยังไม่เปลี่ยนชุด ยังไม่ใส่รองเท้า หรือขอเข้าห้องน้ำ) ทีมงานจะประกาศเรียกซ้ำและจับเวลาอีก 5 นาที หากครบกำหนดครั้งที่ 2 แล้วยังไม่พร้อมแข่งขัน นักกีฬาฝั่งที่พร้อมลงสนามจะได้สิทธิ์ชนะ Bye ในแมทช์นั้น",
       "- นักกีฬาต้องลงทำการแข่งขันในรอบแบ่งกลุ่มอย่างน้อย 1 แมทช์ (ไม่นับแมทช์ที่ได้ Bye) จึงจะมีสิทธิ์เข้าเล่นในรอบ Knock Out สายล่าง (หากมี) หากไม่ลงเล่นเลยในรอบแบ่งกลุ่ม ทีมงานขอสงวนสิทธิ์ตัดสิทธิ์นักกีฬานั้นออกจากรอบ Knock Out",
-      "- เมื่อนักกีฬามาถึงสนามแล้วแต่ไม่ยอมลงทำการแข่งขัน หรือจงใจไม่เล่น หากทีมงานตรวจพบ จะถือว่าทุจริต และทีมงานมีสิทธิ์ปรับแพ้ทุกแมทช์ที่เหลืออทันที",
-      "- ตารางการแข่งขันอาจเร็วหรือช้ากว่าที่ประกาศ ทีมงานจะใช้ ‘ลำดับแมทช์’ เป็นหลัก ขอให้นักกีฬาจดจำหมายเลขแมทช์ของตนเอง ทั้งในรอบแบ่งกลุ่มและ Knock Out เพื่อเตรียมตัวให้พร้อมเมื่อใกล้ถึงคิวแข่งขัน",
+      "- เมื่อนักกีฬามาถึงสนามแล้วแต่ไม่ยอมลงทำการแข่งขัน หรือจงใจไม่เล่น หากทีมงานตรวจพบ จะถือว่าทุจริต และทีมงานมีสิทธิ์ปรับแพ้ทุกแมทช์ที่เหลือทันที",
+      "- ตารางการแข่งขันอาจเร็วหรือช้ากว่าที่ประกาศ ทีมงานจะใช้ ‘ลำดับแมทช์’ เป็นหลัก ขอให้นักกีฬาจดจำหมายเลขแมทช์ของตนเอง ทั้งในรอบแบ่งกลุ่มและ Knock Out เพื่อเตรียมตัวให้พร้อมเมื่อใกล้ถึวแข่งขัน",
       "- นักกีฬาที่ลงแข่งมากกว่า 1 ประเภท ในรอบแบ่งกลุ่ม ต้องลงแข่งขันต่อเนื่อง ส่วนในรอบ Knock Out จะมีเวลาพัก 5 – 10 นาที ก่อนแมทช์ถัดไป",
       "- หลังแข่งขันเสร็จให้นักกีฬาลงคะแนนในใบคะแนน ตรวจสอบความถูกต้อง และเซ็นชื่อรับทราบ จากนั้นให้นำใบคะแนนพร้อมไม้และปากกาคืนที่โต๊ะดำเนินการ เมื่อทีมงานได้รับใบคะแนนแล้วจะถือเป็นผลสิ้นสุด ไม่สามารถแก้ไขได้ (ยกเว้นกรณีลงคะแนนผิดพลาดจริง)",
       "- นักกีฬาสามารถตรวจสอบคะแนนได้จากระบบออนไลนตลอดเวลา หากพบว่าคะแนนผิดพลาด ให้รีบแจ้งทีมงานก่อนออกสาย Knock Out หากประกาศสายไปแล้ว จะไม่สามารถแก้ไขได้",
@@ -62,10 +62,10 @@ export default function TournamentManagePage() {
   const gradient = useMemo(
     () => ({
       background:
-      `radial-gradient(circle at center, rgba(165, 254, 203, 0.7) 0%, rgba(255, 218, 185, 0.6) 30%, rgba(255, 182, 193, 0.5) 60%, transparent 100%),` +
-      `linear-gradient(to bottom, #A5FECB 0%, #FFDAB9 50%, #FFB6C1 100%)`,
-  }),
-  []
+        `radial-gradient(circle at center, rgba(240, 248, 255, 0.7) 0%, rgba(255, 239, 213, 0.6) 30%, rgba(255, 228, 225, 0.5) 60%, transparent 100%),` +
+        `linear-gradient(to bottom, #F0F8FF 0%, #FFEFD5 50%, #FFE4E1 100%)`,
+    }),
+    []
   );
 
   const toggleValue = (arr: string[], val: string, setArr: any) => {
@@ -140,12 +140,11 @@ export default function TournamentManagePage() {
 
   return (
     <div
-  className="fixed inset-0 flex items-center justify-center overflow-hidden text-white 
+      className="fixed inset-0 flex items-center justify-center overflow-hidden text-slate-800 
   pt-20 ml-56 max-sm:mt-0 max-sm:ml-0 max-sm:px-4 max-sm:items-start max-sm:pt-24 
   max-sm:overflow-y-auto max-sm:h-screen"
-  style={gradient}
->
-
+      style={gradient}
+    >
       <Stars />
 
       <AnimatePresence mode="wait">
@@ -157,25 +156,20 @@ export default function TournamentManagePage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.5 }}
-          className="w-[90%] max-w-4xl 
-bg-gradient-to-br from-[#f3a5e7] via-[#fbbe95] to-[#f8db83] 
-backdrop-blur-xl rounded-3xl border border-white/40 
-text-white overflow-hidden flex flex-col 
+            className="w-[90%] max-w-4xl 
+bg-[#FFEAF4] text-slate-800 shadow-[0_10px_60px_rgba(0,0,0,0.15)]
+backdrop-blur-xl rounded-3xl border border-slate-200 
+overflow-hidden flex flex-col 
 max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
-
-
-
           >
-            <div className="px-6 py-4 border-b border-white/10 text-center sm:text-left">
+            <div className="px-6 py-4 border-b border-slate-200/60 text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold drop-shadow">
                 จัดการแข่งขันแบดมินตัน
               </h1>
             </div>
 
-            <div className="p-6 grid gap-6 md:grid-cols-2 text-white/90 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#B47AFF]/50 hover:scrollbar-thumb-[#D9B3FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
+            <div className="p-6 grid gap-6 md:grid-cols-2 text-slate-700 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#E5D9FF] hover:scrollbar-thumb-[#F1E9FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div className="space-y-4">
-             
-
                 <LabeledInput
                   label="วันแข่งขัน"
                   type="date"
@@ -228,19 +222,11 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
             <div className="flex justify-center mt-4 pb-6">
               <motion.button
                 disabled={!isFormComplete}
-                whileHover={
-                  isFormComplete
-                    ? {
-                        scale: 1.08,
-                        boxShadow: "0 0 20px rgba(255, 214, 165, 0.6)",
-                      }
-                    : {}
-                }
-                whileTap={isFormComplete ? { scale: 0.95 } : {}}
-                className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-white text-base transition-all duration-300
+                
+                className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base transition-all duration-300
                   ${
                     isFormComplete
-                      ? "bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 hover:from-pink-400 hover:to-yellow-400"
+                      ? "bg-[#b3e5fc] hover:bg-[#7ccff5] hover:scale-105 text-[#4B4B4B]"
                       : "bg-gray-300/50 text-gray-500 cursor-not-allowed"
                   }`}
                 onClick={handleNext}
@@ -260,92 +246,113 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
     exit={{ opacity: 0, y: -30 }}
     transition={{ duration: 0.5 }}
     className="w-[90%] max-w-4xl 
-      bg-gradient-to-br from-[#ffaff3] via-[#fbbe95] to-[#f8db83] 
-      backdrop-blur-xl rounded-3xl border border-white/30 shadow-[0_10px_60px_rgba(0,0,0,0.25)] 
+      bg-gradient-to-br from-[#F8FAFF] via-[#FFF7F0] to-[#FDF5F8] 
+      rounded-3xl 
       p-6 text-slate-800 py-8 mt-12 mb-16 transition-all duration-500"
   >
-    <h1 className="text-3xl font-bold text-center mb-6 text-white drop-shadow-lg">
+    <h1 className="text-3xl font-bold text-center mb-6 text-slate-800 drop-shadow-lg">
       ตารางการแข่งขัน
     </h1>
 
+    {/* ปุ่มเพิ่มรอบ */}
     <div className="flex justify-end mb-5">
       <button
         onClick={() => setShowAddModal(true)}
-         className="bg-gradient-to-r from-purple-600  via-purple-500  to-purple-400 
-            
-             text-white font-semibold 
-             rounded-xl text-sm px-5 py-2.5 flex items-center gap-2 
-             shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-120"
-             
->
+        className="bg-[#EDE9FE] hover:bg-[#F3E8FF] 
+           text-violet-700 font-semibold 
+           rounded-xl text-sm px-5 py-2.5 flex items-center gap-2 
+           transition-all duration-300 transform hover:scale-105"
+      >
         <Plus size={18} /> เพิ่มรอบการแข่งขัน
       </button>
     </div>
 
+    {/* ตารางการแข่งขัน */}
     <div
-      className="divide-y divide-white/30 border border-white/40 rounded-lg 
-                 overflow-y-auto max-h-[36vh] 
-                 scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb] 
-                 scrollbar-track-transparent scrollbar-thumb-rounded-full"
+      className="border-4 border-[#F9CCE3] rounded-2xl overflow-y-auto max-h-[36vh]
+         scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb]
+         scrollbar-track-transparent scrollbar-thumb-rounded-full"
     >
-      {/* Header ตาราง */}
-      <div className="grid grid-cols-2 text-2xl bg-gradient-to-r from-[#ffdf6a] via-[#ffadad] to-[#ff6ca2]  text-white font-bold text-center py-3 rounded-t-lg shadow-inner">
+      {/* หัวตาราง */}
+      <div className="grid grid-cols-2 text-2xl bg-[#D6E4FF] text-slate-800 font-bold text-center py-3 
+           rounded-t-xl border-b-4 border-[#F9CCE3]">
         <div>เวลาประมาณ</div>
         <div>กำหนดการ</div>
       </div>
 
       {rounds.length === 0 && (
-        <div className="text-center py-6 text-white/80 text-2xl italic">
+        <div className="text-center py-6 text-slate-600 text-2xl italic border-t-2 border-[#F9CCE3]">
           ยังไม่มีข้อมูลรอบการแข่งขัน
         </div>
       )}
 
-      {rounds.map((r, i) => (
-        <div
-          key={i}
-          className={`grid grid-cols-2 py-4 px-4 items-center transition-all duration-300 ${
-            i % 2 === 0
-              ? "bg-white/40 hover:bg-white/50"
-              : "bg-white/30 hover:bg-white/40"
-          }`}
-        >
-          <div className="text-center font-bold text-slate-700 text-[25px]">
-            {r.time}
-          </div>
+      {rounds
+        .slice()
+        .sort((a, b) => {
+          const cleanA = a.time.replace("น.", "").trim();
+          const cleanB = b.time.replace("น.", "").trim();
+          const [ah, am] = cleanA.split(":").map(Number);
+          const [bh, bm] = cleanB.split(":").map(Number);
+          return ah * 60 + am - (bh * 60 + bm);
+        })
+        .map((r) => {
+          // ✅ ใช้ index จริงใน state เดิม
+          const originalIndex = rounds.indexOf(r);
+          return (
+            <div
+              key={originalIndex}
+              className={`grid grid-cols-2 py-4 px-4 items-center border-t-2 border-[#F9CCE3] 
+                transition-all duration-300 ${
+                  originalIndex % 2 === 0
+                    ? "bg-[#FFF9FC] hover:bg-[#FFF3F7]"
+                    : "bg-[#FDFBFF] hover:bg-[#F7EEFB]"
+                }`}
+            >
+              {/* คอลัมน์เวลา */}
+              <div className="text-center font-bold text-slate-700 text-[25px] border-r-2 border-[#F9CCE3]">
+                {r.time}
+              </div>
 
-          <div className="flex flex-col gap-2 text-slate-700 text-[25px]">
-            <span className="font-semibold">{r.desc}</span>
-            <div className="flex flex-wrap gap-2">
-              {r.levels.map((lvl) => (
-                <span
-                  key={lvl}
-                  className="px-3 py-1 rounded-full text-[15px] font-normal 
-                     bg-sky-500  text-white shadow-md"
-                >
-                  {lvl}
-                </span>
-              ))}
-            </div>
+              {/* คอลัมน์รายละเอียด */}
+              <div className="flex flex-col gap-2 text-slate-700 text-[25px]">
+                <span className="font-semibold">{r.desc}</span>
 
-            <div className="flex gap-3 mt-2">
-              <button
-                onClick={() => handleEditRound(i)}
-                className="p-2 rounded-lg bg-pink-400 hover:bg-pink-500/60 "
-                title="แก้ไข"
-              >
-                <Edit3 size={16} className="text-white" />
-              </button>
-              <button
-                onClick={() => handleDeleteRound(i)}
-                className="p-2 rounded-lg bg-red-400 hover:bg-red-500/60 "
-                title="ลบ"
-              >
-                <Trash2 size={16} className="text-white" />
-              </button>
+                <div className="flex flex-wrap gap-2">
+                  {r.levels.map((lvl) => (
+                    <span
+                      key={lvl}
+                      className="px-3 py-1 rounded-full text-[15px] font-normal 
+                        bg-sky-200 text-slate-800 border border-[#A5D8FF]"
+                    >
+                      {lvl}
+                    </span>
+                  ))}
+                </div>
+
+                {/* ปุ่มแก้ไข / ลบ */}
+                <div className="flex gap-3 mt-2">
+                  {/* ✅ ปุ่มแก้ไข (อยู่ซ้าย) */}
+                  <button
+                    onClick={() => handleEditRound(originalIndex)}
+                    className="p-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 border border-[#F9CCE3]"
+                    title="แก้ไข"
+                  >
+                    <Edit3 size={16} className="text-slate-800" />
+                  </button>
+
+                  {/* ✅ ปุ่มลบ (อยู่ขวา) */}
+                  <button
+                    onClick={() => handleDeleteRound(originalIndex)}
+                    className="p-2 rounded-lg bg-red-200 hover:bg-red-300 border border-[#F9CCE3]"
+                    title="ลบ"
+                  >
+                    <Trash2 size={16} className="text-slate-800" />
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      ))}
+          );
+        })}
     </div>
 
     {/* ปุ่มด้านล่าง */}
@@ -354,8 +361,8 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileHover={{ scale: 1.07 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setPage("organize")}
-        className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
-          bg-[#bdbdbd]  shadow-md"
+        className="px-8 py-2.5 rounded-2xl font-semibold text-slate-800 text-sm md:text-base
+          bg-gray-200 hover:bg-gray-300 transition-all"
       >
         ย้อนกลับ
       </motion.button>
@@ -364,9 +371,8 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setPage("rules")}
-        className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
-          bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
-                   hover:from-pink-400 hover:to-yellow-400 shadow-md"
+        className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
+          bg-[#b3e5fc] hover:bg-[#7ccff5] transition-all"
       >
         ถัดไป
       </motion.button>
@@ -375,197 +381,207 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
 )}
 
 
+
         {/* ---------- หน้า 3: กติกาและข้อควรระวัง ---------- */}
-       {page === "rules" && (
-  <motion.div
-    key="rules"
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -30 }}
-    transition={{ duration: 0.5 }}
-    className="w-[90%] max-w-4xl 
-               bg-gradient-to-br from-[#FFB6B9] via-[#FFDAB9] to-[#FFDFAE]
-               backdrop-blur-xl rounded-3xl border border-white/40 
-               shadow-[0_20px_80px_rgba(255,182,193,0.3)]
+        {page === "rules" && (
+          <motion.div
+            key="rules"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5 }}
+            className="w-[90%] max-w-4xl 
+               bg-gradient-to-br from-[#F8FAFF] via-[#FFF7F0] to-[#FDF5F8]
+               backdrop-blur-xl rounded-3xl border border-slate-200 
+               shadow-[0_20px_80px_rgba(0,0,0,0.12)]
                p-6 text-slate-700 py-8 mt-12 mb-16"
-  >
-    <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-pink-600 drop-shadow-sm">
-      กติกาและข้อควรระวัง
-    </h1>
+          >
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-slate-800 drop-shadow-sm">
+              กติกาและข้อควรระวัง
+            </h1>
 
-    <div className="overflow-y-auto max-h-[55vh] 
-                    scrollbar-thin scrollbar-thumb-pink-300 
-                    hover:scrollbar-thumb-pink-400 
-                    scrollbar-track-transparent scrollbar-thumb-rounded-full">
-     
-      
-        <textarea
-          value={rulesText}
-          onChange={(e) => setRulesText(e.target.value)}
-          className="w-full min-h-[320px] rounded-lg bg-white/90 border border-pink-200 
+            <div
+              className="overflow-y-auto max-h-[55vh] 
+                    scrollbar-thin scrollbar-thumb-[#EADCF4] 
+                    hover:scrollbar-thumb-[#F3EAFB] 
+                    scrollbar-track-transparent scrollbar-thumb-rounded-full"
+            >
+              <textarea
+                value={rulesText}
+                onChange={(e) => setRulesText(e.target.value)}
+                className="w-full min-h-[320px] rounded-lg bg-white/90 border border-slate-200 
                      px-3 py-2 text-slate-700 placeholder:text-slate-400 
-                     focus:outline-none focus:ring-2 focus:ring-pink-300 
+                     focus:outline-none focus:ring-2 focus:ring-sky-200 
                      text-sm leading-relaxed shadow-inner"
-          placeholder="พิมพ์กติกาและข้อควรระวังที่นี่"
-        />
-     
-    </div>
+                placeholder="พิมพ์กติกาและข้อควรระวังที่นี่"
+              />
+            </div>
 
-    <div className="flex justify-between mt-6">
-      {/* ปุ่มย้อนกลับ */}
-      <motion.button
-        whileHover={{ scale: 1.07 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setPage("schedule")}
-        className="px-8 py-2.5 rounded-2xl font-semibold text-white text-sm md:text-base
-                   bg-[#bdbdbd]
+            <div className="flex justify-between mt-6">
+              {/* ปุ่มย้อนกลับ */}
+              <motion.button
+                whileHover={{ scale: 1.07 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPage("schedule")}
+                className="px-8 py-2.5 rounded-2xl font-semibold text-slate-800 text-sm md:text-base
+                   bg-gray-200 hover:bg-gray-300
                    shadow-md transition-all duration-300"
-      >
-        ย้อนกลับ
-      </motion.button>
+              >
+                ย้อนกลับ
+              </motion.button>
 
-      {/* ปุ่มลงทะเบียน */}
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => router.push('/manage')}
-        className="px-10 py-2.5 rounded-2xl font-semibold text-white text-base
-                  bg-gradient-to-r from-pink-300 via-pink-400 to-yellow-300 
-                   hover:from-pink-400 hover:to-yellow-400
+              {/* ปุ่มลงทะเบียน */}
+              <motion.button
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/manage")}
+                className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
+                  bg-[#b3e5fc] hover:bg-[#7ccff5]
                    shadow-md transition-all duration-300"
-      >
-        ลงทะเบียน
-      </motion.button>
-    </div>
-  </motion.div>
-)}
+              >
+                ลงทะเบียน
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* ---------- Popup (Modal) ---------- */}
       <AnimatePresence>
-  {showAddModal && (
-    <motion.div
-      key="addRoundModal"
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 120, damping: 15 }}
-        className="bg-gradient-to-br from-pink-100 via-pink-200 to-yellow-100 
-                   border border-pink-300/50 rounded-2xl p-6 w-[90%] max-w-md 
-                   text-slate-700 shadow-[0_10px_40px_rgba(255,183,197,0.5)] 
+        {showAddModal && (
+          <motion.div
+            key="addRoundModal"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 120, damping: 15 }}
+              className="bg-gradient-to-br from-pink-100 via-pink-200 to-yellow-100 
+                   border border-slate-200 rounded-2xl p-6 w-[90%] max-w-md 
+                   text-slate-700 shadow-[0_10px_40px_rgba(0,0,0,0.12)] 
                    my-8 sm:my-12 max-h-[80vh] overflow-y-auto 
-                   scrollbar-thin scrollbar-thumb-pink-300 hover:scrollbar-thumb-pink-400 
+                   scrollbar-thin scrollbar-thumb-[#EADCF4] hover:scrollbar-thumb-[#F3EAFB] 
                    scrollbar-track-transparent scrollbar-thumb-rounded-full"
-      >
-        <h2 className="text-lg font-bold mb-4 text-center text-pink-600 drop-shadow-sm">
-          {editIndex !== null ? "แก้ไขรอบการแข่งขัน" : "เพิ่มรอบการแข่งขัน"}
-        </h2>
+            >
+              <h2 className="text-lg font-bold mb-4 text-center text-slate-800 drop-shadow-sm">
+                {editIndex !== null
+                  ? "แก้ไขรอบการแข่งขัน"
+                  : "เพิ่มรอบการแข่งขัน"}
+              </h2>
 
-        <div className="space-y-4 text-sm">
-          <label className="block">
-            <div className="mb-1 font-semibold text-pink-700">เวลาโดยประมาณ</div>
-            <input
-              type="time"
-              value={newRoundTime}
-              onChange={(e) => setNewRoundTime(e.target.value)}
-              className="w-full rounded-lg bg-white/90 border border-pink-200 
+              <div className="space-y-4 text-sm">
+                <label className="block">
+                  <div className="mb-1 font-semibold text-slate-700">
+                    เวลาโดยประมาณ
+                  </div>
+                  <input
+                    type="time"
+                    value={newRoundTime}
+                    onChange={(e) => setNewRoundTime(e.target.value)}
+                    className="w-full rounded-lg bg-white/90 border border-slate-200 
                          px-3 py-2 text-slate-700 focus:outline-none 
-                         focus:ring-2 focus:ring-pink-300 shadow-inner"
-            />
-          </label>
+                         focus:ring-2 focus:ring-sky-200 shadow-inner"
+                  />
+                </label>
 
-          <label className="block">
-            <div className="mb-1 font-semibold text-pink-700">รายละเอียดกำหนดการ</div>
-            <input
-              type="text"
-              value={newRoundDesc}
-              onChange={(e) => setNewRoundDesc(e.target.value)}
-              placeholder="เช่น ลงทะเบียน (อย่างช้าที่สุดไม่เกิน 08:45 น.)"
-              className="w-full rounded-lg bg-white/90 border border-pink-200 
+                <label className="block">
+                  <div className="mb-1 font-semibold text-slate-700">
+                    รายละเอียดกำหนดการ
+                  </div>
+                  <input
+                    type="text"
+                    value={newRoundDesc}
+                    onChange={(e) => setNewRoundDesc(e.target.value)}
+                    placeholder="เช่น ลงทะเบียน (อย่างช้าที่สุดไม่เกิน 08:45 น.)"
+                    className="w-full rounded-lg bg-white/90 border border-slate-200 
                          px-3 py-2 text-slate-700 focus:outline-none 
-                         focus:ring-2 focus:ring-pink-300 shadow-inner"
-            />
-          </label>
+                         focus:ring-2 focus:ring-sky-200 shadow-inner"
+                  />
+                </label>
 
-          <div>
-            <div className="mb-2 font-semibold text-pink-700">รายการระดับมือย่อย</div>
-            <div className="flex flex-wrap gap-2">
-              {levelOptions.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => toggleValue(newRoundLevels, opt, setNewRoundLevels)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all 
+                <div>
+                  <div className="mb-2 font-semibold text-slate-700">
+                    รายการระดับมือย่อย
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {levelOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() =>
+                          toggleValue(newRoundLevels, opt, setNewRoundLevels)
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all 
                     ${
                       newRoundLevels.includes(opt)
-                        ? "bg-gradient-to-r from-pink-400 to-blue-300 text-white border-transparent"
-                        : "bg-white/70 border-pink-200 text-pink-600 hover:bg-white/90"
+                        ? "bg-gradient-to-r from-pink-100 to-blue-100 text-slate-800 border-transparent"
+                        : "bg-white/70 border-slate-200 text-slate-700 hover:bg-white/90"
                     }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-3 mt-6">
+                <button
+                  onClick={handleAddRound}
+                  className="px-6 py-2 rounded-lg font-semibold text-slate-800 text-sm
+                       bg-gradient-to-r from-pink-100 via-pink-200 to-blue-100 
+                       hover:from-pink-200 hover:to-blue-200 shadow-md"
                 >
-                  {opt}
+                  {editIndex !== null ? "บันทึกการแก้ไข" : "บันทึก"}
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center gap-3 mt-6">
-          <button
-            onClick={handleAddRound}
-            className="px-6 py-2 rounded-lg font-semibold text-white text-sm
-                       bg-gradient-to-r from-pink-400 via-pink-500 to-blue-400 
-                       hover:from-pink-500 hover:to-blue-400 shadow-md"
-          >
-            {editIndex !== null ? "บันทึกการแก้ไข" : "บันทึก"}
-          </button>
-          <button
-            onClick={() => {
-              setShowAddModal(false);
-              setEditIndex(null);
-            }}
-            className="px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditIndex(null);
+                  }}
+                  className="px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 
                        text-slate-700 font-semibold text-sm"
-          >
-            ยกเลิก
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 /* ---------- Components ---------- */
 function LabeledInput({ label, type = "text", value, onChange }: any) {
+  // เอาวันปัจจุบันในรูปแบบ YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <label className="block text-white/90 text-sm">
+    <label className="block text-slate-700 text-sm">
       <div className="mb-1 font-medium">{label}</div>
       <input
         type={type}
         value={value}
         onChange={onChange}
-       className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
-border border-white/40 px-3 placeholder:text-slate-400 
-focus:outline-none focus:ring-2 focus:ring-pink-300 text-sm shadow-inner"
-
+        {...(type === "date" ? { min: today } : {})}  
+        className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
+border border-slate-200 px-3 placeholder:text-slate-400 
+focus:outline-none focus:ring-2 focus:ring-sky-200 text-sm shadow-inner"
       />
     </label>
   );
 }
 
 
-
 function RadioStyleMultiSelect({ label, options, selected, onToggle }: any) {
   return (
-    <div className="text-white/90 text-sm">
+    <div className="text-slate-700 text-sm">
       <div className="font-semibold mb-2">{label}</div>
       <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
         {options.map((opt: string) => (
@@ -581,7 +597,9 @@ function RadioStyleMultiSelect({ label, options, selected, onToggle }: any) {
     </div>
   );
 }
-{/* ---------- เลือกแรงค์ ---------- */}
+{
+  /* ---------- เลือกแรงค์ ---------- */
+}
 function RadioBox({ active, children, onClick }: any) {
   return (
     <button
@@ -589,13 +607,13 @@ function RadioBox({ active, children, onClick }: any) {
       className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium border transition-all duration-300
         ${
           active
-            ? "bg-white text-pink-500 border-pink-200 shadow-sm"
-            : "bg-white/80 text-slate-600 border-white/40 hover:bg-white/90"
+            ? "bg-white text-sky-700 border-sky-500 shadow-sm"
+            : "bg-white/80 text-slate-600 border-slate-200 hover:bg-white/90"
         }`}
     >
       <span
         className={`h-2.5 w-2.5 rounded-full border ${
-          active ? "bg-pink-400 border-pink-400" : "border-slate-400"
+          active ? "bg-sky-200 border-sky-300" : "border-slate-400"
         }`}
       />
       {children}
@@ -603,7 +621,9 @@ function RadioBox({ active, children, onClick }: any) {
   );
 }
 
-{/* ---------- เลือกจำนวนคน ---------- */}
+{
+  /* ---------- เลือกจำนวนคน ---------- */
+}
 function PeopleSelector({ people, setPeople }: any) {
   return (
     <div>
@@ -623,11 +643,13 @@ function PeopleSelector({ people, setPeople }: any) {
   );
 }
 
-{/* ---------- อัพโหลดรูป ---------- */}
+{
+  /* ---------- อัพโหลดรูป ---------- */
+}
 function UploadPreview({ title, onUpload, preview }: any) {
   return (
     <label
-      className="rounded-xl border-2 border-dashed border-pink-200/60 
+      className="rounded-xl border-2 border-dashed border-slate-200/60 
       bg-white/85 hover:bg-white/95 text-center cursor-pointer block p-5 
       transition-all duration-300 shadow-inner"
     >
@@ -637,28 +659,27 @@ function UploadPreview({ title, onUpload, preview }: any) {
         <img
           src={preview}
           alt="Preview"
-          className="w-full h-48 object-contain rounded-lg border border-pink-200 bg-white shadow-md"
+          className="w-full h-48 object-contain rounded-lg border border-slate-200 bg-white shadow-md"
         />
       ) : (
         <>
-         <motion.div
-  className="text-4xl mb-2"
-  animate={{
-    y: [0, -8, 0],
-    rotate: [0, -6, 6, 0],
-  }}
-  transition={{
-    duration: 2.8,
-    repeat: Infinity,
-    repeatType: "mirror",
-    ease: "easeInOut",
-  }}
->
-  🌸
-</motion.div>
+          <motion.div
+            className="text-4xl mb-2"
+            animate={{
+              y: [0, -8, 0],
+              rotate: [0, -6, 6, 0],
+            }}
+            transition={{
+              duration: 2.8,
+              repeat: Infinity,
+              repeatType: "mirror",
+              ease: "easeInOut",
+            }}
+          >
+            🌸
+          </motion.div>
 
-
-          <div className="font-semibold text-pink-500 text-sm sm:text-base">
+          <div className="font-semibold text-slate-700 text-sm sm:text-base">
             {title}
           </div>
           <div className="text-xs text-slate-500 mt-1">
@@ -669,8 +690,6 @@ function UploadPreview({ title, onUpload, preview }: any) {
     </label>
   );
 }
-
-
 
 /* ---------- Stars ---------- */
 function Stars() {
