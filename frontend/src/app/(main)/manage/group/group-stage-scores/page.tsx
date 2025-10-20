@@ -1,130 +1,28 @@
 "use client";
-import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  BackButton,
+  SectionTitle,
+  GroupTable,
+  GroupInfo,
+} from "../../../../../../components/groupComponents";
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
-  const router = useRouter();
   const groupName = params.get("group") || "Group A";
 
-  const themeMap: Record<
-    string,
-    { bg: string; from: string; to: string; accent: string }
-  > = {
-    "Group A": {
-      bg: "amber",
-      from: "#FFF8E1",
-      to: "#FFE7B3",
-      accent: "#F59E0B",
-    },
-    "Group B": { bg: "sky", from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
-    "Group C": {
-      bg: "pink",
-      from: "#FFE4EF",
-      to: "#FBCFE8",
-      accent: "#EC4899",
-    },
-    "Group D": {
-      bg: "emerald",
-      from: "#E9FDF3",
-      to: "#A7F3D0",
-      accent: "#10B981",
-    },
+  // 🎨 ธีมสีแต่ละกลุ่ม
+  const themeMap: Record<string, { from: string; to: string; accent: string }> = {
+    "Group A": { from: "#FFF8E1", to: "#FFE7B3", accent: "#F59E0B" },
+    "Group B": { from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
+    "Group C": { from: "#FFE4EF", to: "#FBCFE8", accent: "#EC4899" },
+    "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
   };
 
-  const theme = themeMap[groupName] || themeMap["Group A"];
+  const theme = themeMap[groupName];
 
-  const backButton = (
-    <button
-      onClick={() => router.push("/manage/group")}
-      className="mb-6 px-6 py-2 rounded-full bg-white/80 border border-gray-300 font-semibold text-gray-700 shadow-sm hover:scale-110 hover:bg-white hover:shadow-md transition"
-    >
-      กลับไปหน้ากลุ่ม
-    </button>
-  );
-
-  const SectionTitle = ({ text }: { text: string }) => (
-    <h2
-      className="text-2xl md:text-3xl font-extrabold text-center mb-6"
-      style={{
-        color: theme.accent,
-        textShadow: "0px 1px 3px rgba(0,0,0,0.1)",
-      }}
-    >
-      {text}
-    </h2>
-  );
-
-  //  ตาราง
-  const renderTable = (title: string, headers: string[], rows: any[][]) => (
-    <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-sm p-5 border border-gray-200 shadow-md mb-10 transition hover:shadow-lg">
-      <h3 className="font-bold text-lg mb-3 text-gray-800">{title}</h3>
-      <table className="w-full text-sm text-gray-700 border-collapse">
-        <thead className="bg-gray-100/70 text-gray-800 font-semibold">
-          <tr>
-            {headers.map((h, i) => (
-              <th
-                key={i}
-                className="border border-gray-200 px-3 py-2 text-center"
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {rows.map((r, i) => (
-            <tr
-              key={i}
-              className={`text-center ${
-                i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
-              } hover:bg-gray-100/60 transition`}
-            >
-              {r.map((v, j) => {
-                // ถ้าเป็นช่องทีม (เช่น j === 3 หรือ j === 8)
-                const isTeamCol = j === 3 || j === 8;
-                if (isTeamCol && typeof v === "string") {
-                  const [code, ...nameParts] = v.split(" ");
-                  const name = nameParts.join(" ");
-                  return (
-                    <td
-                      key={j}
-                      className={`
-    border border-gray-200 px-3 py-2 text-center 
-    ${j === 0 ? "font-semibold text-gray-900" : ""} 
-    ${headers[j] === "SET" ? "whitespace-nowrap font-mono min-w-[80px]" : ""} 
-    ${headers[j] === "ผู้เล่น" ? "font-normal text-gray-800 text-center" : ""}
-  `}
-                    >
-                      {v}
-                    </td>
-                  );
-                }
-
-                return (
-                  <td
-                    key={j}
-                    className={`border border-gray-200 px-3 py-2 text-center ${
-                      j === 0 ? "font-semibold text-gray-900" : ""
-                    } ${
-                      headers[j] === "SET"
-                        ? "whitespace-nowrap font-mono min-w-[80px]"
-                        : ""
-                    }`}
-                  >
-                    {v}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-
-  // ข้อมูลทุกกลุ่ม
+   // ข้อมูลทุกกลุ่ม
   const groupData: Record<string, { rank: any[][]; matches: any[][] }> = {
     "Group A": {
       rank: [
@@ -583,52 +481,22 @@ export default function GroupStageScoresPage() {
       }}
     >
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
-        {backButton}
-        <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} />
+        <BackButton target="/manage/group" />
 
-        <div className="text-center mb-8">
-          <p className="font-semibold text-red-500 text-base mb-1">สายบน</p>
-          <p className="text-gray-600 text-sm mb-4">
-            ทีมที่ได้คะแนนอันดับ 1–2 ของกลุ่ม เข้ารอบก่อนรองชนะเลิศสายบน
-            (Quarter Finals)
-          </p>
-          <p className="font-semibold text-red-500 text-base mb-1">สายล่าง</p>
-          <p className="text-gray-600 text-sm">
-            ทีมที่ได้คะแนนอันดับ 3–4 ของกลุ่ม เข้ารอบก่อนรองชนะเลิศสายล่าง
-            (Quarter Finals)
-          </p>
-        </div>
+        <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
+        <GroupInfo />
 
-        {renderTable(
-          " อันดับคะแนนกลุ่ม",
-          [
-            "Rank",
-            "Team",
-            "ชื่อทีม",
-            "ผู้เล่น",
-            "คะแนนรวม",
-            "ได้",
-            "เสีย",
-            "ผลต่าง",
-          ],
-          selected.rank
-        )}
-        {renderTable(
-          " ตารางการแข่งขันแต่ละรอบ",
-          [
-            "เวลา",
-            "รอบ",
-            "แมตช์",
-            "ทีม",
-            "ผู้เล่น",
-            "P",
-            "SET",
-            "P",
-            "ทีม",
-            "ผู้เล่น",
-          ],
-          selected.matches
-        )}
+        <GroupTable
+          title="อันดับคะแนนกลุ่ม"
+          headers={["Rank", "Team", "ชื่อทีม", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+          rows={selected.rank}
+        />
+
+        <GroupTable
+          title="ตารางการแข่งขันแต่ละรอบ"
+          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น"]}
+          rows={selected.matches}
+        />
       </div>
     </div>
   );

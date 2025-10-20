@@ -1,11 +1,5 @@
-import React from 'react'
+import RulesTablesPage from "../../../../../components/rulesTables";
 
-const page = () => {
-  return (
-    <div>
-      กติกา
-    </div>
-  )
+export default function Page() {
+  return <RulesTablesPage />;
 }
-
-export default page
