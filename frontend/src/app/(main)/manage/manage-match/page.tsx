@@ -44,6 +44,7 @@ export default function TournamentManagePage() {
   const [regPhone, setRegPhone] = useState("");
   const [regRanks, setRegRanks] = useState<string[]>([]);
   const [regTypes, setRegTypes] = useState<string[]>([]);
+  const [bracketLines, setBracketLines] = useState<string[]>([]);
 
   // --- รอบการแข่งขัน ---
   const [rounds, setRounds] = useState<
@@ -93,6 +94,7 @@ export default function TournamentManagePage() {
     !!date &&
     ranks.length > 0 &&
     types.length > 0 &&
+    bracketLines.length > 0 &&
     people &&
     qrPreview &&
     shuttlecockPrice;
@@ -201,6 +203,14 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                   selected={types}
                   onToggle={(val) => toggleValue(types, val, setTypes)}
                 />
+                <RadioStyleMultiSelect
+                  label="เลือกสายการแข่งขัน"
+                  options={["สายบน", "สายล่าง"]}
+                  selected={bracketLines}
+                  onToggle={(val) =>
+                    toggleValue(bracketLines, val, setBracketLines)
+                  }
+                />
 
                 <PeopleSelector people={people} setPeople={setPeople} />
               </div>
@@ -222,7 +232,6 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
             <div className="flex justify-center mt-4 pb-6">
               <motion.button
                 disabled={!isFormComplete}
-                
                 className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base transition-all duration-300
                   ${
                     isFormComplete
@@ -239,148 +248,148 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
 
         {/* ---------- หน้า 2: ตารางการแข่งขัน ---------- */}
         {page === "schedule" && (
-  <motion.div
-    key="schedule"
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -30 }}
-    transition={{ duration: 0.5 }}
-    className="w-[90%] max-w-4xl 
+          <motion.div
+            key="schedule"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5 }}
+            className="w-[90%] max-w-4xl 
       bg-gradient-to-br from-[#F8FAFF] via-[#FFF7F0] to-[#FDF5F8] 
       rounded-3xl 
       p-6 text-slate-800 py-8 mt-12 mb-16 transition-all duration-500"
-  >
-    <h1 className="text-3xl font-bold text-center mb-6 text-slate-800 drop-shadow-lg">
-      ตารางการแข่งขัน
-    </h1>
+          >
+            <h1 className="text-3xl font-bold text-center mb-6 text-slate-800 drop-shadow-lg">
+              ตารางการแข่งขัน
+            </h1>
 
-    {/* ปุ่มเพิ่มรอบ */}
-    <div className="flex justify-end mb-5">
-      <button
-        onClick={() => setShowAddModal(true)}
-        className="bg-[#EDE9FE] hover:bg-[#F3E8FF] 
+            {/* ปุ่มเพิ่มรอบ */}
+            <div className="flex justify-end mb-5">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-[#EDE9FE] hover:bg-[#F3E8FF] 
            text-violet-700 font-semibold 
            rounded-xl text-sm px-5 py-2.5 flex items-center gap-2 
            transition-all duration-300 transform hover:scale-105"
-      >
-        <Plus size={18} /> เพิ่มรอบการแข่งขัน
-      </button>
-    </div>
+              >
+                <Plus size={18} /> เพิ่มรอบการแข่งขัน
+              </button>
+            </div>
 
-    {/* ตารางการแข่งขัน */}
-    <div
-      className="border-4 border-[#F9CCE3] rounded-2xl overflow-y-auto max-h-[36vh]
+            {/* ตารางการแข่งขัน */}
+            <div
+              className="border-4 border-[#F9CCE3] rounded-2xl overflow-y-auto max-h-[36vh]
          scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb]
          scrollbar-track-transparent scrollbar-thumb-rounded-full"
-    >
-      {/* หัวตาราง */}
-      <div className="grid grid-cols-2 text-2xl bg-[#D6E4FF] text-slate-800 font-bold text-center py-3 
-           rounded-t-xl border-b-4 border-[#F9CCE3]">
-        <div>เวลาประมาณ</div>
-        <div>กำหนดการ</div>
-      </div>
+            >
+              {/* หัวตาราง */}
+              <div
+                className="grid grid-cols-2 text-2xl bg-[#D6E4FF] text-slate-800 font-bold text-center py-3 
+           rounded-t-xl border-b-4 border-[#F9CCE3]"
+              >
+                <div>เวลาประมาณ</div>
+                <div>กำหนดการ</div>
+              </div>
 
-      {rounds.length === 0 && (
-        <div className="text-center py-6 text-slate-600 text-2xl italic border-t-2 border-[#F9CCE3]">
-          ยังไม่มีข้อมูลรอบการแข่งขัน
-        </div>
-      )}
+              {rounds.length === 0 && (
+                <div className="text-center py-6 text-slate-600 text-2xl italic border-t-2 border-[#F9CCE3]">
+                  ยังไม่มีข้อมูลรอบการแข่งขัน
+                </div>
+              )}
 
-      {rounds
-        .slice()
-        .sort((a, b) => {
-          const cleanA = a.time.replace("น.", "").trim();
-          const cleanB = b.time.replace("น.", "").trim();
-          const [ah, am] = cleanA.split(":").map(Number);
-          const [bh, bm] = cleanB.split(":").map(Number);
-          return ah * 60 + am - (bh * 60 + bm);
-        })
-        .map((r) => {
-          // ✅ ใช้ index จริงใน state เดิม
-          const originalIndex = rounds.indexOf(r);
-          return (
-            <div
-              key={originalIndex}
-              className={`grid grid-cols-2 py-4 px-4 items-center border-t-2 border-[#F9CCE3] 
+              {rounds
+                .slice()
+                .sort((a, b) => {
+                  const cleanA = a.time.replace("น.", "").trim();
+                  const cleanB = b.time.replace("น.", "").trim();
+                  const [ah, am] = cleanA.split(":").map(Number);
+                  const [bh, bm] = cleanB.split(":").map(Number);
+                  return ah * 60 + am - (bh * 60 + bm);
+                })
+                .map((r) => {
+                  // ✅ ใช้ index จริงใน state เดิม
+                  const originalIndex = rounds.indexOf(r);
+                  return (
+                    <div
+                      key={originalIndex}
+                      className={`grid grid-cols-2 py-4 px-4 items-center border-t-2 border-[#F9CCE3] 
                 transition-all duration-300 ${
                   originalIndex % 2 === 0
                     ? "bg-[#FFF9FC] hover:bg-[#FFF3F7]"
                     : "bg-[#FDFBFF] hover:bg-[#F7EEFB]"
                 }`}
-            >
-              {/* คอลัมน์เวลา */}
-              <div className="text-center font-bold text-slate-700 text-[25px] border-r-2 border-[#F9CCE3]">
-                {r.time}
-              </div>
-
-              {/* คอลัมน์รายละเอียด */}
-              <div className="flex flex-col gap-2 text-slate-700 text-[25px]">
-                <span className="font-semibold">{r.desc}</span>
-
-                <div className="flex flex-wrap gap-2">
-                  {r.levels.map((lvl) => (
-                    <span
-                      key={lvl}
-                      className="px-3 py-1 rounded-full text-[15px] font-normal 
-                        bg-sky-200 text-slate-800 border border-[#A5D8FF]"
                     >
-                      {lvl}
-                    </span>
-                  ))}
-                </div>
+                      {/* คอลัมน์เวลา */}
+                      <div className="text-center font-bold text-slate-700 text-[25px] border-r-2 border-[#F9CCE3]">
+                        {r.time}
+                      </div>
 
-                {/* ปุ่มแก้ไข / ลบ */}
-                <div className="flex gap-3 mt-2">
-                  {/* ✅ ปุ่มแก้ไข (อยู่ซ้าย) */}
-                  <button
-                    onClick={() => handleEditRound(originalIndex)}
-                    className="p-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 border border-[#F9CCE3]"
-                    title="แก้ไข"
-                  >
-                    <Edit3 size={16} className="text-slate-800" />
-                  </button>
+                      {/* คอลัมน์รายละเอียด */}
+                      <div className="flex flex-col gap-2 text-slate-700 text-[25px]">
+                        <span className="font-semibold">{r.desc}</span>
 
-                  {/* ✅ ปุ่มลบ (อยู่ขวา) */}
-                  <button
-                    onClick={() => handleDeleteRound(originalIndex)}
-                    className="p-2 rounded-lg bg-red-200 hover:bg-red-300 border border-[#F9CCE3]"
-                    title="ลบ"
-                  >
-                    <Trash2 size={16} className="text-slate-800" />
-                  </button>
-                </div>
-              </div>
+                        <div className="flex flex-wrap gap-2">
+                          {r.levels.map((lvl) => (
+                            <span
+                              key={lvl}
+                              className="px-3 py-1 rounded-full text-[15px] font-normal 
+                        bg-sky-200 text-slate-800 border border-[#A5D8FF]"
+                            >
+                              {lvl}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* ปุ่มแก้ไข / ลบ */}
+                        <div className="flex gap-3 mt-2">
+                          {/* ✅ ปุ่มแก้ไข (อยู่ซ้าย) */}
+                          <button
+                            onClick={() => handleEditRound(originalIndex)}
+                            className="p-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 border border-[#F9CCE3]"
+                            title="แก้ไข"
+                          >
+                            <Edit3 size={16} className="text-slate-800" />
+                          </button>
+
+                          {/* ✅ ปุ่มลบ (อยู่ขวา) */}
+                          <button
+                            onClick={() => handleDeleteRound(originalIndex)}
+                            className="p-2 rounded-lg bg-red-200 hover:bg-red-300 border border-[#F9CCE3]"
+                            title="ลบ"
+                          >
+                            <Trash2 size={16} className="text-slate-800" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
-          );
-        })}
-    </div>
 
-    {/* ปุ่มด้านล่าง */}
-    <div className="flex justify-between mt-6">
-      <motion.button
-        whileHover={{ scale: 1.07 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setPage("organize")}
-        className="px-8 py-2.5 rounded-2xl font-semibold text-slate-800 text-sm md:text-base
+            {/* ปุ่มด้านล่าง */}
+            <div className="flex justify-between mt-6">
+              <motion.button
+                whileHover={{ scale: 1.07 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPage("organize")}
+                className="px-8 py-2.5 rounded-2xl font-semibold text-slate-800 text-sm md:text-base
           bg-gray-200 hover:bg-gray-300 transition-all"
-      >
-        ย้อนกลับ
-      </motion.button>
+              >
+                ย้อนกลับ
+              </motion.button>
 
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setPage("rules")}
-        className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
+              <motion.button
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPage("rules")}
+                className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
           bg-[#b3e5fc] hover:bg-[#7ccff5] transition-all"
-      >
-        ถัดไป
-      </motion.button>
-    </div>
-  </motion.div>
-)}
-
-
+              >
+                ถัดไป
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
 
         {/* ---------- หน้า 3: กติกาและข้อควรระวัง ---------- */}
         {page === "rules" && (
@@ -569,7 +578,7 @@ function LabeledInput({ label, type = "text", value, onChange }: any) {
         type={type}
         value={value}
         onChange={onChange}
-        {...(type === "date" ? { min: today } : {})}  
+        {...(type === "date" ? { min: today } : {})}
         className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
 border border-slate-200 px-3 placeholder:text-slate-400 
 focus:outline-none focus:ring-2 focus:ring-sky-200 text-sm shadow-inner"
@@ -577,7 +586,6 @@ focus:outline-none focus:ring-2 focus:ring-sky-200 text-sm shadow-inner"
     </label>
   );
 }
-
 
 function RadioStyleMultiSelect({ label, options, selected, onToggle }: any) {
   return (

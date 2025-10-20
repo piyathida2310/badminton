@@ -105,11 +105,12 @@ export default function ProfilePage() {
             editable={isEditing}
             onChange={(val) => handleChange("email", val)}
           />
+          {/* 🔒 ช่องรหัสผ่านห้ามแก้ไข */}
           <InputField
             label="รหัสผ่าน"
             value={profile.password}
-            editable={isEditing}
-            onChange={(val) => handleChange("password", val)}
+            editable={false} // ปิดการแก้ไขไว้ตลอด
+            onChange={() => {}}
             type="password"
           />
         </div>
