@@ -41,7 +41,7 @@ interface SixteenBracketProps {
 
 export default function SixteenBracket({ level }: SixteenBracketProps) {
   return (
-    <div className="h-full w-[1265px] overflow-x-scroll  bg-[#f9f9f0] flex flex-col items-center py-10 relative overflow-hidden">
+    <div className="h-full w-[1265px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
        <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
         🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
       </h1>
@@ -193,12 +193,12 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
         <Line top={450} left={865} length={20} angle={1} color="#555" />
       </div>
       {/* Button Next */}
-      <Link
+      {/* <Link
         href="/manage/bracket/lowmatch"
         className="absolute bottom-10 right-10 bg-amber-500 text-white font-medium rounded-md px-6 py-2 hover:bg-amber-600 transition"
       >
         ถัดไป
-      </Link>
+      </Link> */}
 
     </div>
   );

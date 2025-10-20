@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 
-// 🔧 เส้นที่ปรับองศา/ความยาวได้ง่าย
+//  เส้นที่ปรับองศา/ความยาวได้ง่าย
 const Line = ({
   length = 100,
   angle = 0,
@@ -34,15 +34,28 @@ const Line = ({
     />
   );
 };
-interface SixteenBracketProps {
+
+interface TwentyFourBracketProps {
   level: string;
 }
 
-export default function TwentyFourBracket({ level }: SixteenBracketProps) {
+export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
   return (
-    <div className="h-full w-[1380px] overflow-x-scroll bg-[#f9f9f0] flex flex-col items-center py-10 relative overflow-hidden">
+    //  เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
+    <div className="h-full w-[1380px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
+      <style jsx>{`
+        /* ซ่อน scrollbar แนวนอน */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE และ Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
+
       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 24 ทีม ({ level })
+        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 24 ทีม ({level})
       </h1>
 
       {/* Header */}
@@ -53,9 +66,9 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         <div className="w-1/4 text-center">Finals</div>
       </div>
 
-      {/* 🎯 Bracket Container */}
+      {/*  Bracket Container */}
       <div className="flex justify-center gap-20 w-full px-10">
-        {/* 🟩 Column 1 - 24 ทีม */}
+        {/*  Column 1 - 24 ทีม */}
         <div className="flex flex-col justify-between h-[850px]">
           {[
             ["Smash Warriors", true],
@@ -87,7 +100,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
           ))}
         </div>
 
-        {/* 🟨 Column 2 - 12 ทีมที่ชนะ */}
+        {/*  Column 2 - 12 ทีมที่ชนะ */}
         <div className="flex flex-col justify-between h-[772px] mt-10">
           {[
             ["Smash Warriors", true],
@@ -113,7 +126,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
           ))}
         </div>
 
-        {/* 🟧 Column 3 - รอบรอง */}
+        {/*  Column 3 - รอบรอง */}
         <div className="flex flex-col justify-between h-[625px] mt-29">
           {[
             ["Smash Warriors", true],
@@ -136,7 +149,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
           ))}
         </div>
 
-        {/* 🟥 Column 4 - รอบชิง */}
+        {/*  Column 4 - รอบชิง */}
         <div className="flex flex-col justify-center h-[610px] mt-30">
           <div className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1">
             <span className="text-sm font-medium text-gray-800">
@@ -147,7 +160,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         </div>
       </div>
 
-      {/* 🧩 เส้นเชื่อม (Round of 24 → 12) */}
+      {/*  เส้นเชื่อมต่าง ๆ */}
       <div>
         <Line top={175} left={380} length={20} angle={1} color="#555" />
         <Line top={250} left={380} length={20} angle={1} color="#555" />
@@ -188,7 +201,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         <Line top={955} left={400} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🪄 เส้นระหว่าง column2-3 */}
+      {/*  ระหว่าง column2-3 */}
       <div>
         <Line top={215} left={650} length={20} angle={1} color="#555" />
         <Line top={365} left={650} length={20} angle={1} color="#555" />
@@ -210,21 +223,13 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         <Line top={885} left={670} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🧵 เส้นระหว่าง column3-4 */}
+      {/*  ระหว่าง column3-4 */}
       <div>
         <Line top={290} left={921} length={20} angle={1} color="#555" />
         <Line top={885} left={921} length={20} angle={1} color="#555" />
         <Line top={290} left={940} length={595} angle={90} color="#555" />
         <Line top={585} left={940} length={62} angle={1} color="#555" />
       </div>
-
-      {/* 🎀 ปุ่มถัดไป */}
-      <Link
-        href="/manage/bracket/lowmatch"
-        className="absolute bottom-10 right-10 bg-amber-500 text-white font-medium rounded-md px-6 py-2 hover:bg-amber-600 transition"
-      >
-        ถัดไป
-      </Link>
     </div>
   );
 }
