@@ -73,7 +73,7 @@ export default function TournamentGroupPage() {
   const totalTeams = groups.reduce((sum, g) => sum + g.teams.length, 0);
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
+    <div className="h-full flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
       {/* พื้นหลังตกแต่ง */}
       <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-blue-200/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-yellow-200/30 rounded-full blur-3xl"></div>

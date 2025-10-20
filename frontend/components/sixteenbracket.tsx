@@ -35,11 +35,15 @@ const Line = ({
   );
 };
 
-export default function TournamentBracket() {
+interface SixteenBracketProps {
+  level: string;
+}
+
+export default function SixteenBracket({ level }: SixteenBracketProps) {
   return (
     <div className="h-full w-[1265px] overflow-x-scroll  bg-[#f9f9f0] flex flex-col items-center py-10 relative overflow-hidden">
        <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม (ล่าง)
+        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
       </h1>
       {/* Header */}
       <div className="flex justify-between w-[80%] mb-6 text-sm text-gray-700 font-medium">
