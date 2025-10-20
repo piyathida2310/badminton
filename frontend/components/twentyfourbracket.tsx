@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 
-// 🔧 เส้นที่ปรับองศา/ความยาวได้ง่าย
+//  เส้นที่ปรับองศา/ความยาวได้ง่าย
 const Line = ({
   length = 100,
   angle = 0,
@@ -41,7 +41,7 @@ interface TwentyFourBracketProps {
 
 export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
   return (
-    // 🧩 เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
+    //  เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
     <div className="h-full w-[1380px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
       <style jsx>{`
         /* ซ่อน scrollbar แนวนอน */
@@ -66,9 +66,9 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
         <div className="w-1/4 text-center">Finals</div>
       </div>
 
-      {/* 🎯 Bracket Container */}
+      {/*  Bracket Container */}
       <div className="flex justify-center gap-20 w-full px-10">
-        {/* 🟩 Column 1 - 24 ทีม */}
+        {/*  Column 1 - 24 ทีม */}
         <div className="flex flex-col justify-between h-[850px]">
           {[
             ["Smash Warriors", true],
@@ -100,7 +100,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
           ))}
         </div>
 
-        {/* 🟨 Column 2 - 12 ทีมที่ชนะ */}
+        {/*  Column 2 - 12 ทีมที่ชนะ */}
         <div className="flex flex-col justify-between h-[772px] mt-10">
           {[
             ["Smash Warriors", true],
@@ -126,7 +126,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
           ))}
         </div>
 
-        {/* 🟧 Column 3 - รอบรอง */}
+        {/*  Column 3 - รอบรอง */}
         <div className="flex flex-col justify-between h-[625px] mt-29">
           {[
             ["Smash Warriors", true],
@@ -149,7 +149,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
           ))}
         </div>
 
-        {/* 🟥 Column 4 - รอบชิง */}
+        {/*  Column 4 - รอบชิง */}
         <div className="flex flex-col justify-center h-[610px] mt-30">
           <div className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1">
             <span className="text-sm font-medium text-gray-800">
@@ -160,7 +160,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
         </div>
       </div>
 
-      {/* 🔗 เส้นเชื่อมต่าง ๆ */}
+      {/*  เส้นเชื่อมต่าง ๆ */}
       <div>
         <Line top={175} left={380} length={20} angle={1} color="#555" />
         <Line top={250} left={380} length={20} angle={1} color="#555" />
@@ -201,7 +201,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
         <Line top={955} left={400} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🪄 ระหว่าง column2-3 */}
+      {/*  ระหว่าง column2-3 */}
       <div>
         <Line top={215} left={650} length={20} angle={1} color="#555" />
         <Line top={365} left={650} length={20} angle={1} color="#555" />
@@ -223,7 +223,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
         <Line top={885} left={670} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🧵 ระหว่าง column3-4 */}
+      {/*  ระหว่าง column3-4 */}
       <div>
         <Line top={290} left={921} length={20} angle={1} color="#555" />
         <Line top={885} left={921} length={20} angle={1} color="#555" />

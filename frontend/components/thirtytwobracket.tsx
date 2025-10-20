@@ -55,9 +55,9 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
         <div className="w-1/5 text-center">Final</div>
       </div>
 
-      {/* 🎯 Bracket Container */}
+      {/*  Bracket Container */}
       <div className="flex justify-center gap-10 w-full px-10">
-        {/* 🟩 Column 1 - 32 ทีม */}
+        {/*  Column 1 - 32 ทีม */}
         <div className="flex flex-col justify-between h-[1390px]">
           {[
             "Smash Warriors",
@@ -91,7 +91,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
           ))}
         </div>
 
-        {/* 🟨 Column 2 - 16 ทีม */}
+        {/* Column 2 - 16 ทีม */}
         <div className="flex flex-col justify-between h-[1300px] mt-11">
           {[
             "Smash Warriors",
@@ -117,7 +117,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
           ))}
         </div>
 
-        {/* 🟧 Column 3 - 8 ทีม */}
+        {/*  Column 3 - 8 ทีม */}
         <div className="flex flex-col justify-between h-[1140px] mt-30">
           {["Smash Warriors", "Clear Fighters", "Fire Drops", "Drop Shot Crew"].map(
             (team, i) => (
@@ -136,7 +136,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
           )}
         </div>
 
-        {/* 🟪 Column 4 - 4 ทีม */}
+        {/* Column 4 - 4 ทีม */}
         <div className="flex flex-col justify-between h-[770px] mt-80">
           {["Smash Warriors", "Fire Drops"].map((team, i) => (
             <div
@@ -153,7 +153,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
           ))}
         </div>
 
-        {/* 🟥 Column 5 - แชมป์ */}
+        {/*  Column 5 - แชมป์ */}
         <div className="flex flex-col justify-center h-[300px] mt-130">
           <div className="flex items-center justify-between w-48 border rounded-md bg-white shadow-sm px-3 py-1">
             <span className="text-sm font-medium text-gray-800">
@@ -164,7 +164,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
         </div>
       </div>
 
-      {/* 🔗 เส้นเชื่อมทั้งหมด (คงเดิมทั้งหมด) */}
+      {/*  เส้นเชื่อมทั้งหมด (คงเดิมทั้งหมด) */}
       <div>
         <Line top={175} left={382} length={20} angle={1} color="#555" />
         <Line top={265} left={382} length={20} angle={1} color="#555" />
@@ -250,7 +250,7 @@ export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
         <Line top={1405} left={634} length={20} angle={1} color="#555" />
       </div>
 
-      {/* 🧵 เส้นระหว่าง column3-4 */}
+      {/*  เส้นระหว่าง column3-4 */}
       <div>
         <Line top={295} left={845} length={20} angle={1} color="#555" />
         <Line top={665} left={845} length={20} angle={1} color="#555" />
