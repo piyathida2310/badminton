@@ -35,11 +35,11 @@ const Line = ({
   );
 };
 
-interface SixteenBracketProps {
+interface ThirtyTwoBracketProps {
   level: string;
 }
 
-export default function ThirtyTwoBracket({ level }: SixteenBracketProps) {
+export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
   return (
     <div className="h-full w-[1500px] overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-none">
       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">

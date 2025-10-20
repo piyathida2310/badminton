@@ -35,11 +35,11 @@ const Line = ({
   );
 };
 
-interface SixteenBracketProps {
+interface TwentyFourBracketProps {
   level: string;
 }
 
-export default function TwentyFourBracket({ level }: SixteenBracketProps) {
+export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
   return (
     // 🧩 เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
     <div className="h-full w-[1380px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
