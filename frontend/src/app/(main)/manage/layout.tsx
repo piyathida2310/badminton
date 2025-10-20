@@ -21,7 +21,7 @@ export default function RootLayout({
       <Navbar />
 
       {/* เนื้อหา */}
-      <main className="flex-1 ml-0 md:ml-64 pt-[80px] overflow-y-auto">
+      <main className="flex-1 ml-0 md:ml-64 pt-[69px] overflow-y-auto">
         {children}
       </main>
     </div>

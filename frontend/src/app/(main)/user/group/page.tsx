@@ -142,7 +142,13 @@ export default function TournamentGroupPage() {
             key={group.name}
             whileHover={{ scale: 1.04 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            onClick={() => router.push(`/user/group/group-scores`)}
+            onClick={() =>
+              router.push(
+                `/user/group/group-scores?group=${encodeURIComponent(
+                  group.name
+                )}`
+              )
+            }
             className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${group.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
           >
             <div
