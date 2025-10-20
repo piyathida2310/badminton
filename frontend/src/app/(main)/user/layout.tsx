@@ -12,12 +12,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex">
+    <div className="fmin-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
       {/* NavbarUser มี SidebarUser อยู่ในตัวแล้ว */}
       <NavbarUser />
 
       {/* พื้นที่เนื้อหาหลัก */}
-      <div className="flex-1 pt-[70px] md:pl-64">
+      <div className="flex-1 ml-0 md:ml-64 pt-[80px] overflow-y-auto">
         {children}
       </div>
     </div>

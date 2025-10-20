@@ -34,15 +34,28 @@ const Line = ({
     />
   );
 };
+
 interface SixteenBracketProps {
   level: string;
 }
 
 export default function TwentyFourBracket({ level }: SixteenBracketProps) {
   return (
-    <div className="h-full w-[1380px] overflow-x-scroll bg-[#f9f9f0] flex flex-col items-center py-10 relative overflow-hidden">
+    // 🧩 เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
+    <div className="h-full w-[1380px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
+      <style jsx>{`
+        /* ซ่อน scrollbar แนวนอน */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE และ Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
+
       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 24 ทีม ({ level })
+        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 24 ทีม ({level})
       </h1>
 
       {/* Header */}
@@ -147,7 +160,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         </div>
       </div>
 
-      {/* 🧩 เส้นเชื่อม (Round of 24 → 12) */}
+      {/* 🔗 เส้นเชื่อมต่าง ๆ */}
       <div>
         <Line top={175} left={380} length={20} angle={1} color="#555" />
         <Line top={250} left={380} length={20} angle={1} color="#555" />
@@ -188,7 +201,7 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         <Line top={955} left={400} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🪄 เส้นระหว่าง column2-3 */}
+      {/* 🪄 ระหว่าง column2-3 */}
       <div>
         <Line top={215} left={650} length={20} angle={1} color="#555" />
         <Line top={365} left={650} length={20} angle={1} color="#555" />
@@ -210,21 +223,13 @@ export default function TwentyFourBracket({ level }: SixteenBracketProps) {
         <Line top={885} left={670} length={60} angle={1} color="#555" />
       </div>
 
-      {/* 🧵 เส้นระหว่าง column3-4 */}
+      {/* 🧵 ระหว่าง column3-4 */}
       <div>
         <Line top={290} left={921} length={20} angle={1} color="#555" />
         <Line top={885} left={921} length={20} angle={1} color="#555" />
         <Line top={290} left={940} length={595} angle={90} color="#555" />
         <Line top={585} left={940} length={62} angle={1} color="#555" />
       </div>
-
-      {/* 🎀 ปุ่มถัดไป */}
-      <Link
-        href="/manage/bracket/lowmatch"
-        className="absolute bottom-10 right-10 bg-amber-500 text-white font-medium rounded-md px-6 py-2 hover:bg-amber-600 transition"
-      >
-        ถัดไป
-      </Link>
     </div>
   );
 }
