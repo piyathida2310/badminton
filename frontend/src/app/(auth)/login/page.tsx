@@ -28,12 +28,20 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
-    if (token) router.replace("/dashboard");
-  }, [router]);
+  if (typeof window === "undefined") return;
+
+  const token = localStorage.getItem("accessToken");
+  const role = localStorage.getItem("role");
+
+  if (token && role) {
+    if (role === "ORGANIZER") {
+      router.replace("/management");
+    } else if (role === "PLAYER") {
+      router.replace("/user/tournament");
+    } 
+  }
+}, [router]);
+
 
   useEffect(() => {
     const isRegistered = searchParams.get("registered");
@@ -69,7 +77,6 @@ const LoginPage = () => {
 
     if (role === 'ORGANIZER') router.push('/management');
     else if (role === 'PLAYER') router.push('/user/tournament');
-    else router.push('/dashboard');
   } catch (err: any) {
     setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
   } finally {
