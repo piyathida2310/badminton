@@ -35,7 +35,7 @@ const LoginPage = () => {
 
   if (token && role) {
     if (role === "ORGANIZER") {
-      router.replace("/management");
+      router.replace("/manage");
     } else if (role === "PLAYER") {
       router.replace("/user/tournament");
     } 
@@ -83,6 +83,29 @@ const LoginPage = () => {
     setLoading(false);
   }
 };
+// ฟังก์ชันเปลี่ยนรหัสผ่าน
+const handleChangePassword = async () => {
+  if (!oldPass || !newPass) {
+    setError("กรุณากรอกรหัสผ่านให้ครบทั้งสองช่อง");
+    return;
+  }
+
+  try {
+    await api.post("/auth/change-password", {
+      oldPassword: oldPass,
+      newPassword: newPass,
+    });
+
+    setShowModal(false);
+    setOldPass("");
+    setNewPass("");
+    setError("");
+    alert("เปลี่ยนรหัสผ่านสำเร็จ 🎉");
+  } catch (err: any) {
+    setError(err.response?.data?.message || "ไม่สามารถเปลี่ยนรหัสผ่านได้");
+  }
+};
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF8E1] via-[#FFF3E0] to-[#E3F2FD]">
       {/* หัวข้อ */}
