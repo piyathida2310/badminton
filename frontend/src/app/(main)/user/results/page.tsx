@@ -10,6 +10,7 @@ interface Match {
   team: string;
   player1: string;
   player2?: string; // optional สำหรับประเภทเดี่ยว
+  shuttle?: string; //  เพิ่ม field "ลูกใช้"
 }
 
 interface SectionData {
@@ -34,6 +35,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "LUMPHUN SMASH BAD...",
           player1: "ธวัชชัย",
           player2: "ธนวัฒน์",
+          shuttle: "30", // ตัวอย่าง mock ลูกใช้
         },
         {
           position: "รองชนะเลิศอันดับ 1",
@@ -42,6 +44,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "Little Bear",
           player1: "อนุสรณ์ (แท็บ)",
           player2: "สุภาภรณ์ (ยุ้ย)",
+          shuttle: "40",
         },
       ],
     },
@@ -56,6 +59,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           code: "N1A",
           team: "SMASH MASTER",
           player1: "อิทธิพล (บอล)",
+          shuttle: "60",
         },
         {
           position: "รองชนะเลิศอันดับ 1",
@@ -63,6 +67,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           code: "N1B",
           team: "NET KING",
           player1: "ศุภวิชญ์ (เบส)",
+          shuttle: "70",
         },
       ],
     },
@@ -78,6 +83,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "LUCKY BIRD",
           player1: "พีรพงศ์",
           player2: "ชัชวาลย์",
+          shuttle: "80",
         },
       ],
     },
@@ -94,6 +100,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           code: "S1A",
           team: "TEAM S",
           player1: "สมชาย (ต่อ)",
+          shuttle: "40",
         },
       ],
     },
@@ -111,6 +118,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "GREEN SPIRIT",
           player1: "ณัฐวุฒิ",
           player2: "ปกรณ์",
+          shuttle: "70",
         },
       ],
     },
@@ -118,29 +126,24 @@ const resultsByDate: Record<string, SectionData[]> = {
 };
 
 export default function ResultSummaryPage() {
-  // เปลี่ยนจาก "วันที่" เป็น "รายการแข่งขัน" (Dropdown)
   const [selectedEvent, setSelectedEvent] = useState("เพียงตะวัน 3/2568");
   const [selectedDate, setSelectedDate] = useState("2025-06-15");
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
   const [selectedRank, setSelectedRank] = useState("all");
 
-  // ดึงข้อมูลจาก mock เดิม
   const results = resultsByDate[selectedDate] || [];
 
-  // ตัวเลือก Dropdown รายการแข่งขัน
   const events = [
     { name: "เพียงตะวัน 3/2568", date: "2025-06-15" },
     { name: "ชิงแชมป์เยาวชน 2568", date: "2025-07-10" },
     { name: "มหกรรมกีฬา ", date: "2025-08-01" },
   ];
 
-  // กรองข้อมูลตามประเภท
   let filteredResults =
     filterType === "all"
       ? results
       : results.filter((section) => section.type === filterType);
 
-  // กรองตาม Rank (BG, NB, N, S, P+, P−)
   if (selectedRank !== "all") {
     filteredResults = filteredResults
       .map((section) => ({
@@ -152,7 +155,6 @@ export default function ResultSummaryPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
-      {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-4xl font-extrabold text-pink-500 tracking-tight drop-shadow-md">
           🏆 สรุปผลการแข่งขัน
@@ -161,7 +163,6 @@ export default function ResultSummaryPage() {
         <div className="mt-4 text-gray-700 leading-relaxed space-y-1">
           <p>รายการแข่งขันแบดมินตัน</p>
 
-          {/* Dropdown เลือกรายการแข่งขัน */}
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
               <label htmlFor="competition-event" className="font-medium text-gray-800">
@@ -187,7 +188,6 @@ export default function ResultSummaryPage() {
               </select>
             </div>
 
-            {/* ประเภท */}
             <div className="flex items-center gap-2">
               <label htmlFor="filter-type" className="font-medium text-gray-800">
                 ประเภท:
@@ -204,7 +204,6 @@ export default function ResultSummaryPage() {
               </select>
             </div>
 
-            {/* Rank */}
             <div className="flex items-center gap-2">
               <label htmlFor="rank-filter" className="font-medium text-gray-800">
                 Rank:
@@ -230,7 +229,6 @@ export default function ResultSummaryPage() {
         </div>
       </div>
 
-      {/* ตารางผลการแข่งขัน */}
       {filteredResults.length > 0 ? (
         <div className="space-y-14">
           {filteredResults.map((section, index) => (
@@ -283,6 +281,8 @@ function Section({
               <th className="p-3 border-r border-pink-200">ชื่อทีม</th>
               <th className="p-3 border-r border-pink-200">ผู้เล่น 1</th>
               {hasDouble && <th className="p-3 border-r border-pink-200">ผู้เล่น 2</th>}
+              {/* เพิ่มคอลัมน์ ลูกใช้ */}
+              <th className="p-3 border-r border-pink-200">ลูกที่ใช้</th>
             </tr>
           </thead>
           <tbody>
@@ -296,9 +296,15 @@ function Section({
                 <td className="p-3 border-r border-pink-100">{m.position}</td>
                 <td className="p-3 border-r border-pink-100">{m.rank}</td>
                 <td className="p-3 border-r border-pink-100">{m.code}</td>
-                <td className="p-3 border-r border-pink-100 text-rose-700 font-medium">{m.team}</td>
+                <td className="p-3 border-r border-pink-100 text-rose-700 font-medium">
+                  {m.team}
+                </td>
                 <td className="p-3 border-r border-pink-100">{m.player1}</td>
-                {hasDouble && <td className="p-3 border-r border-pink-100">{m.player2 || "-"}</td>}
+                {hasDouble && (
+                  <td className="p-3 border-r border-pink-100">{m.player2 || "-"}</td>
+                )}
+                {/*  แสดงข้อมูลลูกใช้ */}
+                <td className="p-3 border-r border-pink-100">{m.shuttle || "-"}</td>
               </tr>
             ))}
           </tbody>
