@@ -1,14 +1,15 @@
 {
   "name": "backendnew",
   "version": "1.0.0",
-  "description": "ระบบ Express.js สำหรับโครงการแบดมินตัน (รีแฟคเตอร์จาก NestJS)",
-  "main": "src/server.js",
+  "description": "Express backend for badminton project (refactored from NestJS)",
+  "main": "dist/src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "prisma:generate": "node scripts/runPrisma.js generate",
-    "prisma:migrate": "node scripts/runPrisma.js migrate deploy",
-    "prisma:migrate:dev": "node scripts/runPrisma.js migrate dev"
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node dist/src/server.js",
+    "prisma:generate": "ts-node --transpile-only scripts/runPrisma.ts generate",
+    "prisma:migrate": "ts-node --transpile-only scripts/runPrisma.ts migrate deploy",
+    "prisma:migrate:dev": "ts-node --transpile-only scripts/runPrisma.ts migrate dev"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
@@ -23,7 +24,17 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "prisma": "^6.16.3"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.7.5",
+    "@types/swagger-jsdoc": "^6.0.3",
+    "@types/swagger-ui-express": "^4.1.8",
+    "prisma": "^6.16.3",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3"
   }
 }

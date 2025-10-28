@@ -1,10 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Edit3, Save, Upload } from "lucide-react";
+import { Edit3, Upload, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
-  const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
+
   const [profile, setProfile] = useState({
     fullname: "โมจิ พิมพ์ชนก",
     nickname: "Moji",
@@ -13,166 +15,177 @@ export default function ProfilePage() {
     avatar: "/profile.png",
   });
 
+  // ช่องไหนกำลังแก้ไขอยู่
+  const [editingField, setEditingField] = useState<string | null>(null);
+
   useEffect(() => {
-    const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = original;
+      document.body.style.overflow = "";
     };
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) {
-          setProfile((prev) => ({
-            ...prev,
-            avatar: ev.target!.result as string,
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setProfile((prev) => ({
+        ...prev,
+        avatar: ev.target?.result as string,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleChange = (field: string, value: string) =>
-    setProfile((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (key: keyof typeof profile, value: string) => {
+    setProfile((prev) => ({ ...prev, [key]: value }));
+  };
 
-  const toggleEdit = () => setIsEditing(!isEditing);
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("role");
+    alert("ออกจากระบบเรียบร้อย!");
+    router.push("/login");
+  };
 
   return (
-    <div
-      className="h-screen w-screen flex justify-center items-center 
-      bg-gradient-to-br from-[#FFF8E7] via-[#FDF1F5] to-[#E9F7FF] 
-      overflow-hidden px-4"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#FFE5F4] via-[#E8F3FF] to-[#FFFCEB] p-4">
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-[90%] max-w-md mr-64 mb-14 bg-white/80 backdrop-blur-xl 
-        rounded-3xl shadow-lg p-8 border border-pink-100 
-        flex flex-col items-center justify-center 
-        max-lg:mr-0 max-lg:mb-10 max-md:p-6 max-sm:p-4"
+        className="w-full max-w-md bg-white/70 backdrop-blur-lg border border-white/40 
+        shadow-xl rounded-3xl p-8 flex flex-col items-center space-y-6"
       >
-        {/* รูปโปรไฟล์ */}
-        <div className="relative mb-4">
+        {/* Avatar */}
+        <div className="relative group">
           <img
             src={profile.avatar}
             alt="avatar"
-            className="w-28 h-28 rounded-full border-4 border-pink-200 object-cover shadow-sm max-sm:w-24 max-sm:h-24"
+            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-[#FBCFE8] shadow-md transition-all duration-300 group-hover:scale-105"
           />
-          {isEditing && (
-            <label
-              htmlFor="avatar"
-              className="absolute bottom-1 right-1 bg-white/90 hover:bg-white text-pink-500 p-2 rounded-full cursor-pointer shadow transition-all"
-            >
-              <Upload size={16} />
-              <input
-                id="avatar"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
-          )}
+          <label
+            htmlFor="avatar"
+            className="absolute bottom-1 right-1 bg-white/90 p-2 rounded-full shadow cursor-pointer hover:bg-white transition"
+          >
+            <Upload size={16} className="text-pink-400" />
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </label>
         </div>
 
-        <h2 className="text-lg font-semibold text-gray-800 text-center">
-          {profile.fullname}
-        </h2>
-
-        {/* ฟอร์ม */}
-        <div className="space-y-3 w-full mt-3">
-          <InputField
+        {/* Profile Info */}
+        <div className="w-full space-y-4">
+          <EditableField
             label="ชื่อ–นามสกุล"
             value={profile.fullname}
-            editable={isEditing}
-            onChange={(val) => handleChange("fullname", val)}
+            isEditing={editingField === "fullname"}
+            onEdit={() => setEditingField("fullname")}
+            onSave={(val) => {
+              handleChange("fullname", val);
+              setEditingField(null);
+            }}
           />
-          <InputField
+          <EditableField
             label="ชื่อเล่น"
             value={profile.nickname}
-            editable={isEditing}
-            onChange={(val) => handleChange("nickname", val)}
+            isEditing={editingField === "nickname"}
+            onEdit={() => setEditingField("nickname")}
+            onSave={(val) => {
+              handleChange("nickname", val);
+              setEditingField(null);
+            }}
           />
-          <InputField
+          <EditableField
             label="อีเมล"
             value={profile.email}
-            editable={isEditing}
-            onChange={(val) => handleChange("email", val)}
+            isEditing={editingField === "email"}
+            onEdit={() => setEditingField("email")}
+            onSave={(val) => {
+              handleChange("email", val);
+              setEditingField(null);
+            }}
           />
-          {/* 🔒 ช่องรหัสผ่านห้ามแก้ไข */}
-          <InputField
-            label="รหัสผ่าน"
-            value={profile.password}
-            editable={false} // ปิดการแก้ไขไว้ตลอด
-            onChange={() => {}}
-            type="password"
-          />
+          <NonEditableField label="รหัสผ่าน" value={profile.password} />
         </div>
 
-        <button
-          onClick={toggleEdit}
-          className={`mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium shadow-sm transition-all ${
-            isEditing
-              ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
-              : "bg-gradient-to-r from-indigo-200 to-pink-200 text-gray-800 hover:opacity-90"
-          } max-sm:w-full justify-center`}
+        {/* Logout */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={handleLogout}
+          className="flex justify-center items-center gap-2 w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FEE2E2] to-[#FCA5A5] 
+          hover:opacity-90 text-gray-700 font-medium shadow transition-all mt-6"
         >
-          {isEditing ? (
-            <>
-              <Save size={18} />
-              บันทึก
-            </>
-          ) : (
-            <>
-              <Edit3 size={18} />
-              แก้ไขข้อมูล
-            </>
-          )}
-        </button>
+          <LogOut size={18} />
+          ออกจากระบบ
+        </motion.button>
       </motion.div>
     </div>
   );
 }
 
-/* ---------- ช่องอินพุต ---------- */
-interface InputFieldProps {
-  label: string;
-  value: string;
-  editable: boolean;
-  onChange: (val: string) => void;
-  type?: string;
-}
 
-function InputField({
+function EditableField({
   label,
   value,
-  editable,
-  onChange,
-  type = "text",
-}: InputFieldProps) {
+  isEditing,
+  onEdit,
+  onSave,
+}: {
+  label: string;
+  value: string;
+  isEditing: boolean;
+  onEdit: () => void;
+  onSave: (val: string) => void;
+}) {
+  const [tempValue, setTempValue] = useState(value);
+
+  useEffect(() => setTempValue(value), [value]);
+
   return (
-    <div className="flex flex-col">
-      <label className="text-sm text-gray-600 mb-1">{label}</label>
-      {editable ? (
+    <div className="flex flex-col text-sm">
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-gray-600">{label}</label>
+        <Edit3
+          size={16}
+          className="text-pink-400 cursor-pointer hover:text-pink-500 transition"
+          onClick={() => (isEditing ? onSave(tempValue) : onEdit())}
+        />
+      </div>
+
+      {isEditing ? (
         <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full border border-pink-200 rounded-xl px-4 py-2 focus:outline-none 
-            focus:ring-2 focus:ring-pink-200 bg-white/90 transition-all text-gray-800 
-            max-sm:px-3 max-sm:py-1.5"
+          type="text"
+          value={tempValue}
+          onChange={(e) => setTempValue(e.target.value)}
+          className="w-full px-4 py-2 border border-pink-200 rounded-xl bg-white/90 
+          focus:ring-2 focus:ring-pink-300 outline-none transition text-gray-800"
         />
       ) : (
-        <div className="w-full border border-pink-100 rounded-xl px-4 py-2 bg-pink-50/40 text-gray-700 max-sm:px-3 max-sm:py-1.5">
+        <div className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50/70 text-gray-700">
           {value}
         </div>
       )}
+    </div>
+  );
+}
+
+
+function NonEditableField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col text-sm">
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-gray-600">{label}</label>
+      </div>
+      <div className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50/70 text-gray-700">
+        {value}
+      </div>
     </div>
   );
 }

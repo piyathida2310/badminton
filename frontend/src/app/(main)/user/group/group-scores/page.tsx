@@ -12,7 +12,7 @@ export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
 
-  // 🎨 ธีมสีแต่ละกลุ่ม
+
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
     "Group A": { from: "#FFF8E1", to: "#FFE7B3", accent: "#F59E0B" },
     "Group B": { from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
