@@ -5,8 +5,8 @@ import Link from "next/link";
 
 /* 🔹 ตารางการแข่งขัน */
 const MatchTable = () => {
-  // ✅ state เก็บคะแนนในแต่ละช่อง
-  const [scores, setScores] = useState({
+  // ✅ เก็บคะแนน (คงไว้เหมือนเดิม แต่ไม่ให้แก้ไข)
+  const [scores] = useState({
     totalA: 2,
     totalB: 0,
     set1A: 21,
@@ -18,24 +18,6 @@ const MatchTable = () => {
     set4A: 0,
     set4B: 0,
   });
-
-  // ✅ ตรวจว่าอยู่ในโหมดแก้ไขไหม
-  const [isEditing, setIsEditing] = useState(false);
-
-  // ✅ เมื่อแก้ไข input
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (/^\d*$/.test(value)) {
-      setScores((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // ✅ เมื่อกดบันทึก
-  const handleSave = () => {
-    setIsEditing(false);
-    console.log("📥 คะแนนที่บันทึกแล้ว:", scores);
-    alert("✅ บันทึกคะแนนเรียบร้อย!");
-  };
 
   return (
     <div
@@ -52,24 +34,7 @@ const MatchTable = () => {
         }
       `}</style>
 
-      {/* ปุ่ม toggle แก้ไข / บันทึก */}
-      <div className="flex justify-end mb-1">
-        {isEditing ? (
-          <button
-            onClick={handleSave}
-            className="text-[10px] bg-green-500 text-white px-2 py-[2px] rounded hover:bg-green-600 transition"
-          >
-            บันทึก
-          </button>
-        ) : (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-[10px] bg-blue-500 text-white px-2 py-[2px] rounded hover:bg-blue-600 transition"
-          >
-            แก้ไขคะแนน
-          </button>
-        )}
-      </div>
+      {/* ❌ ลบปุ่มแก้ไข/บันทึกออก เพื่อให้ดูอย่างเดียว */}
 
       <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
         <tbody>
@@ -77,28 +42,10 @@ const MatchTable = () => {
           <tr className="border border-black">
             <td colSpan={5}></td>
             <td className="border border-black w-8 bg-green-400 font-bold text-white">
-              {isEditing ? (
-                <input
-                  name="totalA"
-                  value={scores.totalA}
-                  onChange={handleChange}
-                  className="w-full bg-green-300 text-center"
-                />
-              ) : (
-                scores.totalA
-              )}
+              {scores.totalA}
             </td>
             <td className="border border-black w-8 font-semibold">
-              {isEditing ? (
-                <input
-                  name="totalB"
-                  value={scores.totalB}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.totalB
-              )}
+              {scores.totalB}
             </td>
           </tr>
 
@@ -123,28 +70,10 @@ const MatchTable = () => {
               ภาคภูมิ
             </td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set1A"
-                  value={scores.set1A}
-                  onChange={handleChange}
-                  className="w-full bg-green-200 text-center"
-                />
-              ) : (
-                scores.set1A
-              )}
+              {scores.set1A}
             </td>
             <td className="border border-black w-8 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set1B"
-                  value={scores.set1B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set1B
-              )}
+              {scores.set1B}
             </td>
           </tr>
 
@@ -152,28 +81,10 @@ const MatchTable = () => {
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set2A"
-                  value={scores.set2A}
-                  onChange={handleChange}
-                  className="w-full bg-green-200 text-center"
-                />
-              ) : (
-                scores.set2A
-              )}
+              {scores.set2A}
             </td>
             <td className="border border-black w-8 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set2B"
-                  value={scores.set2B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set2B
-              )}
+              {scores.set2B}
             </td>
           </tr>
 
@@ -192,56 +103,20 @@ const MatchTable = () => {
               พงศกร (บิ๊ก)
             </td>
             <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set3A"
-                  value={scores.set3A}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3A
-              )}
+              {scores.set3A}
             </td>
             <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set3B"
-                  value={scores.set3B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3B
-              )}
+              {scores.set3B}
             </td>
           </tr>
 
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set4A"
-                  value={scores.set3A}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3A
-              )}
+              {scores.set4A}
             </td>
             <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set4B"
-                  value={scores.set3B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3B
-              )}
+              {scores.set4B}
             </td>
           </tr>
         </tbody>
@@ -285,7 +160,7 @@ interface SixteenBracketProps {
   level: string;
 }
 
-export default function SixteenBracket({ level }: SixteenBracketProps) {
+export default function SixteenBracketStu({ level }: SixteenBracketProps) {
   return (
     <div
       className="h-[1200px] w-[1500px] overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative scrollbar-hide"
@@ -294,9 +169,14 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
         msOverflowStyle: "none",
       }}
     >
+      {/* ✅ ซ่อน scrollbar แนวนอนทุกเบราว์เซอร์ */}
       <style jsx>{`
         div::-webkit-scrollbar {
-          display: none;
+          display: none; /* ✅ Chrome, Safari, Opera */
+        }
+        div {
+          -ms-overflow-style: none; /* ✅ IE, Edge */
+          scrollbar-width: none; /* ✅ Firefox */
         }
       `}</style>
 
@@ -319,34 +199,34 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
           ))}
           <div>
             <div>
-              <Line top={260} left={545} length={20} angle={1} color="#555" />
+              <Line top={240} left={545} length={20} angle={1} color="#555" />
               <Line top={325} left={545} length={20} angle={1} color="#555" />
-              <Line top={260} left={565} length={67} angle={90} color="#555" />
-              <Line top={295} left={565} length={35} angle={1} color="#555" />
+              <Line top={240} left={565} length={86} angle={90} color="#555" />
+              <Line top={285} left={565} length={35} angle={1} color="#555" />
             </div>
             <div>
-              <Line top={510} left={545} length={20} angle={1} color="#555" />
+              <Line top={480} left={545} length={20} angle={1} color="#555" />
               <Line top={575} left={545} length={20} angle={1} color="#555" />
-              <Line top={510} left={565} length={66} angle={90} color="#555" />
-              <Line top={540} left={565} length={35} angle={1} color="#555" />
+              <Line top={480} left={565} length={96} angle={90} color="#555" />
+              <Line top={530} left={565} length={35} angle={1} color="#555" />
             </div>
             <div>
-              <Line top={760} left={545} length={20} angle={1} color="#555" />
+              <Line top={740} left={545} length={20} angle={1} color="#555" />
               <Line top={825} left={545} length={20} angle={1} color="#555" />
-              <Line top={760} left={565} length={68} angle={90} color="#555" />
-              <Line top={795} left={565} length={35} angle={1} color="#555" />
+              <Line top={740} left={565} length={86} angle={90} color="#555" />
+              <Line top={785} left={565} length={35} angle={1} color="#555" />
             </div>
             <div>
-              <Line top={1010} left={545} length={20} angle={1} color="#555" />
+              <Line top={980} left={545} length={20} angle={1} color="#555" />
               <Line top={1080} left={545} length={20} angle={1} color="#555" />
-              <Line top={1010} left={565} length={71} angle={90} color="#555" />
-              <Line top={1040} left={565} length={35} angle={1} color="#555" />
+              <Line top={980} left={565} length={101} angle={90} color="#555" />
+              <Line top={1035} left={565} length={35} angle={1} color="#555" />
             </div>
           </div>
         </div>
 
         {/* Column 2 */}
-        <div className="flex flex-col justify-between h-[1110px] mt-15">
+        <div className="flex flex-col justify-between h-[1140px] mt-18">
           {[...Array(4)].map((_, i) => (
             <MatchTable key={i} />
           ))}
@@ -354,7 +234,7 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
             <Line top={320} left={1100} length={20} angle={1} color="#555" />
             <Line top={520} left={1100} length={20} angle={1} color="#555" />
             <Line top={320} left={1120} length={201} angle={90} color="#555" />
-            <Line top={425} left={1120} length={35} angle={1} color="#555" />
+            <Line top={400} left={1120} length={35} angle={1} color="#555" />
           </div>
           <div>
             <Line top={810} left={1100} length={20} angle={1} color="#555" />
@@ -372,10 +252,10 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
         </div>
 
         <div>
-          <Line top={440} left={1655} length={20} angle={1} color="#555" />
+          <Line top={400} left={1655} length={20} angle={1} color="#555" />
           <Line top={865} left={1655} length={20} angle={1} color="#555" />
-          <Line top={440} left={1675} length={428} angle={90} color="#555" />
-          <Line top={610} left={1675} length={100} angle={1} color="#555" />
+          <Line top={400} left={1675} length={466} angle={90} color="#555" />
+          <Line top={600} left={1675} length={100} angle={1} color="#555" />
         </div>
 
         {/* Column 4 */}
@@ -383,7 +263,6 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
           <MatchTable />
         </div>
       </div>
-
       <style jsx global>{`
         html,
         body {
