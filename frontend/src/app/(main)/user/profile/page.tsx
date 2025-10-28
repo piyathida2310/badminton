@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { motion } from "framer-motion";
 import { Edit3, Upload, LogOut, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -40,6 +41,34 @@ export default function ProfilePage() {
     alert("ออกจากระบบเรียบร้อย!");
     router.push("/");
   };
+  useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    router.push("/login");
+    return;
+  }
+
+  api
+    .get("/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      setProfile((prev) => ({
+        ...prev,
+        fullname: res.data.fullname,
+        nickname: res.data.nickname,
+        email: res.data.email,
+        avatar: res.data.avatar || "/profile.png",
+      }));
+    })
+    .catch(() => {
+      localStorage.removeItem("accessToken");
+      router.push("/login");
+    });
+}, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center p-6">

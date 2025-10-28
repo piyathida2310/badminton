@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,6 +29,21 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+  
+    const token = localStorage.getItem("accessToken");
+    const role = localStorage.getItem("role");
+  
+    if (token && role) {
+      if (role === "ORGANIZER") {
+        router.replace("/manage");
+      } else if (role === "PLAYER") {
+        router.replace("/user/tournament");
+      } 
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
