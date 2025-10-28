@@ -75,8 +75,8 @@ const LoginPage = () => {
     const role = resMe.data.role;
     localStorage.setItem('role', role);
 
-    if (role === 'ORGANIZER') router.push('/management');
-    else if (role === 'PLAYER') router.push('/user/tournament');
+    if (role === 'ORGANIZER') router.replace('/manage');
+    else if (role === 'PLAYER') router.replace('/user/tournament');
   } catch (err: any) {
     setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
   } finally {
