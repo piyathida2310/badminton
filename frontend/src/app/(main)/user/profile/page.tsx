@@ -41,33 +41,25 @@ export default function ProfilePage() {
     alert("ออกจากระบบเรียบร้อย!");
     router.push("/");
   };
-  useEffect(() => {
+ useEffect(() => {
   const token = localStorage.getItem("accessToken");
-  if (!token) {
-    router.push("/login");
-    return;
-  }
+  if (!token) return router.push("/login");
 
   api
     .get("/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
     .then((res) => {
       setProfile((prev) => ({
         ...prev,
-        fullname: res.data.fullname,
-        nickname: res.data.nickname,
+        fullname: `${res.data.firstName} ${res.data.lastName}`,
+        nickname: res.data.userName,
         email: res.data.email,
         avatar: res.data.avatar || "/profile.png",
       }));
-    })
-    .catch(() => {
-      localStorage.removeItem("accessToken");
-      router.push("/login");
     });
 }, []);
+
 
 
   return (

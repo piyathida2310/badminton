@@ -46,10 +46,31 @@ export default function TournamentManagePage() {
   const [regTypes, setRegTypes] = useState<string[]>([]);
   const [bracketLines, setBracketLines] = useState<string[]>([]);
 
-  // --- รอบการแข่งขัน ---
+  // --- รอบการแข่งขัน ----
   const [rounds, setRounds] = useState<
-    { time: string; desc: string; levels: string[] }[]
-  >([]);
+    { time: string; desc: string; levels?: string[] }[]
+  >([
+    {
+      time: "08:30 น.",
+      desc: "ลงทะเบียน (ให้มาลงทะเบียนตรงเวลา อย่างช้าที่สุดไม่เกิน 08:45 น.)",
+      levels: ["มือ NB", "มือ BG"],
+    },
+    {
+      time: "10:30 น.",
+      desc: "ลงทะเบียน (ให้มาลงทะเบียนตรงเวลา อย่างช้าที่สุดไม่เกิน 11:00 น.)",
+      levels: ["มือ S"],
+    },
+    {
+      time: "11:30 น.",
+      desc: "ลงทะเบียน (ให้มาลงทะเบียนตรงเวลา อย่างช้าที่สุดไม่เกิน 12:00 น.)",
+      levels: ["มือ N"],
+    },
+    {
+      time: "23:00 น.",
+      desc: "จบการแข่งขัน",
+      levels: [],
+    },
+  ]);
 
   // --- popup เพิ่ม/แก้ไข รอบ ---
   const [showAddModal, setShowAddModal] = useState(false);
@@ -204,8 +225,8 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                   onToggle={(val) => toggleValue(types, val, setTypes)}
                 />
                 <RadioStyleMultiSelect
-                  label="เลือกสายการแข่งขัน"
-                  options={["สายบน", "สายล่าง"]}
+                  label="สายการแข่งขัน"
+                  options={["สายล่าง"]}
                   selected={bracketLines}
                   onToggle={(val) =>
                     toggleValue(bracketLines, val, setBracketLines)
@@ -307,7 +328,7 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                   return ah * 60 + am - (bh * 60 + bm);
                 })
                 .map((r) => {
-                  // ✅ ใช้ index จริงใน state เดิม
+                  // ใช้ index จริงใน state เดิม
                   const originalIndex = rounds.indexOf(r);
                   return (
                     <div
@@ -319,45 +340,52 @@ max-sm:w-full max-sm:rounded-2xl py-8 mt-12 mb-16 transition-all duration-500"
                     : "bg-[#FDFBFF] hover:bg-[#F7EEFB]"
                 }`}
                     >
-                      {/* คอลัมน์เวลา */}
-                      <div className="text-center font-bold text-slate-700 text-[25px] border-r-2 border-[#F9CCE3]">
-                        {r.time}
+                      {/* ✅ คอลัมน์เวลา (เส้นกลางยาวเต็มแถว) */}
+                      <div className="flex items-stretch h-full">
+                        <div
+                          className="flex-1 flex justify-center items-center 
+                  font-bold text-[#2C2C54] text-[25px]
+                  border-r-[3px] border-[#F4B9D2] h-full"
+                        >
+                          {r.time}
+                        </div>
                       </div>
 
                       {/* คอลัมน์รายละเอียด */}
-                      <div className="flex flex-col gap-2 text-slate-700 text-[25px]">
-                        <span className="font-semibold">{r.desc}</span>
+                      <div className="pl-4 text-[#2C2C54] text-[20px] leading-snug font-semibold flex flex-col gap-2 h-full justify-center break-words break-all whitespace-pre-wrap overflow-hidden">
+                        <span className="block max-w-full break-words break-all whitespace-pre-wrap">
+                          {r.desc}
+                        </span>
 
-                        <div className="flex flex-wrap gap-2">
-                          {r.levels.map((lvl) => (
-                            <span
-                              key={lvl}
-                              className="px-3 py-1 rounded-full text-[15px] font-normal 
-                        bg-sky-200 text-slate-800 border border-[#A5D8FF]"
-                            >
-                              {lvl}
-                            </span>
-                          ))}
-                        </div>
+                        {/* ✅ แสดงป้ายระดับมือ */}
+                        {r.levels && r.levels.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {r.levels.map((lv, i) => (
+                              <span
+                                key={i}
+                                className="px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-pink-100 to-blue-100 text-[#3C3C3C] border border-[#F9CCE3] shadow-sm"
+                              >
+                                {lv}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         {/* ปุ่มแก้ไข / ลบ */}
-                        <div className="flex gap-3 mt-2">
-                          {/* ✅ ปุ่มแก้ไข (อยู่ซ้าย) */}
+                        <div className="flex gap-2 mt-2">
                           <button
                             onClick={() => handleEditRound(originalIndex)}
-                            className="p-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 border border-[#F9CCE3]"
+                            className="p-2 rounded-lg bg-[#FFEFB7] hover:bg-[#FFE47A] border border-[#FFD7B5]"
                             title="แก้ไข"
                           >
-                            <Edit3 size={16} className="text-slate-800" />
+                            <Edit3 size={16} className="text-[#3C3C3C]" />
                           </button>
-
-                          {/* ✅ ปุ่มลบ (อยู่ขวา) */}
                           <button
                             onClick={() => handleDeleteRound(originalIndex)}
-                            className="p-2 rounded-lg bg-red-200 hover:bg-red-300 border border-[#F9CCE3]"
+                            className="p-2 rounded-lg bg-[#FFCDD2] hover:bg-[#FFB4B9] border border-[#F9A8A8]"
                             title="ลบ"
                           >
-                            <Trash2 size={16} className="text-slate-800" />
+                            <Trash2 size={16} className="text-[#3C3C3C]" />
                           </button>
                         </div>
                       </div>
@@ -637,7 +665,7 @@ function PeopleSelector({ people, setPeople }: any) {
     <div>
       <div className="font-semibold mb-2">จำนวนคน</div>
       <div className="flex gap-3 flex-wrap justify-center sm:justify-start">
-        {[16, 24, 32].map((num) => (
+        {[16, 32].map((num) => (
           <RadioBox
             key={num}
             active={people === num}
