@@ -1,5 +1,5 @@
 "use client";
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Edit3, Upload, LogOut, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,16 +14,15 @@ export default function ProfilePage() {
     nickname: "Moji",
     email: "moji@example.com",
     password: "********",
-    avatar: "/profile.png",
+    avatar: "", // เริ่มต้นว่าง เพื่อแสดงไอคอน default
   });
 
+  // เมื่ออัปโหลดรูปใหม่
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) =>
-      setProfile((prev) => ({ ...prev, avatar: ev.target?.result as string }));
-    reader.readAsDataURL(file);
+    const imageURL = URL.createObjectURL(file);
+    setProfile((prev) => ({ ...prev, avatar: imageURL }));
   };
 
   const handleChange = (key: keyof typeof profile, value: string) => {
@@ -41,26 +40,26 @@ export default function ProfilePage() {
     alert("ออกจากระบบเรียบร้อย!");
     router.push("/");
   };
- useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) return router.push("/login");
 
-  api
-    .get("/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then((res) => {
-      setProfile((prev) => ({
-        ...prev,
-        fullname: `${res.data.firstName} ${res.data.lastName}`,
-        nickname: res.data.userName,
-        email: res.data.email,
-        avatar: res.data.avatar || "/profile.png",
-      }));
-    });
-}, []);
+  //  ดึงข้อมูลผู้ใช้จาก token
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return router.push("/login");
 
-
+    api
+      .get("/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setProfile((prev) => ({
+          ...prev,
+          fullname: `${res.data.firstName} ${res.data.lastName}`,
+          nickname: res.data.userName,
+          email: res.data.email,
+          avatar: res.data.avatar || prev.avatar || "",
+        }));
+      });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center p-6">
@@ -73,25 +72,44 @@ export default function ProfilePage() {
         {/* LEFT SIDE: AVATAR */}
         <div className="md:w-1/3 bg-gradient-to-b from-[#FFE8EF] to-[#EAF3FF] flex flex-col items-center justify-center p-8 relative">
           <div className="relative group">
-            <img
-              src={profile.avatar}
-              alt="avatar"
-              className="w-36 h-36 rounded-full object-cover shadow-md border-4 border-white group-hover:scale-105 transition-all"
+            {/* ถ้ามีรูป ให้โชว์รูป */}
+            {profile.avatar ? (
+              <img
+                src={profile.avatar}
+                alt="avatar"
+                onError={(e) => (e.currentTarget.src = "")}
+                className="w-36 h-36 rounded-full object-cover shadow-md border-4 border-white group-hover:scale-105 transition-all"
+              />
+            ) : (
+              // ถ้ายังไม่มีรูป ให้โชว์ไอคอน default 
+              <div className="w-36 h-36 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-md border-4 border-white">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#9ca3af"
+                  viewBox="0 0 24 24"
+                  className="w-16 h-16"
+                >
+                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+                </svg>
+              </div>
+            )}
+
+            {/* ปุ่มอัปโหลด */}
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
             />
             <label
               htmlFor="avatar"
               className="absolute bottom-2 right-2 bg-white/90 border border-pink-200 p-2 rounded-full shadow-sm cursor-pointer hover:bg-pink-50 transition"
             >
               <Upload size={18} className="text-pink-500" />
-              <input
-                id="avatar"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
             </label>
           </div>
+
           <p className="mt-4 text-lg font-semibold text-gray-800">
             {profile.nickname}
           </p>
@@ -111,18 +129,11 @@ export default function ProfilePage() {
             </h2>
           </div>
 
-          {/* Profile Fields */}
           <ProfileField
             label="ชื่อ–นามสกุล"
             value={profile.fullname}
             editable={isEditing}
             onChange={(v) => handleChange("fullname", v)}
-          />
-          <ProfileField
-            label="ชื่อเล่น"
-            value={profile.nickname}
-            editable={isEditing}
-            onChange={(v) => handleChange("nickname", v)}
           />
           <ProfileField
             label="อีเมล"
@@ -136,7 +147,6 @@ export default function ProfilePage() {
             editable={false}
           />
 
-          {/* Update & Logout */}
           <div className="pt-6 flex flex-wrap gap-3">
             {isEditing && (
               <motion.button
@@ -170,6 +180,7 @@ export default function ProfilePage() {
   );
 }
 
+// Component สำหรับแสดงแต่ละ field
 function ProfileField({
   label,
   value,
