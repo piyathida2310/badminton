@@ -1,12 +1,11 @@
 "use client";
 import React from "react";
 
-// ตารางประเภทการแข่งขัน
+// ตารางประเภทการแข่งขัน (ไม่มีคอลัมน์ 'ประเภท' และตัดแถว 24 คู่ ออก)
 export function CompetitionTypeTable() {
   const data = [
     {
       color: "bg-[#b3e5fc]",
-      label: "BG NB N S P- P+",
       count: "16 คู่",
       desc: (
         <>
@@ -23,37 +22,18 @@ export function CompetitionTypeTable() {
       ),
     },
     {
-      color: "bg-[#e8d2fa]",
-      label: "BG NB N S P- P+",
-      count: "24 คู่",
-      desc: (
-        <>
-          <p>แบ่งกลุ่มละ 4 ทีม จำนวน 6 กลุ่ม</p>
-          <p>
-            - สายบน: ทีมอันดับที่ 1-2 ของกลุ่ม จำนวน 12 ทีม
-            และทีมอันดับที่ดีที่สุด 4 ทีม เข้ารอบ Knock Out 16 ทีม สายบน
-          </p>
-          <p>
-            - สายล่าง: ทีมอันดับที่ 3-4 ของกลุ่ม จำนวน 8 ทีม
-            เข้ารอบก่อนรองชนะเลิศ สายล่าง (Quarter Finals) (ถ้ามี)
-          </p>
-        </>
-      ),
-    },
-    {
       color: "bg-[#ffe1df]",
-      label: "BG NB N S P- P+",
       count: "32 คู่",
       desc: (
         <>
-          <p>แบ่งกลุ่มละ 4 ทีม จำนวน 12 กลุ่ม</p>
+          <p>แบ่งกลุ่มละ 4 ทีม จำนวน 8 กลุ่ม</p>
           <p>
-            - สายบน: ทีมอันดับที่ 1-2 ของกลุ่ม จำนวน 8 ทีม
-            เข้ารอบก่อนรองชนะเลิศ สายบน (Quarter Finals)
+            - สายบน: ทีมอันดับที่ 1-2 ของกลุ่ม จำนวน 16 ทีม
+            เข้ารอบ Knock Out 16 ทีม
           </p>
           <p>
-            - สายล่าง: ทีมอันดับที่ 3-4 ของกลุ่ม จำนวน 8 ทีม
-            เข้ารอบก่อนรองชนะเลิศ สายล่าง (Quarter Finals) (ถ้ามี)
+            - สายล่าง: ทีมอันดับที่ 3-4 ของกลุ่ม จำนวน 16 ทีม
+            เข้ารอบ Knock Out 16 ทีม สายล่าง (ถ้ามี)
           </p>
         </>
       ),
@@ -70,10 +50,9 @@ export function CompetitionTypeTable() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-gradient-to-r from-[#ffe8b0] to-[#ffe07a] text-gray-900 text-center font-semibold">
-              <th className="border border-[#ffd4c4]/70 p-3 rounded-tl-2xl">
-                ประเภท
+              <th className="border border-[#ffd4c4]/70 p-3 w-32 rounded-tl-2xl">
+                จำนวน
               </th>
-              <th className="border border-[#ffd4c4]/70 p-3">จำนวน</th>
               <th className="border border-[#ffd4c4]/70 p-3 rounded-tr-2xl">
                 รูปแบบ
               </th>
@@ -89,9 +68,6 @@ export function CompetitionTypeTable() {
                 <td
                   className={`${r.color} p-3 text-center font-bold align-top`}
                 >
-                  {r.label}
-                </td>
-                <td className="p-3 text-center align-top bg-[#fffaf7]">
                   {r.count}
                 </td>
                 <td className="p-3 bg-[#fffaf7]">{r.desc}</td>
