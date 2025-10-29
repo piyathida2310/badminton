@@ -7,6 +7,8 @@ import {
   GroupTable,
   GroupInfo,
 } from "../../../../../../components/groupComponents";
+import { GroupTableEditable } from "../../../../../../components/groupTableEditable";
+
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
@@ -492,11 +494,12 @@ export default function GroupStageScoresPage() {
           rows={selected.rank}
         />
 
-        <GroupTable
-          title="ตารางการแข่งขันแต่ละรอบ"
-          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น"]}
-          rows={selected.matches}
-        />
+       <GroupTableEditable
+  title="ตารางการแข่งขันแต่ละรอบ"
+  headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น"]}
+  rows={selected.matches}
+/>
+
       </div>
     </div>
   );

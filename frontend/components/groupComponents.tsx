@@ -20,7 +20,7 @@ export function BackButton({ target }: { target: string }) {
 
 
 
-// 🔹 หัวข้อกลุ่ม
+//  หัวข้อกลุ่ม
 export function SectionTitle({ text, color }: { text: string; color: string }) {
   return (
     <h2
@@ -35,7 +35,7 @@ export function SectionTitle({ text, color }: { text: string; color: string }) {
   );
 }
 
-// 🔹 ตารางข้อมูล
+//  ตารางข้อมูล
 export function GroupTable({
   title,
   headers,
@@ -88,7 +88,7 @@ export function GroupTable({
   );
 }
 
-// 🔹 ข้อมูลคำอธิบายสายบน/สายล่าง
+//  ข้อมูลคำอธิบายสายบน/สายล่าง
 export function GroupInfo() {
   return (
     <div className="text-center mb-8">
