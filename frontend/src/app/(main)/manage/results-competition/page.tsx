@@ -153,6 +153,14 @@ export default function ResultSummaryPage() {
       .filter((section) => section.matches.length > 0);
   }
 
+  //  สรุปลูกใช้รวมของแต่ละรายการ
+  const totalShuttles = filteredResults.reduce((sum, section) => {
+    return (
+      sum +
+      section.matches.reduce((acc, match) => acc + (parseInt(match.shuttle || "0") || 0), 0)
+    );
+  }, 0);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
       <div className="text-center mb-10">
@@ -199,8 +207,8 @@ export default function ResultSummaryPage() {
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">ทั้งหมด</option>
-                <option value="double">ประเภทคู่ 👫</option>
-                <option value="single">ประเภทเดี่ยว 🏸</option>
+                <option value="double">ประเภทคู่ </option>
+                <option value="single">ประเภทเดี่ยว </option>
               </select>
             </div>
 
@@ -226,6 +234,10 @@ export default function ResultSummaryPage() {
           </div>
 
           <p>ณ สนามแบดมินตัน 18 คอร์ต ราชพฤกษ์</p>
+          {/*  แสดงผลสรุปลูกใช้รวม */}
+          <p className="text-pink-600 font-semibold mt-2">
+             สรุปลูกที่ใช้รวมทั้งหมด: {totalShuttles} ลูก
+          </p>
         </div>
       </div>
 
@@ -281,8 +293,7 @@ function Section({
               <th className="p-3 border-r border-pink-200">ชื่อทีม</th>
               <th className="p-3 border-r border-pink-200">ผู้เล่น 1</th>
               {hasDouble && <th className="p-3 border-r border-pink-200">ผู้เล่น 2</th>}
-              {/*  เพิ่มคอลัมน์ ลูกใช้ */}
-              <th className="p-3 border-r border-pink-200">ลูกที่ใช้</th>
+             
             </tr>
           </thead>
           <tbody>
@@ -303,8 +314,6 @@ function Section({
                 {hasDouble && (
                   <td className="p-3 border-r border-pink-100">{m.player2 || "-"}</td>
                 )}
-                {/*  แสดงข้อมูลลูกใช้ */}
-                <td className="p-3 border-r border-pink-100">{m.shuttle || "-"}</td>
               </tr>
             ))}
           </tbody>
