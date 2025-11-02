@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import SixteenBracketStu from "../../../../../components/sicteenbracketstu";
+import SixteenBracketStu from "../../../../../components/sixteenbracketstu";
 import TwentyFourBracket from "../../../../../components/twentyfourbracket";
 import ThirtyTwoBracketStu from "../../../../../components/thirtytwobracketstu";
 

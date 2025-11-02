@@ -16,28 +16,28 @@ interface Tournament {
 export default function TournamentPage() {
   const router = useRouter();
 
-  // 🧩 mock data จำนวนมากไว้ทดสอบ pagination
+  //  mock data ทดสอบ pagination
   const [tournaments] = useState<Tournament[]>([
-    { id: 1, title: "BADMINTON TOURNAMENT 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster5.jpg", canceled: false },
+    { id: 1, title: "BADMINTON TOURNAMENT 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
     { id: 2, title: "BADMINTON CUP 2025", date: "วันที่ 5 ตุลาคม 2568", image: "/images/poster2.jpg", canceled: false },
     { id: 3, title: "SMASH BATTLE 2025", date: "วันที่ 10 พฤศจิกายน 2568", image: "/images/poster3.jpg", canceled: false },
     { id: 4, title: "NET KING CHALLENGE", date: "วันที่ 15 ธันวาคม 2568", image: "/images/poster4.jpg", canceled: false },
-    { id: 5, title: "DROP SHOT LEAGUE", date: "วันที่ 20 ธันวาคม 2568", image: "/images/poster5.jpg", canceled: true },
+    { id: 5, title: "DROP SHOT LEAGUE", date: "วันที่ 20 ธันวาคม 2568", image: "/images/poster3.jpg", canceled: true },
     { id: 6, title: "POWER DRIVE OPEN", date: "วันที่ 10 มกราคม 2569", image: "/images/poster2.jpg", canceled: false },
     { id: 7, title: "SHUTTLE CUP", date: "วันที่ 22 กุมภาพันธ์ 2569", image: "/images/poster3.jpg", canceled: false },
     { id: 8, title: "NET MASTER CHAMPIONSHIP", date: "วันที่ 15 มีนาคม 2569", image: "/images/poster4.jpg", canceled: false },
-    { id: 9, title: "RISING STAR SERIES", date: "วันที่ 10 เมษายน 2569", image: "/images/poster5.jpg", canceled: false },
+    { id: 9, title: "RISING STAR SERIES", date: "วันที่ 10 เมษายน 2569", image: "/images/poster2.jpg", canceled: false },
     { id: 10, title: "BADMINTON OPEN 2026", date: "วันที่ 1 พฤษภาคม 2569", image: "/images/poster2.jpg", canceled: false },
     { id: 11, title: "SUMMER CUP 2026", date: "วันที่ 30 มิถุนายน 2569", image: "/images/poster3.jpg", canceled: true },
     { id: 12, title: "SKY SMASH INVITATIONAL", date: "วันที่ 15 กรกฎาคม 2569", image: "/images/poster4.jpg", canceled: false },
-    { id: 13, title: "INTERNATIONAL OPEN 2026", date: "วันที่ 10 สิงหาคม 2569", image: "/images/poster5.jpg", canceled: false },
+    { id: 13, title: "INTERNATIONAL OPEN 2026", date: "วันที่ 10 สิงหาคม 2569", image: "/images/poster4.jpg", canceled: false },
     { id: 14, title: "FUTURE STAR TOURNAMENT", date: "วันที่ 20 กันยายน 2569", image: "/images/poster2.jpg", canceled: false },
     { id: 15, title: "KING OF COURT 2026", date: "วันที่ 30 ตุลาคม 2569", image: "/images/poster3.jpg", canceled: false },
   ]);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // 🔹 Pagination settings
+  //  Pagination settings
   const [currentPage, setCurrentPage] = useState(1);
   const postersPerPage = 6;
 
@@ -128,7 +128,7 @@ export default function TournamentPage() {
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${
                   currentPage === i + 1
-                    ? "bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white border-transparent shadow"
+                    ? "bg-pink-500"
                     : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                 }`}
               >

@@ -17,14 +17,14 @@ export default function TournamentPage() {
   const router = useRouter();
 
   const [tournaments, setTournaments] = useState<Tournament[]>([
-    { id: 1, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster5.jpg", canceled: false },
+    { id: 1, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster4.jpg", canceled: false },
     { id: 2, title: "BADMINTON COMPETITION 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
     { id: 3, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster3.jpg", canceled: true },
     { id: 4, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster4.jpg", canceled: false },
     { id: 5, title: "BADMINTON COMPETITION 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
     { id: 6, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster3.jpg", canceled: true },
     { id: 7, title: "BADMINTON 2026", date: "วันที่ 15 ตุลาคม 2569", image: "/images/poster4.jpg", canceled: false },
-    { id: 8, title: "BADMINTON CUP 2027", date: "วันที่ 10 ธันวาคม 2570", image: "/images/poster5.jpg", canceled: false },
+    { id: 8, title: "BADMINTON CUP 2027", date: "วันที่ 10 ธันวาคม 2570", image: "/images/poster3.jpg", canceled: false },
     { id: 9, title: "INTERNATIONAL OPEN 2028", date: "วันที่ 20 มกราคม 2571", image: "/images/poster2.jpg", canceled: false },
   ]);
 
@@ -133,7 +133,7 @@ export default function TournamentPage() {
             onClick={() => goToPage(i + 1)}
             className={`px-3 py-1.5 rounded-md font-medium text-sm border ${
               currentPage === i + 1
-                ? "bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white border-transparent shadow"
+                ? "bg-pink-500"
                 : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
             }`}
           >

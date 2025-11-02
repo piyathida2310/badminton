@@ -2,23 +2,23 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // เปลี่ยนหน้า
+import { useRouter } from "next/navigation"; 
 
 export default function TournamentGroupPage() {
   const router = useRouter();
   const [matchType, setMatchType] = useState<"single" | "double">("single");
   const [selectedDate, setSelectedDate] = useState<string>("2025-01-02");
 
-  // 🆕 state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
+  //  state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
   const [showGroups, setShowGroups] = useState(false);
 
-  // ✅ โหลดหน้าใหม่จะรีเซ็ตสถานะเสมอ (ล้าง localStorage)
+  //  โหลดหน้าใหม่จะรีเซ็ตสถานะเสมอ (ล้าง localStorage)
   useEffect(() => {
     localStorage.removeItem("showGroups");
     setShowGroups(false);
   }, []);
 
-  // ✅ Mock ข้อมูลทั้งหมด (เพิ่มประเภทคู่)
+  //  Mock ข้อมูลทั้งหมด (ประเภทคู่)
   const dataByTypeAndDate: Record<string, Record<string, any[]>> = {
     single: {
       "2025-01-02": [
@@ -70,7 +70,7 @@ export default function TournamentGroupPage() {
         },
       ],
     },
-    // 🆕 ประเภทคู่ (double)
+    //  ประเภทคู่ (double)
     double: {
       "2025-01-02": [
         {
@@ -110,7 +110,7 @@ export default function TournamentGroupPage() {
 
   const totalTeams = groups.reduce((sum, g) => sum + g.teams.length, 0);
 
-  // 🆕 ฟังก์ชันเมื่อกด "จัดแข่ง"
+  //  ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = () => {
     setShowGroups(true);
     localStorage.setItem("showGroups", "true");

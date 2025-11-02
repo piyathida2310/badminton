@@ -20,7 +20,7 @@ interface SectionData {
   matches: Match[];
 }
 
-/*  Mock ข้อมูลผลการแข่งขัน (ของคุณเดิมทุกตัวครบ) */
+/*  Mock ข้อมูลผลการแข่งขัน */
 const resultsByDate: Record<string, SectionData[]> = {
   "2025-06-15": [
     {
@@ -35,7 +35,7 @@ const resultsByDate: Record<string, SectionData[]> = {
           team: "LUMPHUN SMASH BAD...",
           player1: "ธวัชชัย",
           player2: "ธนวัฒน์",
-          shuttle: "30", // ตัวอย่าง mock ลูกใช้
+          shuttle: "30", 
         },
         {
           position: "รองชนะเลิศอันดับ 1",
@@ -281,7 +281,7 @@ function Section({
               <th className="p-3 border-r border-pink-200">ชื่อทีม</th>
               <th className="p-3 border-r border-pink-200">ผู้เล่น 1</th>
               {hasDouble && <th className="p-3 border-r border-pink-200">ผู้เล่น 2</th>}
-              {/* เพิ่มคอลัมน์ ลูกใช้ */}
+             
               <th className="p-3 border-r border-pink-200">ลูกที่ใช้</th>
             </tr>
           </thead>

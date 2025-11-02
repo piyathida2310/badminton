@@ -267,7 +267,7 @@ export default function MatchTableUser() {
         </div>
       </div>
 
-      {/* 📱 Mobile View */}
+      {/*  Mobile View */}
       <div className="sm:hidden flex flex-col gap-4 mt-2">
         {filteredMatches.map((m) => (
           <div

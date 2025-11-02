@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <ProtectedRoute>
-      {/* ห่อทุกหน้าเพื่อบังคับให้มี token ก่อนเข้าใช้งาน */}
+      {/* ทุกหน้าเพื่อบังคับให้มี token ก่อนเข้าใช้งาน */}
       <div className="min-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
         {/* Sidebar แบบ fixed */}
 
