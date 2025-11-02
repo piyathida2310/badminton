@@ -40,7 +40,7 @@ export interface AuthConfig {
   app: AppConfig;
 }
 
-const defaultAccessExpires: ms.StringValue = '30m';
+const defaultAccessExpires: ms.StringValue = '7d';
 const defaultRefreshExpires: ms.StringValue = '7d';
 
 export const authConfig: AuthConfig = {
