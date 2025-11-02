@@ -39,18 +39,10 @@ const MatchTable = () => {
 
   return (
     <div
-      className="p-1 overflow-x-auto overflow-y-hidden scale-[1.0] origin-top-left w-fit scrollbar-hide"
-      style={{
-        scrollbarWidth: "none", 
-        msOverflowStyle: "none", 
-      }}
+      className="p-1 scale-[1.0] origin-top-left w-fit"
+      
     >
-      {/*  ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      
 
       {/* ปุ่ม toggle แก้ไข / บันทึก */}
       <div className="flex justify-end mb-1">
@@ -102,7 +94,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมบน */}
+          {/*  ทีมบน */}
           <tr className="border border-black">
             <td
               rowSpan={8}
@@ -148,7 +140,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 เซตถัดไป */}
+          {/*  เซตถัดไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
@@ -177,7 +169,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมล่าง */}
+          {/*  ทีมล่าง */}
           <tr className="border border-black">
             <td className="border border-black font-semibold bg-gray-100 py-[2px]">
               N2B
@@ -250,7 +242,7 @@ const MatchTable = () => {
   );
 };
 
-/* 🔹 เส้นเชื่อม */
+/*  เส้นเชื่อม */
 const Line = ({
   length = 100,
   angle = 0,
@@ -280,7 +272,7 @@ const Line = ({
   />
 );
 
-/* 🔹 หน้าหลักของแผนผัง */
+/*  หน้าหลักของแผนผัง */
 interface SixteenBracketProps {
   level: string;
 }
@@ -288,17 +280,10 @@ interface SixteenBracketProps {
 export default function SixteenBracket({ level }: SixteenBracketProps) {
   return (
     <div
-      className="h-[1200px] w-[1500px] overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative scrollbar-hide"
-      style={{
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-      }}
+      className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+      
     >
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      
 
       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
         🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
@@ -384,15 +369,7 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
         </div>
       </div>
 
-      <style jsx global>{`
-        html,
-        body {
-          overflow-x: hidden !important;
-        }
-        div::-webkit-scrollbar {
-          display: none !important;
-        }
-      `}</style>
+      
     </div>
   );
 }
