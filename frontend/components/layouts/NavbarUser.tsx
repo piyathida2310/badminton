@@ -46,10 +46,18 @@ export default function NavbarUser() {
   };
 
   //  ไปหน้าโปรไฟล์
-  const handleGoToProfile = () => {
-    setIsDropdownOpen(false);
+  // ✅ ของใหม่ (แก้แล้ว)
+const handleGoToProfile = () => {
+  setIsDropdownOpen(false);
+  const role = localStorage.getItem("role");
+
+  if (role === "organizer") {
+    router.push("/organizer/profile");
+  } else {
     router.push("/user/profile");
-  };
+  }
+};
+
 
   return (
     <>

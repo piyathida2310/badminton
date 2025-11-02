@@ -36,11 +36,12 @@ const LoginPage = () => {
   if (token && role) {
     api.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
       .then(() => {
-        if (role === "ORGANIZER") {
-          router.replace("/manage");
-        } else if (role === "PLAYER") {
-          router.replace("/user/tournament");
-        }
+        if (role === "manage") {
+  router.replace("/manage");
+} else if (role === "user") {
+  router.replace("/user/tournament");
+}
+
       })
       .catch(() => {
         //  ถ้า token เสีย  หมดอายุ  ลบทิ้งเลย
@@ -81,11 +82,26 @@ const LoginPage = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const role = resMe.data.role;
-    localStorage.setItem('role', role);
+    const roleFromServer = resMe.data.role;
 
-    if (role === 'ORGANIZER') router.replace('/manage');
-    else if (role === 'PLAYER') router.replace('/user/tournament');
+// ✅ แม็ป role จาก backend → path จริงใน frontend
+const roleMap: Record<string, string> = {
+  ORGANIZER: "manage",
+  PLAYER: "user",
+};
+
+const mappedRole = roleMap[roleFromServer] || "user";
+
+// ✅ เก็บ role ที่แม็ปแล้วลง localStorage
+localStorage.setItem("role", mappedRole);
+
+// ✅ เปลี่ยนเส้นทางตาม role ที่แม็ปได้
+if (mappedRole === "manage") {
+  router.replace("/manage");
+} else if (mappedRole === "user") {
+  router.replace("/user/tournament");
+}
+
   } catch (err: any) {
     setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
   } finally {
