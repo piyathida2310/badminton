@@ -2,14 +2,23 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // เปลี่ยนหน้า
+import { useRouter } from "next/navigation"; 
 
 export default function TournamentGroupPage() {
-  const router = useRouter(); // 🆕
+  const router = useRouter();
   const [matchType, setMatchType] = useState<"single" | "double">("single");
   const [selectedDate, setSelectedDate] = useState<string>("2025-01-02");
 
-  // Mock ข้อมูลทั้งหมด
+  //  state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
+  const [showGroups, setShowGroups] = useState(false);
+
+  //  โหลดหน้าใหม่จะรีเซ็ตสถานะเสมอ (ล้าง localStorage)
+  useEffect(() => {
+    localStorage.removeItem("showGroups");
+    setShowGroups(false);
+  }, []);
+
+  //  Mock ข้อมูลทั้งหมด (ประเภทคู่)
   const dataByTypeAndDate: Record<string, Record<string, any[]>> = {
     single: {
       "2025-01-02": [
@@ -61,6 +70,35 @@ export default function TournamentGroupPage() {
         },
       ],
     },
+    //  ประเภทคู่ (double)
+    double: {
+      "2025-01-02": [
+        {
+          name: "Group A",
+          color:
+            "from-orange-100 to-orange-50 border-orange-400 shadow-orange-200/50",
+          header: "bg-orange-400/80 text-orange-900",
+          teams: [
+            ["Team Alpha 1", "Team Alpha 2"],
+            ["Team Bravo 1", "Team Bravo 2"],
+            ["Team Charlie 1", "Team Charlie 2"],
+            ["Team Delta 1", "Team Delta 2"],
+          ],
+        },
+        {
+          name: "Group B",
+          color:
+            "from-purple-100 to-purple-50 border-purple-400 shadow-purple-200/50",
+          header: "bg-purple-400/80 text-purple-900",
+          teams: [
+            ["Team Echo 1", "Team Echo 2"],
+            ["Team Foxtrot 1", "Team Foxtrot 2"],
+            ["Team Golf 1", "Team Golf 2"],
+            ["Team Hotel 1", "Team Hotel 2"],
+          ],
+        },
+      ],
+    },
   };
 
   const [groups, setGroups] = useState<any[]>(
@@ -72,9 +110,15 @@ export default function TournamentGroupPage() {
 
   const totalTeams = groups.reduce((sum, g) => sum + g.teams.length, 0);
 
+  //  ฟังก์ชันเมื่อกด "จัดแข่ง"
+  const handleStartCompetition = () => {
+    setShowGroups(true);
+    localStorage.setItem("showGroups", "true");
+  };
+
   return (
     <div className="h-full flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
-      {/* พื้นหลังตกแต่ง */}
+      {/* วงกลมพื้นหลังตกแต่ง */}
       <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-blue-200/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-yellow-200/30 rounded-full blur-3xl"></div>
 
@@ -98,7 +142,7 @@ export default function TournamentGroupPage() {
           })}
         </p>
 
-        {/* ปุ่มโหมด + ปฏิทิน */}
+        {/* ปุ่มโหมด + วันที่ */}
         <div className="mt-5 flex flex-wrap justify-center gap-3 sm:gap-5">
           <button
             onClick={() => setMatchType("single")}
@@ -128,58 +172,83 @@ export default function TournamentGroupPage() {
             className="px-4 py-2 rounded-full border border-gray-300 text-gray-700 font-medium text-sm sm:text-base shadow-sm focus:ring-2 focus:ring-blue-300 transition-all duration-300 bg-white"
           />
         </div>
+
+        {/* ปุ่มจัดแข่ง */}
+        {!showGroups && (
+          <div className="mt-6">
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleStartCompetition}
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              จัดแข่ง
+            </motion.button>
+          </div>
+        )}
       </motion.div>
 
-      {/* กล่อง Group */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-10 max-w-6xl w-full justify-items-center z-10"
-      >
-        {groups.map((group) => (
-          <motion.div
-            key={group.name}
-            whileHover={{ scale: 1.04 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            onClick={() => router.push(`/manage/group/group-stage-scores?group=${group.name}`)}// 🆕 เมื่อคลิกแล้วเด้งไปหน้าใหม่
-            className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${group.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
-          >
-            <div
-              className={`${group.header} text-center py-2.5 font-bold rounded-t-xl text-base md:text-lg shadow-sm`}
+      {/* แสดง Group */}
+      {showGroups ? (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-10 max-w-6xl w-full justify-items-center z-10"
+        >
+          {groups.map((group) => (
+            <motion.div
+              key={group.name}
+              whileHover={{ scale: 1.04 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              onClick={() =>
+                router.push(`/manage/group/group-stage-scores?group=${group.name}`)
+              }
+              className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${group.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
             >
-              {group.name}
-            </div>
-            <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center">
-              {group.teams.map((team: any, index: number) => (
-                <li
-                  key={index}
-                  className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
-                >
-                  {Array.isArray(team) ? (
-                    <div className="flex flex-col items-center leading-tight">
-                      <span>{team[0]}</span>
-                      <span className="text-gray-500 text-xs">&</span>
-                      <span>{team[1]}</span>
-                    </div>
-                  ) : (
-                    <span>{team}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        ))}
-      </motion.div>
+              <div
+                className={`${group.header} text-center py-2.5 font-bold rounded-t-xl text-base md:text-lg shadow-sm`}
+              >
+                {group.name}
+              </div>
+              <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center">
+                {group.teams.map((team: any, index: number) => (
+                  <li
+                    key={index}
+                    className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
+                  >
+                    {Array.isArray(team) ? (
+                      <div className="flex flex-col items-center leading-tight">
+                        <span>{team[0]}</span>
+                        <span className="text-gray-500 text-xs">&</span>
+                        <span>{team[1]}</span>
+                      </div>
+                    ) : (
+                      <span>{team}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </motion.div>
+      ) : (
+        // ยังไม่สร้าง Group
+        <p className="text-gray-500 text-lg font-medium mt-10">
+          ยังไม่มีการสร้าง Group
+        </p>
+      )}
 
       {/* ปุ่ม ถัดไป */}
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        className="mt-12 sm:mt-14 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white font-bold px-8 sm:px-10 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
-      >
-        ถัดไป
-      </motion.button>
+      {showGroups && (
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          className="mt-12 sm:mt-14 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white font-bold px-8 sm:px-10 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+        >
+          ถัดไป
+        </motion.button>
+      )}
     </div>
   );
 }

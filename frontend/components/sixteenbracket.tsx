@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* 🔹 ตารางการแข่งขัน */
+/*  ตารางการแข่งขัน */
 const MatchTable = () => {
-  // ✅ state เก็บคะแนนในแต่ละช่อง
+  //  state เก็บคะแนนในแต่ละช่อง
   const [scores, setScores] = useState({
     totalA: 2,
     totalB: 0,
@@ -19,10 +19,10 @@ const MatchTable = () => {
     set4B: 0,
   });
 
-  // ✅ ตรวจว่าอยู่ในโหมดแก้ไขไหม
+  //  ตรวจว่าอยู่ในโหมดแก้ไขไหม
   const [isEditing, setIsEditing] = useState(false);
 
-  // ✅ เมื่อแก้ไข input
+  // เมื่อแก้ไข input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (/^\d*$/.test(value)) {
@@ -30,22 +30,22 @@ const MatchTable = () => {
     }
   };
 
-  // ✅ เมื่อกดบันทึก
+  //  เมื่อกดบันทึก
   const handleSave = () => {
     setIsEditing(false);
-    console.log("📥 คะแนนที่บันทึกแล้ว:", scores);
-    alert("✅ บันทึกคะแนนเรียบร้อย!");
+    console.log(" คะแนนที่บันทึกแล้ว:", scores);
+    alert(" บันทึกคะแนนเรียบร้อย!");
   };
 
   return (
     <div
       className="p-1 overflow-x-auto overflow-y-hidden scale-[1.0] origin-top-left w-fit scrollbar-hide"
       style={{
-        scrollbarWidth: "none", // 🔹 ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", // 🔹 ซ่อน scrollbar (Edge)
+        scrollbarWidth: "none", 
+        msOverflowStyle: "none", 
       }}
     >
-      {/* 🔹 ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
+      {/*  ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
       <style jsx>{`
         div::-webkit-scrollbar {
           display: none;
@@ -73,7 +73,7 @@ const MatchTable = () => {
 
       <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
         <tbody>
-          {/* 🔸 แถวผลรวมคะแนน */}
+          {/*  แถวผลรวมคะแนน */}
           <tr className="border border-black">
             <td colSpan={5}></td>
             <td className="border border-black w-8 bg-green-400 font-bold text-white">
@@ -312,7 +312,7 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
       </div>
 
       <div className="flex flex-row justify-start gap-12 px-10">
-        {/* ✅ โครงสร้าง bracket เดิมทั้งหมดของน้องผักกาดยังเหมือนเดิม */}
+        {/*  โครงสร้าง bracket เดิมทั้งหมดของน้องผักกาดยังเหมือนเดิม */}
         <div className="flex flex-col justify-between h-[1000px]">
           {[...Array(8)].map((_, i) => (
             <MatchTable key={i} />

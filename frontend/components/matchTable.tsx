@@ -158,7 +158,7 @@ export default function MatchTable() {
 
   return (
     <div className="mt-6 w-full">
-      {/* 🔹 Filter Header */}
+      {/*  Filter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
         <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
           <Filter className="text-pink-600" size={18} />
@@ -267,7 +267,7 @@ export default function MatchTable() {
         </div>
       </div>
 
-      {/* 📱 Mobile View */}
+      {/*  Mobile View */}
       <div className="sm:hidden flex flex-col gap-4 mt-2">
         {filteredMatches.map((m) => (
           <div

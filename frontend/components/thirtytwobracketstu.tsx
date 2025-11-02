@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* ✅ ตารางการแข่งขันเต็ม (นำมาจากของเดิมที่ให้มา) */
+
 const MatchTable = () => {
   const [scores] = useState({
     totalA: 2,
@@ -31,7 +31,7 @@ const MatchTable = () => {
 
       <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
         <tbody>
-          {/* 🔸 แถวผลรวมคะแนน */}
+          {/*  แถวผลรวมคะแนน */}
           <tr className="border border-black">
             <td colSpan={5}></td>
             <td className="border border-black w-8 bg-green-400 font-bold text-white">
@@ -42,7 +42,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมบน */}
+          {/*  ทีมบน */}
           <tr className="border border-black">
             <td
               rowSpan={8}
@@ -70,7 +70,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 เซตถัดไป */}
+          {/*  เซตถัดไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
@@ -81,7 +81,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมล่าง */}
+          {/*  ทีมล่าง */}
           <tr className="border border-black">
             <td className="border border-black font-semibold bg-gray-100 py-[2px]">
               N2B
@@ -118,7 +118,7 @@ const MatchTable = () => {
   );
 };
 
-/* 🔧 เส้นเชื่อม */
+/*  เส้นเชื่อม */
 const Line = ({
   length = 100,
   angle = 0,
@@ -158,8 +158,8 @@ export default function ThirtyTwoBracketStu({ level }: ThirtyTwoBracketProps) {
     <div
       className="h-[2200px] w-[1800px] overflow-x-auto overflow-y-hidden  bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-none"
       style={{
-        scrollbarWidth: "none", // ✅ ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", // ✅ ซ่อน scrollbar (Edge)
+        scrollbarWidth: "none", //  ซ่อน scrollbar (Firefox)
+        msOverflowStyle: "none", // ซ่อน scrollbar (Edge)
       }}
     >
       <style jsx>{`

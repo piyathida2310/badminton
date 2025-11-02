@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-/* 🔹 ตารางการแข่งขัน */
+
 const MatchTable = () => {
-  // ✅ เก็บคะแนน (คงไว้เหมือนเดิม แต่ไม่ให้แก้ไข)
+  
   const [scores] = useState({
     totalA: 2,
     totalB: 0,
@@ -23,22 +23,22 @@ const MatchTable = () => {
     <div
       className="p-1 overflow-x-auto overflow-y-hidden scale-[1.0] origin-top-left w-fit scrollbar-hide"
       style={{
-        scrollbarWidth: "none", // 🔹 ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", // 🔹 ซ่อน scrollbar (Edge)
+        scrollbarWidth: "none", //  ซ่อน scrollbar (Firefox)
+        msOverflowStyle: "none", //  ซ่อน scrollbar (Edge)
       }}
     >
-      {/* 🔹 ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
+      {/*  ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
       <style jsx>{`
         div::-webkit-scrollbar {
           display: none;
         }
       `}</style>
 
-      {/* ❌ ลบปุ่มแก้ไข/บันทึกออก เพื่อให้ดูอย่างเดียว */}
+    
 
       <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
         <tbody>
-          {/* 🔸 แถวผลรวมคะแนน */}
+          {/* แถวผลรวมคะแนน */}
           <tr className="border border-black">
             <td colSpan={5}></td>
             <td className="border border-black w-8 bg-green-400 font-bold text-white">
@@ -49,7 +49,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมบน */}
+          {/*  ทีมบน */}
           <tr className="border border-black">
             <td
               rowSpan={8}
@@ -77,7 +77,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 เซตถัดไป */}
+          {/*  เซตถัดไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
@@ -88,7 +88,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/* 🔸 ทีมล่าง */}
+          {/*  ทีมล่าง */}
           <tr className="border border-black">
             <td className="border border-black font-semibold bg-gray-100 py-[2px]">
               N2B
@@ -125,7 +125,7 @@ const MatchTable = () => {
   );
 };
 
-/* 🔹 เส้นเชื่อม */
+/*  เส้นเชื่อม */
 const Line = ({
   length = 100,
   angle = 0,
@@ -155,7 +155,7 @@ const Line = ({
   />
 );
 
-/* 🔹 หน้าหลักของแผนผัง */
+/*  หน้าหลักของแผนผัง */
 interface SixteenBracketProps {
   level: string;
 }
@@ -169,14 +169,14 @@ export default function SixteenBracketStu({ level }: SixteenBracketProps) {
         msOverflowStyle: "none",
       }}
     >
-      {/* ✅ ซ่อน scrollbar แนวนอนทุกเบราว์เซอร์ */}
+      {/*  ซ่อน scrollbar แนวนอนทุกเบราว์เซอร์ */}
       <style jsx>{`
         div::-webkit-scrollbar {
-          display: none; /* ✅ Chrome, Safari, Opera */
+          display: none; /*  Chrome, Safari, Opera */
         }
         div {
-          -ms-overflow-style: none; /* ✅ IE, Edge */
-          scrollbar-width: none; /* ✅ Firefox */
+          -ms-overflow-style: none; /*  IE, Edge */
+          scrollbar-width: none; /*  Firefox */
         }
       `}</style>
 
@@ -192,7 +192,7 @@ export default function SixteenBracketStu({ level }: SixteenBracketProps) {
       </div>
 
       <div className="flex flex-row justify-start gap-12 px-10">
-        {/* ✅ โครงสร้าง bracket เดิมทั้งหมดของน้องผักกาดยังเหมือนเดิม */}
+       
         <div className="flex flex-col justify-between h-[1000px]">
           {[...Array(8)].map((_, i) => (
             <MatchTable key={i} />
