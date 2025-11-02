@@ -21,18 +21,10 @@ const MatchTable = () => {
 
   return (
     <div
-      className="p-1 overflow-x-auto overflow-y-hidden scale-[1.0] origin-top-left w-fit scrollbar-hide"
-      style={{
-        scrollbarWidth: "none", //  ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", //  ซ่อน scrollbar (Edge)
-      }}
+      className="p-1 scale-[1.0] origin-top-left w-fit"
+      
     >
-      {/*  ซ่อน scrollbar สำหรับ Chrome / Safari / Opera */}
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      
 
     
 
@@ -163,22 +155,10 @@ interface SixteenBracketProps {
 export default function SixteenBracketStu({ level }: SixteenBracketProps) {
   return (
     <div
-      className="h-[1200px] w-[1500px] overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative scrollbar-hide"
-      style={{
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-      }}
+      className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+      
     >
-      {/*  ซ่อน scrollbar แนวนอนทุกเบราว์เซอร์ */}
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none; /*  Chrome, Safari, Opera */
-        }
-        div {
-          -ms-overflow-style: none; /*  IE, Edge */
-          scrollbar-width: none; /*  Firefox */
-        }
-      `}</style>
+      
 
       <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
         🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
@@ -263,15 +243,7 @@ export default function SixteenBracketStu({ level }: SixteenBracketProps) {
           <MatchTable />
         </div>
       </div>
-      <style jsx global>{`
-        html,
-        body {
-          overflow-x: hidden !important;
-        }
-        div::-webkit-scrollbar {
-          display: none !important;
-        }
-      `}</style>
+      
     </div>
   );
 }
