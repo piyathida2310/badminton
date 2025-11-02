@@ -34,13 +34,22 @@ const LoginPage = () => {
   const role = localStorage.getItem("role");
 
   if (token && role) {
-    if (role === "ORGANIZER") {
-      router.replace("/manage");
-    } else if (role === "PLAYER") {
-      router.replace("/user/tournament");
-    } 
+    api.get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(() => {
+        if (role === "ORGANIZER") {
+          router.replace("/manage");
+        } else if (role === "PLAYER") {
+          router.replace("/user/tournament");
+        }
+      })
+      .catch(() => {
+        //  ถ้า token เสีย  หมดอายุ  ลบทิ้งเลย
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("role");
+      });
   }
 }, [router]);
+
 
 
   useEffect(() => {

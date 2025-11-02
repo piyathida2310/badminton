@@ -10,11 +10,10 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
 
   const [profile, setProfile] = useState({
-    fullname: "โมจิ พิมพ์ชนก",
-    nickname: "Moji",
-    email: "moji@example.com",
-    password: "********",
-    avatar: "", // เริ่มต้นว่าง เพื่อแสดงไอคอน default
+    fullname: " ",
+    nickname: " ",
+    email: "",
+    avatar: "", 
   });
 
   // เมื่ออัปโหลดรูปใหม่
@@ -29,10 +28,39 @@ export default function ProfilePage() {
     setProfile((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleUpdate = () => {
-    setIsEditing(false);
+  const handleUpdate = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Token not found");
+
+    console.log(" Sending update:", {
+      fullName: profile.fullname,
+      email: profile.email,
+      username: profile.nickname,
+    });
+
+    const res = await api.patch(
+      "/auth/me",
+      {
+        fullName: profile.fullname,
+        email: profile.email,
+        username: profile.nickname,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("Update response:", res.data);
     alert("อัปเดตข้อมูลเรียบร้อยแล้ว!");
-  };
+    setIsEditing(false);
+  } catch (err: any) {
+    console.error(" Update error:", err.response?.data || err.message);
+    alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
+  }
+};
+
+
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -62,15 +90,16 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row"
-      >
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center">
+  <motion.div
+    initial={{ opacity: 0, y: 25 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row"
+  >
+
         {/* LEFT SIDE: AVATAR */}
-        <div className="md:w-1/3 bg-gradient-to-b from-[#FFE8EF] to-[#EAF3FF] flex flex-col items-center justify-center p-8 relative">
+        <div className=" bg-[#f1cfff]  flex flex-col items-center justify-center p-10 relative">
           <div className="relative group">
             {/* ถ้ามีรูป ให้โชว์รูป */}
             {profile.avatar ? (
@@ -109,11 +138,6 @@ export default function ProfilePage() {
               <Upload size={18} className="text-pink-500" />
             </label>
           </div>
-
-          <p className="mt-4 text-lg font-semibold text-gray-800">
-            {profile.nickname}
-          </p>
-          <p className="text-sm text-gray-500">{profile.email}</p>
         </div>
 
         {/* RIGHT SIDE: INFO */}
@@ -141,12 +165,7 @@ export default function ProfilePage() {
             editable={isEditing}
             onChange={(v) => handleChange("email", v)}
           />
-          <ProfileField
-            label="รหัสผ่าน"
-            value={profile.password}
-            editable={false}
-          />
-
+          
           <div className="pt-6 flex flex-wrap gap-3">
             {isEditing && (
               <motion.button

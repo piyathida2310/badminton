@@ -6,6 +6,9 @@ import {
   changePasswordHandler,
   me,
 } from '../controllers/authController';
+import { updateProfileHandler } from '../controllers/authController';
+
+
 
 const router = express.Router();
 
@@ -151,5 +154,6 @@ router.post('/change-password', authMiddleware, changePasswordHandler);
  *         description: ยังไม่ได้เข้าสู่ระบบ
  */
 router.get('/me', authMiddleware, me);
+router.patch('/me', authMiddleware, updateProfileHandler);
 
 export default router;
