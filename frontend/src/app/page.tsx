@@ -14,15 +14,12 @@ export default function Home() {
   // ตรวจสอบ role และ redirect อัตโนมัติ
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const role = localStorage.getItem("role");
-    if (role === "ORGANIZER") {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
       router.replace("/manage");
       return;
     }
-    if (role === "PLAYER") {
-      router.replace("/user/tournament");
-      return;
-    }
+   
    
   }, [router]);
 
