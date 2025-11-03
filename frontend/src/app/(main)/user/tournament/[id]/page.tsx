@@ -12,7 +12,7 @@ export default function TournamentDetailPage() {
     id,
     title: "BADMINTON TOURNAMENT",
     date: "วันที่ 30 กันยายน 2568",
-    image: "/images/poster5.jpg",
+    image: "/images/poster2.jpg",
     rules: [
       "ผู้เข้าร่วมต้องสวมชุดกีฬาและรองเท้าที่เหมาะสม",
       "ห้ามใช้อุปกรณ์ช่วยเล่นที่ผิดกติกา",
