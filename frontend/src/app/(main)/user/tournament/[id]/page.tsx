@@ -7,7 +7,7 @@ export default function TournamentDetailPage() {
   const router = useRouter();
   const { id } = useParams();
 
-  // 🧩 ตัวอย่าง mock ข้อมูล (ในของจริงอาจ fetch จาก API)
+  //  ตัวอย่าง mock ข้อมูล (ในของจริงอาจ fetch จาก API)
   const tournament = {
     id,
     title: "BADMINTON TOURNAMENT",
