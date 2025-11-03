@@ -1,5 +1,5 @@
 "use client";
-
+import { useEffect, useState } from "react"; 
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,18 +26,29 @@ type SidebarUserProps = {
 export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
   const pathname = usePathname();
 
-  const links = [
-    // { href: "/", icon: <Home size={18} />, label: "หน้าแรก" },
-    { href: "/user/tournament", icon: <Trophy size={18} />, label: "รายการแข่งขัน" },
-    { href: "/user/match-rules", icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: "/user/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: "/user/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: "/user/status", icon: <Swords size={18} />, label: "สถานะ" },
-    
-    { href: "/user/court-running", icon: <Clock size={18} />, label: "Court Running" },
+  const [role, setRole] = useState("user");
 
-    { href: "/user/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: "/user/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
+  useEffect(() => {
+  const storedRole = localStorage.getItem("role");
+  if (storedRole) setRole(storedRole.toLowerCase()); 
+}, []);
+
+
+
+  const links = [
+  // ✅ รายการแข่งขัน (อันเดียวคงที่)
+  {
+    href: role === "manage" ? "/manage" : "/user/tournament",
+    icon: <Trophy size={18} />,
+    label: "รายการแข่งขัน",
+  },
+    { href: `/${role}/${role === "manage" ? "manage-rules" : "match-rules"}`, icon: <BookOpen size={18} />, label: "กติกา" },
+    { href: `/${role}/group`, icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
+    { href: `/${role}/bracket`, icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+    { href: `/${role}/${role === "manage" ? "players-status" : "status"}`, icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
+    { href: `/${role}/${role === "manage" ? "match-history" : "court-running"}`, icon: <Clock size={18} />, label: "Court Running" },
+    { href: `/${role}/${role === "manage" ? "results-competition" : "results"}`, icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
+    { href: `/${role}/profile`, icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
   ];
 
   return (
@@ -86,12 +97,13 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">Halo</span>
             <Link
-              href="/profile"
+              href={`/${role}/profile`}
               onClick={onClose}
               className="text-sm text-pink-600 hover:underline"
             >
               โปรไฟล์ของฉัน
             </Link>
+
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import {
 } from '../services/authService';
 import { HttpError } from '../utils/httpError';
 import { AuthenticatedRequest } from '../types/express';
+import { updateUserProfile } from '../services/authService';
 
 const ALLOWED_ROLES = Object.values(Role);
 
@@ -131,3 +132,33 @@ export async function me(req: Request, res: Response, next: NextFunction): Promi
     next(error);
   }
 }
+
+export async function updateProfileHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const request = req as AuthenticatedRequest;
+    if (!request.user) {
+      throw new HttpError(401, 'User not authenticated', 'UNAUTHORIZED');
+    }
+
+    const { fullName = "", email = "", username } = req.body ?? {};
+    if (!fullName.trim() || !email.trim()) {
+      throw new HttpError(400, 'fullName and email are required', 'VALIDATION_ERROR');
+    }
+
+    const updated = await updateUserProfile(request.user.sub, {
+      fullName,
+      email,
+      username,
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(" updateProfileHandler error:", error);
+    next(error);
+  }
+}
+

@@ -39,6 +39,7 @@ type UserProfile = Prisma.UserGetPayload<{
     lastName: true;
     email: true;
     role: true;
+ 
     createdAt: true;
   };
 }>;
@@ -160,4 +161,60 @@ export async function changePassword(
     success: true,
     message: 'Password changed successfully',
   };
+}
+
+// Update Profile
+export interface UpdateProfileParams {
+  fullName: string;
+  email: string;
+  username?: string | null;
+}
+
+export async function updateUserProfile(
+  userId: string,
+  { fullName, email, username }: { fullName: string; email: string; username?: string | null },
+) {
+  const numericId = Number(userId);
+
+  const [firstName, ...lastNameParts] = (fullName || "").trim().split(" ");
+  const lastName = lastNameParts.join(' ') || '';
+
+  const existingUser = await prisma.user.findUnique({ where: { id: numericId } });
+  if (!existingUser) throw new HttpError(404, 'User not found', 'USER_NOT_FOUND');
+
+  const emailInUse = await prisma.user.findFirst({
+    where: { email, NOT: { id: numericId } },
+  });
+  if (emailInUse) throw new HttpError(400, 'Email already in use', 'EMAIL_DUPLICATE');
+  
+
+ try {
+  const safeUserName =
+    username && username.trim() !== ""
+      ? username
+      : existingUser.userName || `user_${numericId}`;
+
+  const updated = await prisma.user.update({
+    where: { id: numericId },
+    data: {
+      firstName,
+      lastName,
+      email,
+      userName: safeUserName,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      userName: true,
+      email: true,
+      role: true,
+    },
+  });
+
+  return updated;
+} catch (error) {
+  console.error("🔥 updateUserProfile error:", error);
+  throw new HttpError(500, "Failed to update profile", "UPDATE_FAILED");
+}
 }

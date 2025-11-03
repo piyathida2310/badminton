@@ -199,9 +199,7 @@ export default function RegisterPage() {
                 <p className="font-semibold text-pink-700">
                   อัปโหลดวิดีโอแนะนำตัว
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  (รองรับ .mp4, .mov, .avi)
-                </p>
+                
               </>
             )}
             <input
