@@ -11,11 +11,13 @@ import errorHandler from './middleware/errorHandler';
 import { connectPrisma } from './services/prismaClient';
 import { swaggerSpec } from './config/swaggerConfig';
 import { appConfig } from './config/authConfig';
+import { checkBucket } from './config/minioManage';
+
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
 });
-
+ checkBucket();
 async function bootstrap(): Promise<void> {
   const app = express();
 
@@ -36,6 +38,8 @@ async function bootstrap(): Promise<void> {
   });
 
   app.use('/auth', authRoutes);
+
+
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use(errorHandler);
