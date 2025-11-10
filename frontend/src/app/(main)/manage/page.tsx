@@ -32,6 +32,10 @@ export default function TournamentPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const postersPerPage = 6;
 
+  const test = (id:any) =>{
+    router.push(`/manage/manage-rules/${id}`)
+  }
+
   const handleCancel = (id: number) => {
     setTournaments(prev =>
       prev.map(t => (t.id === id ? { ...t, canceled: !t.canceled } : t))
@@ -70,6 +74,7 @@ export default function TournamentPage() {
           <motion.div
             key={t.id}
             whileHover={{ y: -5, scale: 1.02 }}
+            onClick={()=>test(t.id)}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
             className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
           >
