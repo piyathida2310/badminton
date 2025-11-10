@@ -214,7 +214,7 @@ export async function updateUserProfile(
 
   return updated;
 } catch (error) {
-  console.error("🔥 updateUserProfile error:", error);
+  console.error(" updateUserProfile error:", error);
   throw new HttpError(500, "Failed to update profile", "UPDATE_FAILED");
 }
 }
