@@ -12,6 +12,7 @@ import { connectPrisma } from './services/prismaClient';
 import { swaggerSpec } from './config/swaggerConfig';
 import { appConfig } from './config/authConfig';
 import { checkBucket } from './config/minioManage';
+import rulesRouter from './routes/rulesRoutes'
 
 
 dotenv.config({
@@ -38,6 +39,8 @@ async function bootstrap(): Promise<void> {
   });
 
   app.use('/auth', authRoutes);
+  app.use('/api', rulesRouter);
+
 
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
