@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import SixteenBracket from "../../../../../components/sixteenbracket";
-import TwentyFourBracket from "../../../../../components/twentyfourbracket";
-import ThirtyTwoBracket from "../../../../../components/thirtytwobracket";
+import SixteenBracket from "../../../../../../components/sixteenbracket";
+import TwentyFourBracket from "../../../../../../components/twentyfourbracket";
+import ThirtyTwoBracket from "../../../../../../components/thirtytwobracket";
 
 const page = () => {
   const [round, setRound] = useState<number>(16);

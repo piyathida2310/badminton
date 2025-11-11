@@ -33,7 +33,7 @@ export default function TournamentPage() {
   const postersPerPage = 6;
 
   const test = (id:any) =>{
-    router.push(`/manage/manage-rules/${id}`)
+    router.push(`/manage/${id}/manage-rules/`)
   }
 
   const handleCancel = (id: number) => {

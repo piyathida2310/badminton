@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, User, Settings, LogOut } from "lucide-react";
-import Sidebar from "./Sidebar";
+import SidebarLay from "./Sidebarlay";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function NavbarUser() {
+export default function NavbarLay() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -150,7 +150,7 @@ const handleGoToProfile = () => {
       </nav>
 
       {/* SidebarUser */}
-      <Sidebar
+      <SidebarLay
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

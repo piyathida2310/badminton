@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { usePathname,useParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -19,7 +19,6 @@ import {
   BookOpen,
   Medal, 
 } from "lucide-react";
-
 
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -124,8 +123,6 @@ type SidebarProps = {
 };
 
 function Sidebar({ isOpen, onClose, user }: SidebarProps) {
-      const { id } = useParams();
-
   return (
     <>
       {/* Overlay Mobile */}
@@ -171,14 +168,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         {/* Sidebar มือถือ */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
           <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label="กติกา" onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label="สายการแข่งขัน" onClick={onClose} />
-          
-          <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label="Court Running " onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} /> 
-          <SidebarLink href={`/manage/${id}/profile"`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว;;;;" onClick={onClose} />
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
       </motion.aside>
 
@@ -187,15 +177,8 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">MENU</h2>
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />
-          <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label="กติกา" />
-          <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" />
-          <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label="สายการแข่งขัน" />
-          
-          <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label="สถานะผู้แข่ง" />
-          <SidebarLink href={`/manage/${id}/match-history`}  icon={<Clock size={18} />} label="Court Running " />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" /> 
-          <SidebarLink href={`/manage/profile`}  icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
+          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />         
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
         </nav>
       </aside>
     </>

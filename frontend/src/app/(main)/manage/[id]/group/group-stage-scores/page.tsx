@@ -1,18 +1,19 @@
 "use client";
 import React from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import {
   BackButton,
   SectionTitle,
   GroupTable,
   GroupInfo,
-} from "../../../../../../components/groupComponents";
-import { GroupTableEditable } from "../../../../../../components/groupTableEditable";
+} from "../../../../../../../components/groupComponents";
+import { GroupTableEditable } from "../../../../../../../components/groupTableEditable";
 
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
+  const { id } = useParams();
 
   // 🎨 ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
@@ -483,7 +484,7 @@ export default function GroupStageScoresPage() {
       }}
     >
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
-        <BackButton target="/manage/group" />
+        <BackButton target={`/manage/${id}/group`} />
 
         <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
         <GroupInfo />

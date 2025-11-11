@@ -1,8 +1,7 @@
 // app/(your-layout)/layout.tsx
 import type { Metadata } from "next";
-import Navbar from "../../../../components/layouts/Navbar";
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute";
-import SidebarUser from "../../../../components/layouts/SidebarUser"; // ถ้ามี sidebar
+import NavbarLay from "../../../../../components/layouts/Navbarlay";
+import ProtectedRoute from "../../../../../components/auth/ProtectedRoute";
 
 export const metadata: Metadata = {
   title: "Badminton",
@@ -21,7 +20,7 @@ export default function RootLayout({
         {/* Sidebar แบบ fixed */}
 
         {/* Navbar fixed ด้านบน */}
-        <Navbar />
+        <NavbarLay />
 
         {/* เนื้อหา */}
         <main className="flex-1 ml-0 md:ml-64 pt-[69px] overflow-y-auto">

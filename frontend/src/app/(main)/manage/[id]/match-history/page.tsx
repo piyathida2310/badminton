@@ -1,4 +1,4 @@
-import MatchTable from "../../../../../components/matchTable"
+import MatchTable from "../../../../../../components/matchTable"
 
 export default function Home() {
   return (

@@ -5,9 +5,9 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 // import component ที่แยกไว้
-import Form from "../../../../../components/form";
-import Schedule from "../../../../../components/schedule";
-import Guideline from "../../../../../components/guideline";
+import Form from "../../../../../../components/form";
+import Schedule from "../../../../../../components/schedule";
+import Guideline from "../../../../../../components/guideline";
 
 export default function TournamentManagePage() {
   const [page, setPage] = useState<"organize" | "schedule" | "rules">("organize");
