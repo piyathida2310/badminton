@@ -10,7 +10,7 @@ import Schedule from "../../../../../../components/schedule";
 import Guideline from "../../../../../../components/guideline";
 
 export default function TournamentManagePage() {
-  const [page, setPage] = useState<"organize" | "schedule" | "rules">("organize");
+  const [page, setPage] = useState<"organize" | "rules" | "schedule">("organize");
   const router = useRouter();
 
   // --- ข้อมูลฟอร์มหน้าแรก ---
@@ -114,7 +114,7 @@ export default function TournamentManagePage() {
     date && location && shuttlecockPrice && ranks.length > 0 && types.length > 0 && people;
 
   const handleNext = () => {
-    if (isFormComplete) setPage("schedule");
+    if (isFormComplete) setPage("rules");
   };
 
   // ฟังก์ชันบันทึกพร้อมล้างคำว่า "มือ" และกรองซ้ำ
@@ -219,6 +219,16 @@ export default function TournamentManagePage() {
           />
         )}
 
+        
+        {page === "rules" && (
+          <Guideline
+            rulesText={rulesText}
+            setRulesText={setRulesText}
+            setPage={setPage}
+            router={router}
+          />
+        )}
+
         {page === "schedule" && (
           <Schedule
             rounds={rounds}
@@ -240,14 +250,6 @@ export default function TournamentManagePage() {
           />
         )}
 
-        {page === "rules" && (
-          <Guideline
-            rulesText={rulesText}
-            setRulesText={setRulesText}
-            setPage={setPage}
-            router={router}
-          />
-        )}
       </AnimatePresence>
     </div>
   );
