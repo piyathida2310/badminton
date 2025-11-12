@@ -55,64 +55,84 @@ enum MatchStatus {
 
 // ---------- USER ----------
 model User {
-  id         Int        @id @default(autoincrement()) @map("user_id")
-  userName   String?    @map("user_name")
-  firstName  String     @map("first_name")
-  lastName   String     @map("last_name")
-  email      String     @unique
+  id         Int       @id @default(autoincrement()) @map("user_id")
+  userName   String?   @map("user_name")
+  firstName  String    @map("first_name")
+  lastName   String    @map("last_name")
+  email      String    @unique
   password   String
   age        Int?
-  role       Role       @default(PLAYER)
+  role       Role      @default(PLAYER)
   playType   PlayType?
   profileImg String?
-  gmail      String?    @unique
+  gmail      String?   @unique
   rank       Int?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   organizedTournaments Tournament[] @relation("OrganizerTournaments")
   registrations        Register[]
-  confirmedPayments    Payment[]     @relation("PaymentConfirmedBy")
+  confirmedPayments    Payment[]    @relation("PaymentConfirmedBy")
   histories            History[]
 }
 
 // ---------- TOURNAMENT ----------
+  
 model Tournament {
-  id           Int        @id @default(autoincrement())
-  name         String
-  location     String
-  playType     HandType
-  shuttlePrice Float
-  maxPlayers   Int
-  posterImg    String?
-  qrCodeImg    String?
-  startDate    DateTime
-  createdAt    DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String
+  location       String
+  playType       PlayType
+  rank           HandType
+  shuttlePrice   Float
+  maxPlayers     Int
+  posterImg      String?
+  qrCodeImg      String?
+  startDate      DateTime
+  createdAt      DateTime @default(now())
+  updateAt       DateTime @updatedAt
+  ruleId         Int
+  isLowerBracket Boolean  @default(false)
+  isCancel Boolean  @default(false)
+  organizerId    Int
 
-  organizerId  Int
-  organizer    User @relation("OrganizerTournaments", fields: [organizerId], references: [id])
+  organizer      User     @relation("OrganizerTournaments", fields: [organizerId], references: [id])
+  rule           Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
-  rules        Rule[]
-  matches      Match[]
+  matches       Match[]
   registrations Register[]
-  groups       Group[]
-  summaries    Summary[]
+  groups        Group[]
+  summaries     Summary[]
+  competition   Competition[]
+}
+
+// ---------- competition ----------
+
+model Competition {
+  id     Int      @id @default(autoincrement())
+  time   DateTime
+  detail String
+  rank   HandType
+  tournamentId Int
+  createdAt      DateTime @default(now())
+  updateAt       DateTime @updatedAt
+
+  tournament   Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
 // ---------- RULE ----------
 model Rule {
-  id           Int       @id @default(autoincrement())
-  tournamentId Int
-  content      String
-  createdAt    DateTime @default(now())
-  updateAt     DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
 
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournament Tournament[]
 }
 
 // ---------- REGISTER ----------
 model Register {
-  id           Int        @id @default(autoincrement())
+  id           Int              @id @default(autoincrement())
   userId       Int
   tournamentId Int
   teamName     String?
@@ -124,13 +144,13 @@ model Register {
   comment      String?
 
   // Foreign key สำหรับ Group
-  groupId      Int?          // <-- เพิ่มบรรทัดนี้
-  group        Group? @relation(fields: [groupId], references: [id])
+  groupId Int? // <-- เพิ่มบรรทัดนี้
+  group   Group? @relation(fields: [groupId], references: [id])
 
   // Relations
-  user        User       @relation(fields: [userId], references: [id])
-  tournament  Tournament @relation(fields: [tournamentId], references: [id])
-  payment     Payment?
+  user       User       @relation(fields: [userId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  payment    Payment?
 
   // สำหรับ relation กับ Match
   matchesAsPlayer1 Match[] @relation("Player1")
@@ -148,44 +168,44 @@ model Payment {
   slipImg       String?
   status        PaymentStatus @default(PENDING)
   confirmedById Int?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime      @default(now())
 
-  register       Register @relation(fields: [registerId], references: [id])
-  confirmedBy    User?    @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id])
+  register    Register @relation(fields: [registerId], references: [id])
+  confirmedBy User?    @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id])
 }
 
 // ---------- GROUP ----------
 model Group {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   name         String
   tournamentId Int
   createdAt    DateTime @default(now())
 
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  matches      Match[]
-  registers    Register[]
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  matches    Match[]
+  registers  Register[]
 }
 
 // ---------- MATCH ----------
 model Match {
-  id           Int        @id @default(autoincrement())
-  tournamentId Int
-  groupId      Int?
-  player1Id    Int?
-  player2Id    Int?
-  winnerId     Int?
-  round        String?
-  score1       Int?
-  score2       Int?
-  status       MatchStatus @default(PENDING)
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int
+  groupId       Int?
+  player1Id     Int?
+  player2Id     Int?
+  winnerId      Int?
+  round         String?
+  score1        Int?
+  score2        Int?
+  status        MatchStatus @default(PENDING)
   scheduledTime DateTime?
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   group      Group?     @relation(fields: [groupId], references: [id])
 
-  player1    Register?  @relation("Player1", fields: [player1Id], references: [id])
-  player2    Register?  @relation("Player2", fields: [player2Id], references: [id])
-  winner     Register?  @relation("Winner", fields: [winnerId], references: [id])
+  player1 Register? @relation("Player1", fields: [player1Id], references: [id])
+  player2 Register? @relation("Player2", fields: [player2Id], references: [id])
+  winner  Register? @relation("Winner", fields: [winnerId], references: [id])
 
   @@index([tournamentId])
   @@index([groupId])
@@ -193,25 +213,24 @@ model Match {
 
 // ---------- SUMMARY ----------
 model Summary {
-  id            Int        @id @default(autoincrement())
-  tournamentId  Int
-  registerId    Int
-  position      Int
-  totalScore    Float?
-  shuttleUsed   Int?
-  createdAt     DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  tournamentId Int
+  registerId   Int
+  position     Int
+  totalScore   Float?
+  shuttleUsed  Int?
+  createdAt    DateTime @default(now())
 
-  tournament    Tournament @relation(fields: [tournamentId], references: [id])
-  register      Register   @relation("SummaryRegister", fields: [registerId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  register   Register   @relation("SummaryRegister", fields: [registerId], references: [id])
 }
-
 
 // ---------- HISTORY ----------
 model History {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   userId    Int
   action    String
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  user      User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }

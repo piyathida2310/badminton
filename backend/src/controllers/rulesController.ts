@@ -8,7 +8,6 @@ export const createRules = async (req: Request, res: Response) => {
         const validateData = rulesSchema.parse(req.body);
         const creatRules = await prisma.rule.create({
             data: {
-                tournamentId:validateData.tournamentId,
                 content:validateData.content
             }
         });

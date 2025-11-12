@@ -13,7 +13,7 @@ import { swaggerSpec } from './config/swaggerConfig';
 import { appConfig } from './config/authConfig';
 import { checkBucket } from './config/minioManage';
 import rulesRouter from './routes/rulesRoutes'
-
+import tournamentRouter from './routes/tournamentRoutes'
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
@@ -40,6 +40,7 @@ async function bootstrap(): Promise<void> {
 
   app.use('/auth', authRoutes);
   app.use('/api', rulesRouter);
+  app.use('/api', tournamentRouter);
 
 
 

@@ -44,22 +44,39 @@ CREATE TABLE "Tournament" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "location" TEXT NOT NULL,
-    "playType" "HandType" NOT NULL,
+    "playType" "PlayType" NOT NULL,
+    "rank" "HandType" NOT NULL,
     "shuttlePrice" DOUBLE PRECISION NOT NULL,
     "maxPlayers" INTEGER NOT NULL,
     "posterImg" TEXT,
     "qrCodeImg" TEXT,
     "startDate" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updateAt" TIMESTAMP(3) NOT NULL,
+    "ruleId" INTEGER NOT NULL,
+    "isLowerBracket" BOOLEAN NOT NULL DEFAULT false,
+    "isCancel" BOOLEAN NOT NULL DEFAULT false,
     "organizerId" INTEGER NOT NULL,
 
     CONSTRAINT "Tournament_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "Competition" (
+    "id" SERIAL NOT NULL,
+    "time" TIMESTAMP(3) NOT NULL,
+    "detail" TEXT NOT NULL,
+    "rank" "HandType" NOT NULL,
+    "tournamentId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updateAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Competition_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Rule" (
     "id" SERIAL NOT NULL,
-    "tournamentId" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
@@ -165,7 +182,10 @@ CREATE INDEX "Match_groupId_idx" ON "Match"("groupId");
 ALTER TABLE "Tournament" ADD CONSTRAINT "Tournament_organizerId_fkey" FOREIGN KEY ("organizerId") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Rule" ADD CONSTRAINT "Rule_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Tournament" ADD CONSTRAINT "Tournament_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "Rule"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Competition" ADD CONSTRAINT "Competition_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Register" ADD CONSTRAINT "Register_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE SET NULL ON UPDATE CASCADE;
