@@ -6,6 +6,8 @@ export default function Form({
   date,
   setDate,
   location,
+  tournamentName,
+  setTournamentName,
   setLocation,
   shuttlecockPrice,
   setShuttlecockPrice,
@@ -55,6 +57,12 @@ export default function Form({
             onChange={(e: any) => setDate(e.target.value)}
           />
           <LabeledInput
+            label="ชื่อรายการแข่ง"
+            value={tournamentName}
+            onChange={(e: any) => setTournamentName(e.target.value)}
+          />
+
+          <LabeledInput
             label="สถานที่แข่งขัน"
             value={location}
             onChange={(e: any) => setLocation(e.target.value)}
@@ -66,7 +74,7 @@ export default function Form({
           />
 
           <RadioStyleMultiSelect
-            label="แรงค์"
+            label="ประเภทมือ"
             options={levelOptions}
             selected={ranks}
             onToggle={(val: string) => toggleValue(ranks, val, setRanks)}
@@ -92,7 +100,6 @@ export default function Form({
 
         {/* ฝั่งขวา */}
         <div className="space-y-5">
-         
           <UploadPreview
             title="อัปโหลดรูปภาพโปสเตอร์"
             onUpload={(e: any) => handleUpload(e, "poster")}
@@ -237,13 +244,19 @@ function UploadPreview({ title, onUpload, preview }: any) {
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           </div>
           <div className="font-semibold text-slate-700 text-sm sm:text-base">
             {title}
           </div>
-          <p className="text-xs text-slate-500">คลิกเพื่อเลือกไฟล์จากเครื่องของคุณ</p>
+          <p className="text-xs text-slate-500">
+            คลิกเพื่อเลือกไฟล์จากเครื่องของคุณ
+          </p>
         </div>
       )}
     </label>

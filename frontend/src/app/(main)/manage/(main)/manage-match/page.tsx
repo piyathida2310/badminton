@@ -20,6 +20,7 @@ export default function TournamentManagePage() {
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<string | null>(null);
   const [date, setDate] = useState("");
+  const [tournamentName, setTournamentName] = useState("");
   const [shuttlecockPrice, setShuttlecockPrice] = useState("");
   const [location, setLocation] = useState("");
   const [bracketLines, setBracketLines] = useState<string[]>([]);
@@ -116,7 +117,7 @@ export default function TournamentManagePage() {
     if (isFormComplete) setPage("schedule");
   };
 
-  // ✅ ฟังก์ชันบันทึกพร้อมล้างคำว่า "มือ" และกรองซ้ำ
+  // ฟังก์ชันบันทึกพร้อมล้างคำว่า "มือ" และกรองซ้ำ
   const handleAddRound = () => {
     if (!newRoundTime || !newRoundDesc.trim()) return;
 
@@ -144,7 +145,7 @@ export default function TournamentManagePage() {
       updated[editIndex] = newRound;
     } else {
       const exists = updated.some((r) => r.time === newRound.time);
-      if (exists) return alert("❌ มีเวลานี้อยู่แล้วในตาราง");
+      if (exists) return alert(" มีเวลานี้อยู่แล้วในตาราง");
       updated.push(newRound);
     }
 
@@ -171,7 +172,7 @@ export default function TournamentManagePage() {
     setRounds(rounds.filter((_, i) => i !== index));
   };
 
-  // 🧹 ล้างคำว่า "มือ" ออกจากทุก round ตอนเปิดหน้านี้ครั้งแรก
+  //  ล้างคำว่า "มือ" ออกจากทุก round ตอนเปิดหน้านี้ครั้งแรก
   useEffect(() => {
     setRounds((prev) =>
       prev.map((r) => ({
@@ -194,6 +195,8 @@ export default function TournamentManagePage() {
           <Form
             date={date}
             setDate={setDate}
+            tournamentName={tournamentName}
+            setTournamentName={setTournamentName}
             location={location}
             setLocation={setLocation}
             shuttlecockPrice={shuttlecockPrice}
