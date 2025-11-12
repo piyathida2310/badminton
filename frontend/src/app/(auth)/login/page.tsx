@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import api from "@/lib/api";
+import { GoogleLogin } from "@react-oauth/google";
 
 interface LoginForm {
   email: string;
@@ -21,11 +22,11 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [oldPass, setOldPass] = useState("");
-  const [newPass, setNewPass] = useState("");
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [resetEmail, setResetEmail] = useState("");
+
+
 
   useEffect(() => {
   if (typeof window === "undefined") return;
@@ -68,68 +69,77 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-      try {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    const resLogin = await api.post('/auth/login', form);
-    const token = resLogin.data.accessToken;
-
-    localStorage.setItem('accessToken', token);
-
-    const resMe = await api.get('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const roleFromServer = resMe.data.role;
-
-// ✅ แม็ป role จาก backend → path จริงใน frontend
-const roleMap: Record<string, string> = {
-  ORGANIZER: "manage",
-  PLAYER: "user",
-};
-
-const mappedRole = roleMap[roleFromServer] || "user";
-
-// ✅ เก็บ role ที่แม็ปแล้วลง localStorage
-localStorage.setItem("role", mappedRole);
-
-// ✅ เปลี่ยนเส้นทางตาม role ที่แม็ปได้
-if (mappedRole === "manage") {
-  router.replace("/manage");
-} else if (mappedRole === "user") {
-  router.replace("/user/tournament");
-}
-
-  } catch (err: any) {
-    setError(err.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
-  } finally {
+  //  ตรวจสอบ Gmail
+  if (!form.email.endsWith("@gmail.com")) {
+    setError("เข้าสู่ระบบได้เฉพาะบัญชี Gmail เท่านั้น");
     setLoading(false);
-  }
-};
-// ฟังก์ชันเปลี่ยนรหัสผ่าน
-const handleChangePassword = async () => {
-  if (!oldPass || !newPass) {
-    setError("กรุณากรอกรหัสผ่านให้ครบทั้งสองช่อง");
     return;
   }
 
   try {
-    await api.post("/auth/change-password", {
-      oldPassword: oldPass,
-      newPassword: newPass,
+    const resLogin = await api.post("/auth/login", form);
+    const token = resLogin.data.accessToken;
+
+    localStorage.setItem("accessToken", token);
+
+    const resMe = await api.get("/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    setShowModal(false);
-    setOldPass("");
-    setNewPass("");
-    setError("");
-    alert("เปลี่ยนรหัสผ่านสำเร็จ 🎉");
+    const roleMap: Record<string, string> = {
+      ORGANIZER: "manage",
+      PLAYER: "user",
+    };
+
+    const mappedRole = roleMap[resMe.data.role] || "user";
+    localStorage.setItem("role", mappedRole);
+
+    if (mappedRole === "manage") {
+      router.replace("/manage");
+    } else {
+      router.replace("/user/tournament");
+    }
   } catch (err: any) {
-    setError(err.response?.data?.message || "ไม่สามารถเปลี่ยนรหัสผ่านได้");
+    setError(err.response?.data?.message || "เข้าสู่ระบบไม่สำเร็จ");
+  } finally {
+    setLoading(false);
   }
 };
+
+
+
+const handleGoogleLoginSuccess = async (credentialResponse: any) => {
+  if (!credentialResponse.credential) return;
+
+  try {
+    const { data } = await api.post("/auth/google", {
+      idToken: credentialResponse.credential,
+    });
+
+    if (data.accessToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+      const mappedRole = data.role === "PLAYER" ? "user" : "manage";
+      localStorage.setItem("role", mappedRole);
+      router.replace(mappedRole === "manage" ? "/manage" : "/user/tournament");
+    } else if (data.needsProfile) {
+      router.push(`/complete-profile?userId=${data.userId}`);
+    }
+  } catch (err) {
+    console.error(err);
+    setError("เกิดข้อผิดพลาด Google Login");
+  }
+};
+
+const handleGoogleLoginError = () => {
+  setError("Google Login ล้มเหลว");
+};
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF8E1] via-[#FFF3E0] to-[#E3F2FD]">
@@ -164,6 +174,19 @@ const handleChangePassword = async () => {
           </div>
         )}
 
+        <div className="flex justify-center mb-6">
+  <GoogleLogin
+    onSuccess={handleGoogleLoginSuccess}
+    onError={handleGoogleLoginError}
+    text="continue_with"
+    shape="pill"          
+    size="large"          
+    theme="outline"       
+  />
+</div>
+
+
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* อีเมล */}
           <div>
@@ -191,16 +214,19 @@ const handleChangePassword = async () => {
               required
               className="w-full px-4 py-3 rounded-xl border border-[#FFD6E0] bg-[#FFF9F9] focus:ring-2 focus:ring-[#F8BBD0] focus:border-transparent outline-none transition-all text-gray-700 placeholder-gray-400"
             />
-            <div className="text-right mt-2">
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="text-sm text-[#E91E63] hover:text-[#D81B60] font-medium transition-colors"
-              >
-                เปลี่ยนรหัสผ่าน
-              </button>
-            </div>
+           
           </div>
+         
+          <div className="text-right mt-2">
+  <Link
+    href="/forgotpassword"
+    className="text-sm text-[#E91E63] hover:text-[#D81B60] font-medium transition-colors"
+  >
+    ลืมรหัสผ่าน?
+  </Link>
+</div>
+
+
 
           {/* ปุ่มเข้าสู่ระบบ */}
           <motion.button
@@ -225,52 +251,8 @@ const handleChangePassword = async () => {
         </div>
       </div>
 
-      {/* Modal เปลี่ยนรหัสผ่าน */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl p-8 shadow-lg w-[90%] max-w-sm border border-[#FFE0B2]"
-          >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-              เปลี่ยนรหัสผ่าน
-            </h3>
-            <div className="space-y-4">
-              <input
-                type="password"
-                placeholder="รหัสผ่านเก่า"
-                value={oldPass}
-                onChange={(e) => setOldPass(e.target.value)}
-                className="w-full px-4 py-2 border border-[#FFD6E0] rounded-lg bg-[#FFF9F9] focus:ring-2 focus:ring-[#F8BBD0] outline-none text-gray-700"
-              />
-              <input
-                type="password"
-                placeholder="รหัสผ่านใหม่"
-                value={newPass}
-                onChange={(e) => setNewPass(e.target.value)}
-                className="w-full px-4 py-2 border border-[#FFD6E0] rounded-lg bg-[#FFF9F9] focus:ring-2 focus:ring-[#F8BBD0] outline-none text-gray-700"
-              />
-            </div>
-
-            <div className="flex justify-center gap-3 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-5 py-2 rounded-full text-gray-600 bg-gray-100 hover:bg-gray-200 transition"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={handleChangePassword}
-                className="px-5 py-2 rounded-full text-white bg-[#F48FB1] hover:bg-[#F06292] transition"
-              >
-                บันทึก
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+  
+      
     </div>
   );
 };

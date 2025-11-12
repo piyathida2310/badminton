@@ -7,6 +7,7 @@ import {
   me,
 } from '../controllers/authController';
 import { updateProfileHandler } from '../controllers/authController';
+import { loginWithGoogleHandler } from '../controllers/authController';
 
 
 
@@ -135,6 +136,11 @@ router.post('/login', login);
  *       401:
  *         description: ยังไม่ได้เข้าสู่ระบบ
  */
+
+router.post('/google', loginWithGoogleHandler);
+
+
+
 router.post('/change-password', authMiddleware, changePasswordHandler);
 
 /**

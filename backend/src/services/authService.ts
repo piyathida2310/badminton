@@ -6,6 +6,9 @@ import { createUser, findByEmail, updateUser } from './userService';
 import { prisma } from './prismaClient';
 import { HttpError } from '../utils/httpError';
 import { parseExpiresIn } from '../utils/tokenUtils';
+import { OAuth2Client } from 'google-auth-library'; // เพิ่มบรรทัดนี้
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // เพิ่ม
 
 export interface TokenResponse {
   accessToken: string;
@@ -109,6 +112,32 @@ export async function loginUser({ email, password }: LoginUserParams): Promise<T
 
   return signAccessToken(user.id, user.userName ?? user.email, user.role);
 }
+export async function loginWithGoogle(idToken: string, roleFromClient?: Role) {
+  const ticket = await client.verifyIdToken({ idToken });
+  const payload = ticket.getPayload();
+
+  if (!payload?.email) throw new HttpError(401, 'Google login failed');
+
+  const existingUser = await findByEmail(payload.email);
+
+  if (existingUser) {
+    return signAccessToken(existingUser.id, existingUser.userName ?? existingUser.email, existingUser.role);
+  }
+
+  // ใช้ role จาก client ถ้ามี ไม่งั้น default PLAYER
+ const newRole = roleFromClient ?? Role.PLAYER;
+  const newUser = await createUser({
+    email: payload.email,
+    firstName: payload.given_name ?? '',
+    lastName: payload.family_name ?? '',
+    passwordHash: '',
+    role: newRole, // <-- ใช้ role ที่ส่งมาจาก frontend
+    userName: undefined,
+  });
+  return signAccessToken(newUser.id, newUser.userName ?? newUser.email, newUser.role);
+}
+
+
 
 export async function getUserProfile(userId: string): Promise<UserProfile> {
   const numericId = Number(userId);

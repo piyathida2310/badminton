@@ -36,20 +36,20 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
 
   const links = [
-  // ✅ รายการแข่งขัน (อันเดียวคงที่)
   {
     href: role === "manage" ? "/manage" : "/user/tournament",
     icon: <Trophy size={18} />,
     label: "รายการแข่งขัน",
   },
-    { href: `/${role}/${role === "manage" ? "manage-rules" : "match-rules"}`, icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: `/${role}/group`, icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: `/${role}/bracket`, icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: `/${role}/${role === "manage" ? "players-status" : "status"}`, icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
-    { href: `/${role}/${role === "manage" ? "match-history" : "court-running"}`, icon: <Clock size={18} />, label: "Court Running" },
-    { href: `/${role}/${role === "manage" ? "results-competition" : "results"}`, icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: `/${role}/profile`, icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
-  ];
+  { href: role === "manage" ? "/manage/manage-rules" : "/user/match-rules", icon: <BookOpen size={18} />, label: "กติกา" },
+  { href: role === "manage" ? "/manage/group" : "/user/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
+  { href: role === "manage" ? "/manage/bracket" : "/user/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+  { href: role === "manage" ? "/manage/players-status" : "/user/status", icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
+  { href: role === "manage" ? "/manage/match-history" : "/user/court-running", icon: <Clock size={18} />, label: "Court Running" },
+  { href: role === "manage" ? "/manage/results-competition" : "/user/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
+  { href: role === "manage" ? "/manage/profile" : "/user/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
+];
+
 
   return (
     <>

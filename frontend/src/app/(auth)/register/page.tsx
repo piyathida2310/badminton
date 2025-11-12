@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState,useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import api from '@/lib/api';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import api from "@/lib/api";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
 
 interface RegisterForm {
   firstName: string;
@@ -18,32 +19,29 @@ interface RegisterForm {
 
 export default function RegisterPage() {
   const [form, setForm] = useState<RegisterForm>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'PLAYER',
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "PLAYER",
     avatar: null,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-  
-    const token = localStorage.getItem("accessToken");
-    const role = localStorage.getItem("role");
-  
-    if (token && role) {
-      if (role === "ORGANIZER") {
-        router.replace("/manage");
-      } else if (role === "PLAYER") {
-        router.replace("/user/tournament");
-      } 
-    }
-  }, [router]);
+  if (typeof window === "undefined") return;
+
+  const token = localStorage.getItem("accessToken");
+  const role = localStorage.getItem("role");
+
+  if (token && role) {
+    router.replace(role === "manage" ? "/manage" : "/user/tournament");
+  }
+}, [router]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,25 +60,70 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    if (form.password !== form.confirmPassword) {
-      setError('รหัสผ่านไม่ตรงกัน');
-      setLoading(false);
-      return;
-    }
+  // ตรวจสอบ Gmail
+  if (!form.email.endsWith("@gmail.com")) {
+    setError("สมัครสมาชิกได้เฉพาะบัญชี Gmail เท่านั้น");
+    setLoading(false);
+    return;
+  }
+
+  if (form.password !== form.confirmPassword) {
+    setError("รหัสผ่านไม่ตรงกัน");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const data = {
+      ...form,
+      fullName: `${form.firstName} ${form.lastName}`.trim(),
+    };
+    await api.post("/auth/register", data);
+
+    const mappedRole = form.role === "PLAYER" ? "user" : "manage";
+    localStorage.setItem("role", mappedRole);
+
+    router.push("/login?registered=1");
+  } catch (err: any) {
+    setError("เกิดข้อผิดพลาดในการลงทะเบียน");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleGoogleLoginSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
 
     try {
-      const data = { ...form, fullName: `${form.firstName} ${form.lastName}`.trim() };
-      await api.post('/auth/register', data);
-      router.push('/login?registered=1');
-    } catch (err: any) {
-      setError('เกิดข้อผิดพลาดในการลงทะเบียน');
-    } finally {
-      setLoading(false);
+      const { data } = await api.post("/auth/google", {
+        idToken: credentialResponse.credential,
+        role: form.role, // ส่ง role ที่เลือกจาก form
+      });
+
+      // ถ้า backend ส่ง accessToken กลับ
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+        const mappedRole = data.role === "PLAYER" ? "user" : "manage";
+        localStorage.setItem("role", mappedRole);
+        router.replace(
+          data.role === "ORGANIZER" ? "/manage" : "/user/tournament"
+        );
+      } else if (data.needsProfile) {
+        // ถ้า backend ยังต้องกรอก profile เพิ่ม
+        router.push(`/complete-profile?userId=${data.userId}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("เกิดข้อผิดพลาด Google Login");
     }
+  };
+
+  const handleGoogleLoginError = () => {
+    setError("Google Login ล้มเหลว");
   };
 
   return (
@@ -98,13 +141,23 @@ export default function RegisterPage() {
         <div className="flex flex-col items-center mb-6">
           <label className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-[#FFB6C1] cursor-pointer hover:opacity-90 transition">
             {form.avatar ? (
-              <Image src={form.avatar} alt="Avatar" fill className="object-cover" />
+              <Image
+                src={form.avatar}
+                alt="Avatar"
+                fill
+                className="object-cover"
+              />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm">
                 เพิ่มรูป
               </div>
             )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
           </label>
         </div>
 
@@ -114,7 +167,7 @@ export default function RegisterPage() {
               type="radio"
               name="role"
               value="PLAYER"
-              checked={form.role === 'PLAYER'}
+              checked={form.role === "PLAYER"}
               onChange={handleChange}
               className="accent-[#F48FB1]"
             />
@@ -125,7 +178,7 @@ export default function RegisterPage() {
               type="radio"
               name="role"
               value="ORGANIZER"
-              checked={form.role === 'ORGANIZER'}
+              checked={form.role === "ORGANIZER"}
               onChange={handleChange}
               className="accent-[#F48FB1]"
             />
@@ -133,7 +186,21 @@ export default function RegisterPage() {
           </label>
         </div>
 
-        {error && <p className="text-center text-red-500 mb-4 text-sm">{error}</p>}
+        {error && (
+          <p className="text-center text-red-500 mb-4 text-sm">{error}</p>
+        )}
+
+        <div className="flex justify-center mb-6">
+  <GoogleLogin
+    onSuccess={handleGoogleLoginSuccess}
+    onError={handleGoogleLoginError}
+    text="continue_with"
+    shape="pill"          
+    size="large"          
+    theme="outline"       
+  />
+</div>
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -177,7 +244,9 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 text-sm mb-1">รหัสผ่าน</label>
+              <label className="block text-gray-700 text-sm mb-1">
+                รหัสผ่าน
+              </label>
               <input
                 type="password"
                 name="password"
@@ -189,7 +258,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-gray-700 text-sm mb-1">ยืนยันรหัสผ่าน</label>
+              <label className="block text-gray-700 text-sm mb-1">
+                ยืนยันรหัสผ่าน
+              </label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -207,13 +278,16 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full mt-6 py-3 rounded-full bg-[#FFC107] text-white font-bold shadow-md hover:bg-[#FFB300] transition-transform disabled:opacity-50"
           >
-            {loading ? 'กำลังลงทะเบียน...' : 'สร้างบัญชี'}
+            {loading ? "กำลังลงทะเบียน..." : "สร้างบัญชี"}
           </button>
         </form>
 
         <p className="text-center text-gray-600 text-sm mt-6">
-          มีบัญชีอยู่แล้ว?{' '}
-          <Link href="/login" className="text-[#E91E63] hover:underline font-medium">
+          มีบัญชีอยู่แล้ว?{" "}
+          <Link
+            href="/login"
+            className="text-[#E91E63] hover:underline font-medium"
+          >
             เข้าสู่ระบบ
           </Link>
         </p>

@@ -8,7 +8,7 @@ import Sidebar from "./Sidebar";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function NavbarUser() {
+export default function NavbarManage() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -18,24 +18,31 @@ export default function NavbarUser() {
   });
 
   //  ดึงข้อมูลผู้ใช้จาก token
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
+ useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) return;
 
-    api
-      .get("/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setUser({
-          name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
-          avatar: res.data.avatar || "",
-        });
-      })
-      .catch(() => {
-        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้");
-      });
-  }, []);
+  api.get("/auth/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then(res => {
+    console.log("API /auth/me response:", res.data); // <-- เพิ่มตรงนี้ดูค่า
+    setUser({
+      name: res.data.firstName
+            ? `${res.data.firstName} ${res.data.lastName}`.trim()
+            : res.data.userName || "ผู้ใช้",
+      avatar: res.data.profileImg || "",
+    });
+  })
+  .catch(err => {
+    console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้", err);
+  });
+}, []);
+
+
+
+
+
 
   //  ออกจากระบบ
   const handleLogout = () => {
@@ -46,13 +53,13 @@ export default function NavbarUser() {
   };
 
   //  ไปหน้าโปรไฟล์
-  // ✅ ของใหม่ (แก้แล้ว)
+  //  ของใหม่ (แก้แล้ว)
 const handleGoToProfile = () => {
   setIsDropdownOpen(false);
   const role = localStorage.getItem("role");
 
   if (role === "organizer") {
-    router.push("/organizer/profile");
+    router.push("/manage/profile");
   } else {
     router.push("/user/profile");
   }

@@ -52,7 +52,7 @@ const handleGoToProfile = () => {
   const role = localStorage.getItem("role");
 
   if (role === "organizer") {
-    router.push("/organizer/profile");
+    router.push("/manage/profile");
   } else {
     router.push("/user/profile");
   }

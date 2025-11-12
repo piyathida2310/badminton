@@ -46,13 +46,13 @@ export default function NavbarUser() {
   };
 
   //  ไปหน้าโปรไฟล์
-  // ✅ ของใหม่ (แก้แล้ว)
+  // ของใหม่ (แก้แล้ว)
 const handleGoToProfile = () => {
   setIsDropdownOpen(false);
   const role = localStorage.getItem("role");
 
   if (role === "organizer") {
-    router.push("/organizer/profile");
+    router.push("/manage/profile");
   } else {
     router.push("/user/profile");
   }

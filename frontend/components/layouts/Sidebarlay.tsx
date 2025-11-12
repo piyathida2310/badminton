@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -23,7 +23,49 @@ import {
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const user = { name: "Halo" };
+  const [user, setUser] = useState<{ name: string; avatar?: string }>({
+    name: "",
+    avatar: "",
+  });
+
+  // ดึงข้อมูลผู้ใช้จาก token
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    // Import api dynamically to avoid issues
+    const fetchUserData = async () => {
+      try {
+        const api = (await import("@/lib/api")).default;
+        const res = await api.get("/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        setUser({
+          name: res.data.firstName
+            ? `${res.data.firstName} ${res.data.lastName}`.trim()
+            : res.data.userName || "ผู้ใช้",
+          avatar: res.data.profileImg || "",
+        });
+      } catch (err) {
+        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้", err);
+        // Fallback to localStorage if API fails
+        const storedName = localStorage.getItem("userName") || localStorage.getItem("name");
+        if (storedName) {
+          setUser({ name: storedName, avatar: "" });
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("role");
+    alert("ออกจากระบบเรียบร้อย");
+    window.location.href = "/";
+  };
 
   return (
     <>
@@ -55,7 +97,7 @@ export default function Navbar() {
             >
               <User size={18} className="text-white" />
               <span className="font-medium tracking-wide">
-                {user?.name || "ผู้ใช้"}
+                {user.name || "ผู้ใช้"}
               </span>
               <svg
                 className={`w-4 h-4 transition-transform ${
@@ -88,7 +130,7 @@ export default function Navbar() {
                   <span>แก้ไขโปรไฟล์</span>
                 </Link>
                 <button
-                  onClick={() => alert("ออกจากระบบสำเร็จ")}
+                  onClick={handleLogout}
                   className="w-full text-left flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
                   <LogOut size={16} />
@@ -110,7 +152,7 @@ export default function Navbar() {
       </nav>
 
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} onLogout={handleLogout} />
     </>
   );
 }
@@ -120,9 +162,10 @@ type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
   user: { name: string };
+  onLogout: () => void;
 };
 
-function Sidebar({ isOpen, onClose, user }: SidebarProps) {
+function Sidebar({ isOpen, onClose, user, onLogout }: SidebarProps) {
   return (
     <>
       {/* Overlay Mobile */}
@@ -156,7 +199,24 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
 
         {/* User Info Mobile */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/30 backdrop-blur-sm shadow-sm cursor-pointer">
-          <UserCircle2 size={24} className="text-pink-600" />
+          {/* รูปโปรไฟล์ */}
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="rounded-full object-cover border border-pink-300"
+            />
+          ) : (
+            <Image
+              src="/images/bad_logo.png"
+              alt="User"
+              width={40}
+              height={40}
+              className="rounded-full border border-pink-300"
+            />
+          )}
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{user.name}</span>
             <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
@@ -170,6 +230,15 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" onClick={onClose} />
           <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
+
+        {/* ปุ่มออกจากระบบ */}
+        <button
+          onClick={onLogout}
+          className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
+        >
+          <LogOut size={18} />
+          <span>ออกจากระบบ</span>
+        </button>
       </motion.aside>
 
       {/* Sidebar Desktop */}

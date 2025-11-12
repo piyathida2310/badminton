@@ -9,6 +9,9 @@ import {
 import { HttpError } from '../utils/httpError';
 import { AuthenticatedRequest } from '../types/express';
 import { updateUserProfile } from '../services/authService';
+import { loginWithGoogle } from '../services/authService';
+
+
 
 const ALLOWED_ROLES = Object.values(Role);
 
@@ -82,6 +85,18 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     next(error);
   }
 }
+
+export async function loginWithGoogleHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { idToken, role } = req.body;
+    const tokenResponse = await loginWithGoogle(idToken, role);
+    res.json(tokenResponse);
+  } catch (error) {
+    next(error);
+  }
+}
+
+
 
 export async function changePasswordHandler(
   req: Request,
