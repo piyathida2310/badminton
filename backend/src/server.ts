@@ -14,6 +14,7 @@ import { appConfig } from './config/authConfig';
 import { checkBucket } from './config/minioManage';
 import rulesRouter from './routes/rulesRoutes'
 import tournamentRouter from './routes/tournamentRoutes'
+import competitionRouter from './routes/competitionRoutes'
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
@@ -41,6 +42,7 @@ async function bootstrap(): Promise<void> {
   app.use('/auth', authRoutes);
   app.use('/api', rulesRouter);
   app.use('/api', tournamentRouter);
+  app.use('/api', competitionRouter);
 
 
 
