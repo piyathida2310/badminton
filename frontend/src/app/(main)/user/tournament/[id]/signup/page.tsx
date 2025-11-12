@@ -168,7 +168,7 @@ export default function RegisterPage() {
 
         {/* แรงค์ */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">แรงค์</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">ประเภทมือ</h2>
           <div className="flex flex-wrap gap-3">
             {ranks.map((rank) => (
               <button

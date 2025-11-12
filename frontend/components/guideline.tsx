@@ -6,7 +6,6 @@ export default function Guideline({
   rulesText,
   setRulesText,
   setPage,
-  router,
 }: any) {
   return (
     <motion.div
@@ -46,7 +45,7 @@ export default function Guideline({
         <motion.button
           whileHover={{ scale: 1.07 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setPage("schedule")}
+          onClick={() => setPage("organize")}
           className="px-8 py-2.5 rounded-2xl font-semibold text-slate-800 text-sm md:text-base
                    bg-gray-200 hover:bg-gray-300
                    shadow-md transition-all duration-300"
@@ -54,16 +53,13 @@ export default function Guideline({
           ย้อนกลับ
         </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => router.push("/manage")}
-          className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
-                  bg-[#b3e5fc] hover:bg-[#7ccff5]
-                   shadow-md transition-all duration-300"
-        >
-          ลงทะเบียน
-        </motion.button>
+         <motion.button
+            whileHover={{ scale: 1.05 }}
+            onClick={() => setPage("schedule")}
+            className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#b3e5fc] hover:bg-[#7ccff5]"
+          >
+            ถัดไป
+          </motion.button>
       </div>
     </motion.div>
   );

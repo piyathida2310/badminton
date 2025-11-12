@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import React from "react";
+import { useRouter } from "next/navigation";
+
 
 export default function Schedule({
   rounds,
@@ -22,11 +24,13 @@ export default function Schedule({
   setEditIndex,
   handleAddRound,
 }: any) {
+  const router = useRouter();
   const safeTime = newRoundTime || "";
   const safeDesc = newRoundDesc || "";
   const safeLevels = newRoundLevels || [];
+  
 
-  // ✅ ฟังก์ชันแปลงเวลาให้เป็น "นาที"
+  //  ฟังก์ชันแปลงเวลาให้เป็น "นาที"
   const timeToMinutes = (timeStr: string) => {
     if (!timeStr) return 0;
     const clean = timeStr.replace(/[^\d:]/g, "").trim();
@@ -35,7 +39,7 @@ export default function Schedule({
     return h * 60 + m;
   };
 
-  // ✅ ฟังก์ชันบันทึก + เรียงเวลาอัตโนมัติ
+  //  ฟังก์ชันบันทึก + เรียงเวลาอัตโนมัติ
   const handleAddRoundAndSort = () => {
     handleAddRound();
     setTimeout(() => {
@@ -153,19 +157,24 @@ export default function Schedule({
         <div className="flex justify-between mt-6">
           <motion.button
             whileHover={{ scale: 1.05 }}
-            onClick={() => setPage("organize")}
+            onClick={() => setPage("rules")}
             className="px-6 py-2 rounded-xl text-sm font-semibold bg-gray-200 hover:bg-gray-300"
           >
             ย้อนกลับ
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={() => setPage("rules")}
-            className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#b3e5fc] hover:bg-[#7ccff5]"
-          >
-            ถัดไป
-          </motion.button>
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push("/manage")}
+          className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
+                  bg-[#b3e5fc] hover:bg-[#7ccff5]
+                   shadow-md transition-all duration-300"
+        >
+          ลงทะเบียน
+        </motion.button>
+
+         
         </div>
       </motion.div>
 
@@ -249,7 +258,7 @@ export default function Schedule({
                 </div>
               </div>
 
-              {/* ✅ ปุ่มบันทึก */}
+              {/*  ปุ่มบันทึก */}
               <div className="flex justify-center gap-4 mt-6">
                 <button
                   type="button"
