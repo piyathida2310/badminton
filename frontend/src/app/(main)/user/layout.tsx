@@ -1,6 +1,5 @@
 import type { Metadata } from "next"; 
 import NavbarUser from "../../../../components/layouts/NavbarUser";
-import ProtectedRoute from "../../../../components/auth/ProtectedRoute";
 
 export const metadata: Metadata = {
   title: "Badminton",
@@ -13,17 +12,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
-      {/* ป้องกันหน้า user ทั้งหมดด้วยการตรวจ token */}
-      <div className="fmin-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
-        {/* NavbarUser มี SidebarUser อยู่ในตัวแล้ว */}
-        <NavbarUser />
+    <div className="min-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
+      {/* NavbarUser มี SidebarUser อยู่ในตัวแล้ว */}
+      <NavbarUser />
 
-        {/* พื้นที่เนื้อหาหลัก */}
-        <div className="flex-1 ml-0 md:ml-64 pt-[70px] overflow-y-auto">
-          {children}
-        </div>
+      {/* พื้นที่เนื้อหาหลัก */}
+      <div className="flex-1 ml-0 md:ml-64 pt-[70px] overflow-y-auto">
+        {children}
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

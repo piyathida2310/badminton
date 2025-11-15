@@ -28,10 +28,11 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
   const [role, setRole] = useState("user");
 
-  useEffect(() => {
+useEffect(() => {
   const storedRole = localStorage.getItem("role");
-  if (storedRole) setRole(storedRole.toLowerCase()); 
+  if (storedRole) setRole(storedRole.toUpperCase());
 }, []);
+
 
 
 

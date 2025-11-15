@@ -12,6 +12,7 @@
     "prisma:migrate:dev": "ts-node --transpile-only scripts/runPrisma.ts migrate dev"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.35.1",
     "@prisma/client": "^6.18.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

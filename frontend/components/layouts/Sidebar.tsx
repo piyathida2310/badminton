@@ -178,7 +178,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose} />
           <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label="Court Running " onClick={onClose} />
           <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} /> 
-          <SidebarLink href={`/manage/${id}/profile"`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว;;;;" onClick={onClose} />
+          <SidebarLink href={`/manage/${id}/profile`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
       </motion.aside>
 

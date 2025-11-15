@@ -1,7 +1,6 @@
 // app/(your-layout)/layout.tsx
 import type { Metadata } from "next";
 import NavbarLay from "../../../../../components/layouts/Navbarlay";
-import ProtectedRoute from "../../../../../components/auth/ProtectedRoute";
 
 export const metadata: Metadata = {
   title: "Badminton",
@@ -14,19 +13,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
-      {/* ทุกหน้าเพื่อบังคับให้มี token ก่อนเข้าใช้งาน */}
-      <div className="min-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
-        {/* Sidebar แบบ fixed */}
+    <div className="min-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
+      {/* Navbar fixed */}
+      <NavbarLay />
 
-        {/* Navbar fixed ด้านบน */}
-        <NavbarLay />
-
-        {/* เนื้อหา */}
-        <main className="flex-1 ml-0 md:ml-64 pt-[69px] overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </ProtectedRoute>
+      {/* เนื้อหา */}
+      <main className="flex-1 ml-0 md:ml-64 pt-[69px] overflow-y-auto">
+        {children}
+      </main>
+    </div>
   );
 }
