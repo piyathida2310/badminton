@@ -65,7 +65,7 @@ export default function SignUp() {
 
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center  bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1]">
         <div className="text-center">
           <p className="text-gray-600">กำลังโหลด...</p>
         </div>
@@ -74,7 +74,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center  bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1] p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -92,27 +92,12 @@ export default function SignUp() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-center mb-8"
+              className="text-center mb-1"
             >
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold  bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66] bg-clip-text text-transparent mb-1">
                 สมัครสมาชิก
               </h1>
-              <p className="text-gray-600">กรุณากรอกข้อมูลเพิ่มเติม</p>
-            </motion.div>
-
-            {/* แสดงข้อมูลจาก Clerk */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mb-6 p-4 bg-blue-50 rounded-lg"
-            >
-              <h3 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลจากบัญชีของคุณ:</h3>
-              <div className="space-y-1 text-sm">
-                <p><span className="font-medium">ชื่อ:</span> {user?.firstName} {user?.lastName}</p>
-                <p><span className="font-medium">อีเมล:</span> {user?.primaryEmailAddress?.emailAddress}</p>
-                <p><span className="font-medium">ชื่อผู้ใช้:</span> {user?.username || user?.id}</p>
-              </div>
+              <p className="text-gray-600">กรุณาเลือกบทบาท</p>
             </motion.div>
 
             {error && (
@@ -135,7 +120,7 @@ export default function SignUp() {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-300 focus:ring-pink-400"
                   required
                 >
                   <option value="PLAYER">ผู้เล่น (Player)</option>
@@ -146,7 +131,7 @@ export default function SignUp() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full  bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]  text-white font-medium shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
               </button>

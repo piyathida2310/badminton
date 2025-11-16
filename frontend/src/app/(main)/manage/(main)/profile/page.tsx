@@ -3,11 +3,15 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Edit3, Upload, LogOut, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useUser, useClerk } from "@clerk/nextjs";
 import api from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [isEditing, setIsEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [profile, setProfile] = useState({
     fullname: " ",
@@ -16,12 +20,40 @@ export default function ProfilePage() {
     avatar: "", 
   });
 
-  // เมื่ออัปโหลดรูปใหม่
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ดึงข้อมูลจาก Clerk เมื่อ component โหลด
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        fullname: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        nickname: user.username || "",
+        email: user.primaryEmailAddress?.emailAddress || "",
+        avatar: user.imageUrl || "",
+      });
+    }
+  }, [user]);
+
+  // เมื่ออัปโหลดรูปใหม่ไปยัง Clerk
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const imageURL = URL.createObjectURL(file);
-    setProfile((prev) => ({ ...prev, avatar: imageURL }));
+    
+    try {
+      setUploading(true);
+      // อัปโหลดรูปไปยัง Clerk
+      await user?.setProfileImage({ file });
+      
+      // อัปเดต state กับรูปใหม่จาก Clerk
+      if (user?.imageUrl) {
+        setProfile((prev) => ({ ...prev, avatar: user.imageUrl }));
+      }
+      
+      alert("อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!");
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการอัปโหลดรูป:", error);
+      alert("เกิดข้อผิดพลาดในการอัปโหลดรูป");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleChange = (key: keyof typeof profile, value: string) => {
@@ -29,65 +61,50 @@ export default function ProfilePage() {
   };
 
   const handleUpdate = async () => {
-  try {
-    const token = localStorage.getItem("accessToken");
-    if (!token) throw new Error("Token not found");
-
-    console.log(" Sending update:", {
-      fullName: profile.fullname,
-      email: profile.email,
-      username: profile.nickname,
-    });
-
-    const res = await api.patch(
-      "/auth/me",
-      {
-        fullName: profile.fullname,
-        email: profile.email,
-        username: profile.nickname,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    console.log("Update response:", res.data);
-    alert("อัปเดตข้อมูลเรียบร้อยแล้ว!");
-    setIsEditing(false);
-  } catch (err: any) {
-    console.error(" Update error:", err.response?.data || err.message);
-    alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
-  }
-};
-
-
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("role");
-    alert("ออกจากระบบเรียบร้อย!");
-    router.push("/");
+    try {
+      // แยกชื่อและนามสกุล
+      const nameParts = profile.fullname.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
+      // อัปเดตข้อมูลใน Clerk (เฉพาะ firstName และ lastName)
+      await user?.update({
+        firstName: firstName,
+        lastName: lastName,
+      });
+      
+      // ถ้าต้องการอัปเดต username ต้องใช้ method อื่น
+      // แต่ในที่นี้จะข้ามการอัปเดต username เพราะ Clerk ไม่รองรับใน update
+      
+      // ถ้าต้องการอัปเดต email ต้องทำผ่านกระบวนการพิเศษ
+      // แต่ในที่นี้จะข้ามการอัปเดต email เพราะต้องการการยืนยัน
+      
+      alert("อัปเดตข้อมูลเรียบร้อยแล้ว!");
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error("Update error:", err);
+      alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " + (err.message || "Unknown error"));
+    }
   };
 
-  //  ดึงข้อมูลผู้ใช้จาก token
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return router.push("/login");
 
-    api
-      .get("/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setProfile((prev) => ({
-          ...prev,
-          fullname: `${res.data.firstName} ${res.data.lastName}`,
-          nickname: res.data.userName,
-          email: res.data.email,
-          avatar: res.data.avatar || prev.avatar || "",
-        }));
-      });
-  }, []);
+
+  const handleLogout = async () => {
+    try {
+      // ลบข้อมูลจาก localStorage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userRole");
+      
+      // ออกจากระบบด้วย Clerk
+      await signOut();
+      
+      // ไปยังหน้าแรก
+      router.push("/");
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการออกจากระบบ:", error);
+      alert("เกิดข้อผิดพลาดในการออกจากระบบ");
+    }
+  };
 
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center">
@@ -129,13 +146,20 @@ export default function ProfilePage() {
               type="file"
               accept="image/*"
               onChange={handleImageChange}
+              disabled={uploading}
               className="hidden"
             />
             <label
               htmlFor="avatar"
-              className="absolute bottom-2 right-2 bg-white/90 border border-pink-200 p-2 rounded-full shadow-sm cursor-pointer hover:bg-pink-50 transition"
+              className={`absolute bottom-2 right-2 bg-white/90 border border-pink-200 p-2 rounded-full shadow-sm cursor-pointer transition ${
+                uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-pink-50"
+              }`}
             >
-              <Upload size={18} className="text-pink-500" />
+              {uploading ? (
+                <div className="w-4 h-4 border-2 border-pink-300 border-t-pink-500 rounded-full animate-spin"></div>
+              ) : (
+                <Upload size={18} className="text-pink-500" />
+              )}
             </label>
           </div>
         </div>
@@ -158,12 +182,6 @@ export default function ProfilePage() {
             value={profile.fullname}
             editable={isEditing}
             onChange={(v) => handleChange("fullname", v)}
-          />
-          <ProfileField
-            label="อีเมล"
-            value={profile.email}
-            editable={isEditing}
-            onChange={(v) => handleChange("email", v)}
           />
           
           <div className="pt-6 flex flex-wrap gap-3">
