@@ -32,6 +32,8 @@ CREATE TABLE "User" (
     "playType" "PlayType",
     "profileImg" TEXT,
     "gmail" TEXT,
+    "clerk_id" TEXT,
+    "phone_number" TEXT,
     "rank" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -164,10 +166,16 @@ CREATE TABLE "History" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_user_name_key" ON "User"("user_name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_gmail_key" ON "User"("gmail");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_clerk_id_key" ON "User"("clerk_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Payment_registerId_key" ON "Payment"("registerId");
