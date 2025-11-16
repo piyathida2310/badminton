@@ -7,105 +7,232 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ms_Role {
-  id              String              @id @default(uuid())
-  name            String              @unique
-  nameValue       String
-  description     String?
-  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime            @updatedAt @db.Timestamptz(6)
-  createdBy       String?
-  updatedBy       String?
-  isDeleted       Boolean             @default(false)
-  rolePermissions sa_RolePermission[]
-  userRoles       sa_UserRole[]
-
-  @@index([isDeleted])
+// -------------------- ENUMS --------------------
+enum Role {
+  ORGANIZER
+  PLAYER
 }
 
-model ms_Permission {
-  id              String              @id @default(uuid())
-  name            String              @unique
-  description     String?
-  createdAt       DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime            @updatedAt @db.Timestamptz(6)
-  createdBy       String?
-  updatedBy       String?
-  isDeleted       Boolean             @default(false)
-  rolePermissions sa_RolePermission[]
-
-  @@index([isDeleted])
+enum PlayType {
+  SINGLE
+  DOUBLE
 }
 
-model ss_User {
-  id                     String            @id @default(uuid())
-  username               String            @unique @db.VarChar(255)
-  createdAt              DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt              DateTime          @updatedAt @db.Timestamptz(6)
-  isVerify               Boolean           @default(true)
-  passwordHash           String?
-  prefix                 String?
-  firstName              String
-  lastName               String
-  phone                  String?
-  description            String?
-  isActive               Boolean           @default(true)
-  isDeleted              Boolean           @default(false)
-  createdBy              String?
-  updatedBy              String?
-  profilePictureBucket   String?
-  profilePictureKey      String?
-  profilePictureUrl      String?
-  tokens                 sa_RefreshToken[]
-  roles                  sa_UserRole[]
-
-  @@index([isActive])
-  @@index([isDeleted])
+enum HandType {
+  BG
+  NB
+  N
+  S
+  P_MINUS @map("P-")
+  P_PLUS  @map("P+")
 }
 
-model sa_RefreshToken {
-  id         String   @id @default(uuid())
-  userId     String
-  tokenHash  String   @unique
-  deviceInfo String?
-  ipAddress  String?
-  expiresAt  DateTime @db.Timestamptz(6)
-  revoked    Boolean  @default(false)
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
-  user       ss_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([userId, revoked])
-  @@index([expiresAt])
+enum MatchType {
+  SINGLE
+  DOUBLE
 }
 
-model sa_UserRole {
-  userId    String
-  roleId    String
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  createdBy String?
-  updatedBy String?
-  role      ms_Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  user      ss_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-  @@index([userId])
-  @@index([roleId])
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
 }
 
-model sa_RolePermission {
-  roleId       String
-  permissionId String
-  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
-  createdBy    String?
-  updatedBy    String?
-  permission   ms_Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role         ms_Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+enum EvaluationStatus {
+  WAITING
+  PASSED
+  FAILED
+}
 
-  @@id([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
+enum MatchStatus {
+  PENDING
+  RUNNING
+  FINISHED
+  CANCELLED
+}
+
+// -------------------- MODELS --------------------
+
+// ---------- USER ----------
+model User {
+  id         Int       @id @default(autoincrement()) @map("user_id")
+  userName   String?   @unique @map("user_name")
+  firstName  String    @map("first_name")
+  lastName   String    @map("last_name")
+  email      String    @unique
+  password   String
+  age        Int?
+  role       Role      @default(PLAYER)
+  playType   PlayType?
+  profileImg String?
+  gmail      String?   @unique
+  clerkId    String?   @unique @map("clerk_id")
+  phoneNumber String?  @map("phone_number")
+  rank       Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  organizedTournaments Tournament[] @relation("OrganizerTournaments")
+  registrations        Register[]
+  confirmedPayments    Payment[]    @relation("PaymentConfirmedBy")
+  histories            History[]
+}
+
+// ---------- TOURNAMENT ----------
+  
+model Tournament {
+  id             Int      @id @default(autoincrement())
+  name           String
+  location       String
+  playType       PlayType
+  rank           HandType
+  shuttlePrice   Float
+  maxPlayers     Int
+  posterImg      String?
+  qrCodeImg      String?
+  startDate      DateTime
+  createdAt      DateTime @default(now())
+  updateAt       DateTime @updatedAt
+  ruleId         Int
+  isLowerBracket Boolean  @default(false)
+  isCancel Boolean  @default(false)
+  organizerId    Int
+
+  organizer      User     @relation("OrganizerTournaments", fields: [organizerId], references: [id])
+  rule           Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  matches       Match[]
+  registrations Register[]
+  groups        Group[]
+  summaries     Summary[]
+  competition   Competition[]
+}
+
+// ---------- competition ----------
+
+model Competition {
+  id     Int      @id @default(autoincrement())
+  time   DateTime
+  detail String
+  rank   HandType
+  tournamentId Int
+  createdAt      DateTime @default(now())
+  updateAt       DateTime @updatedAt
+
+  tournament   Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+
+// ---------- RULE ----------
+model Rule {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  tournament Tournament[]
+}
+
+// ---------- REGISTER ----------
+model Register {
+  id           Int              @id @default(autoincrement())
+  userId       Int
+  tournamentId Int
+  teamName     String?
+  playType     HandType
+  phoneNumber  String
+  videoUrl     String?
+  status       EvaluationStatus @default(WAITING)
+  score        Float?
+  comment      String?
+
+  // Foreign key สำหรับ Group
+  groupId Int? // <-- เพิ่มบรรทัดนี้
+  group   Group? @relation(fields: [groupId], references: [id])
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  payment    Payment?
+
+  // สำหรับ relation กับ Match
+  matchesAsPlayer1 Match[] @relation("Player1")
+  matchesAsPlayer2 Match[] @relation("Player2")
+  matchesAsWinner  Match[] @relation("Winner")
+
+  // สำหรับ relation กับ Summary (ถ้ามี)
+  summaries Summary[] @relation("SummaryRegister")
+}
+
+// ---------- PAYMENT ----------
+model Payment {
+  id            Int           @id @default(autoincrement())
+  registerId    Int           @unique
+  slipImg       String?
+  status        PaymentStatus @default(PENDING)
+  confirmedById Int?
+  createdAt     DateTime      @default(now())
+
+  register    Register @relation(fields: [registerId], references: [id])
+  confirmedBy User?    @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id])
+}
+
+// ---------- GROUP ----------
+model Group {
+  id           Int      @id @default(autoincrement())
+  name         String
+  tournamentId Int
+  createdAt    DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  matches    Match[]
+  registers  Register[]
+}
+
+// ---------- MATCH ----------
+model Match {
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int
+  groupId       Int?
+  player1Id     Int?
+  player2Id     Int?
+  winnerId      Int?
+  round         String?
+  score1        Int?
+  score2        Int?
+  status        MatchStatus @default(PENDING)
+  scheduledTime DateTime?
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  group      Group?     @relation(fields: [groupId], references: [id])
+
+  player1 Register? @relation("Player1", fields: [player1Id], references: [id])
+  player2 Register? @relation("Player2", fields: [player2Id], references: [id])
+  winner  Register? @relation("Winner", fields: [winnerId], references: [id])
+
+  @@index([tournamentId])
+  @@index([groupId])
+}
+
+// ---------- SUMMARY ----------
+model Summary {
+  id           Int      @id @default(autoincrement())
+  tournamentId Int
+  registerId   Int
+  position     Int
+  totalScore   Float?
+  shuttleUsed  Int?
+  createdAt    DateTime @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  register   Register   @relation("SummaryRegister", fields: [registerId], references: [id])
+}
+
+// ---------- HISTORY ----------
+model History {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

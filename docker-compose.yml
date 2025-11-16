@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: badminton
+      TZ: Asia/Bangkok
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  minio:
+    image: minio/minio
+    container_name: batminton-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: batminton
+      MINIO_ROOT_PASSWORD: 123456789
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - batminton_minio_data:/data
+
+volumes:
+  postgres_data:
+  batminton_minio_data:
