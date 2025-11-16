@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      router.replace("/login");
+      router.replace("/sign-in");
       return;
     }
 
