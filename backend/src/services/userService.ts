@@ -1,4 +1,4 @@
-import { Prisma, Role } from '@prisma/client';
+﻿import { Prisma, Role } from '@prisma/client';
 import { prisma } from './prismaClient';
 import { HttpError } from '../utils/httpError';
 
@@ -9,7 +9,6 @@ export interface CreateUserParams {
   passwordHash: string;
   role?: Role;
   userName?: string | null;
-  clerkId?: string;
 }
 
 type UserWithPassword = Prisma.UserGetPayload<{
@@ -44,7 +43,6 @@ export async function createUser({
   passwordHash,
   role = Role.PLAYER,
   userName,
-  clerkId,
 }: CreateUserParams) {
   const existingByEmail = await prisma.user.findUnique({
     where: { email },
@@ -62,15 +60,6 @@ export async function createUser({
     }
   }
 
-  if (clerkId) {
-    const existingByClerkId = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-    if (existingByClerkId) {
-      throw new HttpError(400, 'Clerk ID already registered', 'CLERK_ID_EXISTS');
-    }
-  }
-
   return prisma.user.create({
     data: {
       email,
@@ -79,7 +68,6 @@ export async function createUser({
       userName,
       password: passwordHash,
       role,
-      clerkId,
     },
   });
 }

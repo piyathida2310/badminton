@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { usePathname,useParams, useRouter } from "next/navigation";
+import { usePathname,useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -19,15 +19,12 @@ import {
   BookOpen,
   Medal, 
 } from "lucide-react";
-import { useUser, useClerk } from "@clerk/nextjs";
 
 
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const user = { name: "Halo" };
 
   return (
     <>
@@ -57,15 +54,9 @@ export default function Navbar() {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
             >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="User Avatar" className="w-5 h-5 rounded-full object-cover border border-white shadow-sm" />
-              ) : (
-                <User size={18} className="text-white" />
-              )}
+              <User size={18} className="text-white" />
               <span className="font-medium tracking-wide">
-                {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
-                  : user?.firstName || user?.username || "ผู้ใช้"}
+                {user?.name || "ผู้ใช้"}
               </span>
               <svg
                 className={`w-4 h-4 transition-transform ${
@@ -98,12 +89,7 @@ export default function Navbar() {
                   <span>แก้ไขโปรไฟล์</span>
                 </Link>
                 <button
-                  onClick={async () => {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("userRole");
-                    await signOut();
-                    router.push("/");
-                  }}
+                  onClick={() => alert("ออกจากระบบสำเร็จ")}
                   className="w-full text-left flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
                   <LogOut size={16} />
@@ -173,23 +159,9 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
 
         {/* User Info Mobile */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/30 backdrop-blur-sm shadow-sm cursor-pointer">
-          {user?.imageUrl ? (
-            <Image
-              src={user.imageUrl}
-              alt="User"
-              width={40}
-              height={40}
-              className="rounded-full border border-pink-300"
-            />
-          ) : (
-            <UserCircle2 size={24} className="text-pink-600" />
-          )}
+          <UserCircle2 size={24} className="text-pink-600" />
           <div className="flex flex-col">
-            <span className="font-medium text-gray-800">
-              {user?.firstName && user?.lastName 
-                ? `${user.firstName} ${user.lastName}` 
-                : user?.firstName || user?.username || "ผู้ใช้"}
-            </span>
+            <span className="font-medium text-gray-800">{user.name}</span>
             <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
               โปรไฟล์ของฉัน
             </Link>

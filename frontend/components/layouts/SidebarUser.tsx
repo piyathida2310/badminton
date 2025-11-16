@@ -16,8 +16,7 @@ import {
   UserCircle2,
   History,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
 
 type SidebarUserProps = {
   isOpen: boolean;
@@ -26,34 +25,32 @@ type SidebarUserProps = {
 
 export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
 
   const [role, setRole] = useState("user");
 
-  useEffect(() => {
-  const storedRole = localStorage.getItem("userRole");
-  if (storedRole) setRole(storedRole.toLowerCase()); 
+useEffect(() => {
+  const storedRole = localStorage.getItem("role");
+  if (storedRole) setRole(storedRole.toUpperCase());
 }, []);
 
 
 
+
   const links = [
-  // ✅ รายการแข่งขัน (อันเดียวคงที่)
   {
     href: role === "manage" ? "/manage" : "/user/tournament",
     icon: <Trophy size={18} />,
     label: "รายการแข่งขัน",
   },
-    { href: `/user/${role === "manage" ? "manage-rules" : "match-rules"}`, icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: `/user/group`, icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: `/user/bracket`, icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: `/user/${role === "manage" ? "players-status" : "status"}`, icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
-    { href: `/user/${role === "manage" ? "match-history" : "court-running"}`, icon: <Clock size={18} />, label: "Court Running" },
-    { href: `/user/${role === "manage" ? "results-competition" : "results"}`, icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
-  ];
+  { href: role === "manage" ? "/manage/manage-rules" : "/user/match-rules", icon: <BookOpen size={18} />, label: "กติกา" },
+  { href: role === "manage" ? "/manage/group" : "/user/group", icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
+  { href: role === "manage" ? "/manage/bracket" : "/user/bracket", icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+  { href: role === "manage" ? "/manage/players-status" : "/user/status", icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
+  { href: role === "manage" ? "/manage/match-history" : "/user/court-running", icon: <Clock size={18} />, label: "Court Running" },
+  { href: role === "manage" ? "/manage/results-competition" : "/user/results", icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
+  { href: role === "manage" ? "/manage/profile" : "/user/profile", icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
+];
+
 
   return (
     <>
@@ -91,27 +88,17 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
         {/* โปรไฟล์บนมือถือ */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/40 backdrop-blur-sm shadow-sm cursor-pointer">
-          {user?.imageUrl ? (
-            <Image
-              src={user.imageUrl}
-              alt="User"
-              width={40}
-              height={40}
-              className="rounded-full border border-pink-300"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-white/40 flex items-center justify-center border border-pink-300">
-              <UserCircle2 size={24} className="text-pink-600" />
-            </div>
-          )}
+          <Image
+            src="/images/bad_logo.png"
+            alt="User"
+            width={40}
+            height={40}
+            className="rounded-full border border-pink-300"
+          />
           <div className="flex flex-col">
-            <span className="font-medium text-gray-800">
-              {user?.firstName && user?.lastName 
-                ? `${user.firstName} ${user.lastName}` 
-                : user?.firstName || user?.username || "ผู้ใช้"}
-            </span>
+            <span className="font-medium text-gray-800">Halo</span>
             <Link
-              href={`/user/profile`}
+              href={`/${role}/profile`}
               onClick={onClose}
               className="text-sm text-pink-600 hover:underline"
             >
@@ -148,12 +135,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
         {/* ปุ่มออกจากระบบ */}
         <button
-          onClick={async () => {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("userRole");
-            await signOut();
-            router.push("/");
-          }}
+          onClick={() => alert("ออกจากระบบสำเร็จ")}
           className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
         >
           <LogOut size={18} />

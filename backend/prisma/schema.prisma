@@ -56,7 +56,7 @@ enum MatchStatus {
 // ---------- USER ----------
 model User {
   id         Int       @id @default(autoincrement()) @map("user_id")
-  userName   String?   @unique @map("user_name")
+  userName   String?   @map("user_name")
   firstName  String    @map("first_name")
   lastName   String    @map("last_name")
   email      String    @unique
@@ -66,8 +66,6 @@ model User {
   playType   PlayType?
   profileImg String?
   gmail      String?   @unique
-  clerkId    String?   @unique @map("clerk_id")
-  phoneNumber String?  @map("phone_number")
   rank       Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

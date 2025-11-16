@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+﻿import { Role } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 import {
   registerUser,
@@ -17,18 +17,7 @@ const ALLOWED_ROLES = Object.values(Role);
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { 
-      fullName, 
-      email, 
-      password, 
-      confirmPassword, 
-      username, 
-      role,
-      clerkId,
-      age,
-      playType,
-      phoneNumber
-    } = req.body ?? {};
+    const { fullName, email, password, confirmPassword, username, role } = req.body ?? {};
 
     if (!fullName || !String(fullName).trim()) {
       throw new HttpError(400, 'fullName is required', 'VALIDATION_ERROR');
@@ -68,7 +57,6 @@ export async function register(req: Request, res: Response, next: NextFunction):
       confirmPassword,
       username,
       role,
-      clerkId,
     });
 
     res.status(201).json(tokenResponse);

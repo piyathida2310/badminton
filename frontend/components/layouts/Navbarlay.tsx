@@ -7,34 +7,51 @@ import { Menu, User, Settings, LogOut } from "lucide-react";
 import SidebarLay from "./Sidebarlay";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useUser, useClerk } from "@clerk/nextjs";
 
 export default function NavbarLay() {
   const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; avatar?: string }>({
+    name: "",
+    avatar: "",
+  });
 
-  //  ออกจากระบบด้วย Clerk
-  const handleLogout = async () => {
-    // ลบข้อมูลใน localStorage
+  //  ดึงข้อมูลผู้ใช้จาก token
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    api
+      .get("/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setUser({
+          name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
+          avatar: res.data.avatar || "",
+        });
+      })
+      .catch(() => {
+        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้");
+      });
+  }, []);
+
+  //  ออกจากระบบ
+  const handleLogout = () => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("userRole");
-    
-    // ออกจากระบบด้วย Clerk
-    await signOut();
-    
-    // ไปหน้าแรก
+    localStorage.removeItem("role");
+    alert("ออกจากระบบเรียบร้อย");
     router.push("/");
   };
 
   //  ไปหน้าโปรไฟล์
+  // ✅ ของใหม่ (แก้แล้ว)
 const handleGoToProfile = () => {
   setIsDropdownOpen(false);
-  const role = localStorage.getItem("userRole");
+  const role = localStorage.getItem("role");
 
-  if (role === "ORGANIZER") {
+  if (role === "organizer") {
     router.push("/manage/profile");
   } else {
     router.push("/user/profile");
@@ -70,9 +87,9 @@ const handleGoToProfile = () => {
               className="flex items-center gap-3 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
             >
               {/* รูปโปรไฟล์ */}
-              {user?.imageUrl ? (
+              {user.avatar ? (
                 <img
-                  src={user.imageUrl}
+                  src={user.avatar}
                   alt="User Avatar"
                   className="w-8 h-8 rounded-full object-cover border border-white shadow-sm"
                 />
@@ -84,9 +101,7 @@ const handleGoToProfile = () => {
 
               {/* ชื่อผู้ใช้ */}
               <span className="font-medium tracking-wide">
-                {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
-                  : user?.firstName || user?.username || "ผู้ใช้"}
+                {user.name || "ผู้ใช้"}
               </span>
 
               {/* ลูกศร */}
