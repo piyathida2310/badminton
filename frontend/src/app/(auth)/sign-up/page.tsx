@@ -107,12 +107,6 @@ export default function SignUp() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mb-6 p-4 bg-blue-50 rounded-lg"
             >
-              <h3 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลจากบัญชีของคุณ:</h3>
-              <div className="space-y-1 text-sm">
-                <p><span className="font-medium">ชื่อ:</span> {user?.firstName} {user?.lastName}</p>
-                <p><span className="font-medium">อีเมล:</span> {user?.primaryEmailAddress?.emailAddress}</p>
-                <p><span className="font-medium">ชื่อผู้ใช้:</span> {user?.username || user?.id}</p>
-              </div>
             </motion.div>
 
             {error && (
