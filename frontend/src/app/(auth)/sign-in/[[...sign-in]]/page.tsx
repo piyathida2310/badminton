@@ -95,113 +95,129 @@ export default function Page() {
     }
   }, [isSignedIn, user]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-yellow-100 to-pink-200 p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-pink-200/50 overflow-hidden">
-          <div className="p-8">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <div className="mb-4">
-                <div className="inline-block p-4 bg-gradient-to-br from-pink-400 to-yellow-400 rounded-full shadow-lg">
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 via-yellow-500 to-pink-600 bg-clip-text text-transparent mb-2">
-                แบดมินตัน ออนไลน์
-              </h1>
-              <p className="text-gray-600 text-lg">เข้าสู่ระบบเพื่อเริ่มเล่น</p>
-            </div>
+return (
+  <div className="
+    min-h-screen flex flex-col items-center justify-center
+    bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1]
+    font-[Poppins] px-4 py-10
+  ">
 
-            {/* Clerk Sign In Component */}
-            <div>
-              <SignIn
-                appearance={{
-                  elements: {
-                    rootBox: "mx-auto",
-                    card: {
-                      backgroundColor: "rgb(254 240 138)", // สีเหลืองอ่อน (yellow-200)
-                      borderRadius: "1rem",
-                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                      padding: "2rem"
+    {/* ---------------- HEADER ---------------- */}
+    <div className="text-center mb-8 sm:mb-10">
+      <h1
+        className="
+        text-4xl sm:text-5xl lg:text-6xl 
+        font-extrabold tracking-wide
+        bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]
+        bg-clip-text text-transparent drop-shadow-sm
+      ">
+        Badminton
+      </h1>
+
+      <h2
+        className="
+        text-xl sm:text-2xl lg:text-3xl 
+        font-semibold mt-2
+        bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]
+        bg-clip-text text-transparent drop-shadow-sm
+      ">
+        Competition Management
+      </h2>
+    </div>
+
+   
+          {/* ----- Clerk Sign-In (centered) ------ */}
+          <div className="w-full flex justify-center">
+            <SignIn
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+
+                  // Hide Clerk default title
+                  headerTitle: { display: "none" },
+                  headerSubtitle: { display: "none" },
+
+                  // Social login buttons
+                  socialButtonsBlockButton: {
+                    backgroundColor: "white",
+                    border: "1.5px solid #FBCFE8",
+                    color: "#52525B",
+                    borderRadius: "0.75rem",
+                    padding: "0.6rem",
+                    fontSize: "0.95rem",
+                    transition: "0.2s",
+                    "&:hover": { backgroundColor: "#FFF0F5" },
+                  },
+
+                  // Continue button
+                  formButtonPrimary: {
+                    background:
+                      "linear-gradient(90deg, #FF6EA9, #FF6EA9, #FFC857)",
+                    color: "white",
+                    fontWeight: "700",
+                    borderRadius: "0.9rem",
+                    padding: "0.7rem 1.1rem",
+                    fontSize: "1rem",
+                    letterSpacing: "0.3px",
+                    boxShadow: "0 4px 10px rgba(236, 72, 153, 0.4)",
+                    "&:hover": { transform: "scale(1.03)" },
+                  },
+
+                  // Input field
+                  formFieldInput: {
+                    background:
+                      "linear-gradient(to right, #FFE6F2, #FFF9D9)",
+                    border: "2px solid #FBCFE8",
+                    borderRadius: "0.8rem",
+                    padding: "0.7rem",
+                    "&:focus": {
+                      borderColor: "#FF6EA9",
+                      boxShadow: "0 0 0 3px rgba(255, 110, 169, 0.2)",
                     },
-                    headerTitle: {
-                      display: "none"
-                    },
-                    headerSubtitle: {
-                      display: "none"
-                    },
-                    socialButtonsBlockButton: {
-                      backgroundColor: "white",
-                      border: "2px solid rgb(251 207 232)", // pink-200
-                      color: "rgb(75 85 99)", // gray-600
-                      transition: "all 0.2s",
-                      "&:hover": {
-                        backgroundColor: "rgb(254 240 138)" // yellow-200
-                      }
-                    },
-                    formButtonPrimary: {
-                      background: "linear-gradient(to right, rgb(236 72 153), rgb(250 204 21), rgb(236 72 153))", // pink-500 -> yellow-400 -> pink-500
-                      color: "white",
-                      fontWeight: "600",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                      transition: "all 0.2s",
-                      "&:hover": {
-                        transform: "scale(1.02)"
-                      }
-                    },
-                    formFieldInput: {
-                      background: "linear-gradient(to right, rgb(252 231 243), rgb(254 249 195))", // pink-100 -> yellow-100
-                      border: "2px solid rgb(251 207 232)", // pink-200
-                      borderRadius: "0.75rem",
-                      "&:focus": {
-                        borderColor: "rgb(236 72 153)", // pink-500
-                        outline: "none",
-                        boxShadow: "0 0 0 3px rgba(236, 72, 153, 0.1)"
-                      }
-                    },
-                    formFieldLabel: {
-                      color: "rgb(55 65 81)", // gray-700
-                      fontWeight: "500"
-                    },
-                    footerActionLink: {
-                      color: "rgb(236 72 153)", // pink-500
-                      fontWeight: "600",
-                      "&:hover": {
-                        color: "rgb(250 204 21)" // yellow-400
-                      }
-                    },
-                    dividerLine: {
-                      backgroundColor: "rgb(251 207 232)" // pink-200
-                    },
-                    dividerText: {
-                      color: "rgb(107 114 128)", // gray-500
-                      backgroundColor: "rgb(254 240 138)", // yellow-200
-                      padding: "0 1rem",
-                      fontWeight: "500"
-                    },
-                    alert: {
-                      backgroundColor: "rgb(252 231 243)", // pink-100
-                      border: "2px solid rgb(251 207 232)", // pink-200
-                      color: "rgb(190 24 93)", // pink-700
-                      borderRadius: "0.75rem"
-                    },
-                    formFieldInputShowPasswordButton: {
-                      color: "rgb(236 72 153)" // pink-500
-                    },
-                    footer: {
-                      display: "none" // ซ่อน "Secured by Clerk"
-                    }
-                  }
-                }}
-              />
-            </div>
+                  },
+
+                  // Input label
+                  formFieldLabel: {
+                    color: "#444",
+                    fontWeight: "600",
+                    fontSize: "0.9rem",
+                  },
+
+                  // Divider
+                  dividerLine: { backgroundColor: "#FBCFE8" },
+                  dividerText: {
+                    backgroundColor: "#FFF8D6",
+                    color: "#555",
+                    padding: "0 1rem",
+                    borderRadius: "0.5rem",
+                  },
+
+                  // Error alert
+                  alert: {
+                    backgroundColor: "#FFE4ED",
+                    border: "1.5px solid #FBCFE8",
+                    color: "#C2185B",
+                    borderRadius: "0.8rem",
+                  },
+
+                  // Show password button
+                  formFieldInputShowPasswordButton: {
+                    color: "#FF6EA9",
+                  },
+
+                  // Footer
+                  footer: { display: "none" },
+                },
+              }}
+            />
           </div>
         </div>
+ 
 
-      </div>
-    </div>
-  )
+);
+
+
+
+
+
 }
