@@ -63,13 +63,13 @@ export default function Home() {
           {/* Desktop Buttons */}
           <div className="hidden md:flex gap-2 lg:gap-4">
             <a
-              href="/login"
+              href="/sign-in"
               className="bg-white/20 backdrop-blur-md text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-white/30 hover:scale-105 transition-transform shadow-md"
             >
               เข้าสู่ระบบ
             </a>
             <a
-              href="/register"
+              href="/sign-in" 
               className="bg-yellow-400 text-gray-900 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-yellow-500 hover:scale-105 transition-transform font-semibold shadow-md"
             >
               ลงทะเบียน
@@ -110,7 +110,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col items-center gap-3 w-full px-8">
                 <a
-                  href="/login"
+                  href="/sign-in"
                   className="bg-white/20 text-white px-5 py-2 rounded-lg hover:bg-white/30 transition w-full text-center"
                   onClick={() => setIsOpen(false)}
                 >

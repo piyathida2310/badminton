@@ -1,32 +1,31 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function ProtectedRoute({
-  children,
-}: {
+interface ProtectedRouteProps {
   children: React.ReactNode;
-}) {
-  const { isLoaded, isSignedIn } = useUser();
+}
+
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
+  const [isAllowed, setIsAllowed] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (typeof window === "undefined") return;
 
-    // ❌ ไม่ได้ login → ออกไปหน้า login
-    if (!isSignedIn) {
-      router.replace("/login");
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      router.replace("/sign-in");
+      return;
     }
-  }, [isLoaded, isSignedIn, router]);
 
-  // ⛔ ยังไม่โหลด Clerk (ป้องกันกระพริบหรือ redirect ผิด)
-  if (!isLoaded) return null;
+    setIsAllowed(true);
+  }, [router]);
 
-  // ⛔ Clerk โหลดแล้วแต่ไม่ได้ login
-  if (!isSignedIn) return null;
+  // ซ่อนเนื้อหาจนกว่าจะตรวจสอบ token เสร็จ
+  if (!isAllowed) return null;
 
-  // ✔ Clerk โหลดเสร็จ + login แล้ว
   return <>{children}</>;
 }
