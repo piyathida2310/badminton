@@ -1,0 +1,576 @@
+{
+	"info": {
+		"_postman_id": "db445292-60e8-4353-9811-290112b0d164",
+		"name": "Batminton",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38546602",
+		"_collection_link": "https://flora2.postman.co/workspace/flora-Workspace~8d4e7807-3114-4064-84b4-48bd7b736668/collection/38546602-db445292-60e8-4353-9811-290112b0d164?action=share&source=collection_link&creator=38546602"
+	},
+	"item": [
+		{
+			"name": "Rules",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tournamentId\" : 1,\r\n    \"content\": \"- เวลาที่ระบุในตารางเวลาเป็นเพียงเวลาประมาณการเท่านั้น กรณีที่การแข่งขันดำเนินไปเร็วกว่าที่กำหนดทางทีมงานสามารถเรียกนักกีฬาเข้าทำการแข่งขันได้ก่อนเวลา แต่จะไม่เรียกเร็วกว่าช่วงเวลาที่กำหนดให้มาลงทะเบียนรายงานตัว ดังนั้นขอให้นักกีฬามารายงานตัวไม่เกินเวลาที่ระบุ เพื่อป้องกันการถูกตัดสิทธิ์การแข่งขัน- ทีมงานจะยึดตาม ‘ลำดับแมทช์’ ในการเรียกนักกีฬาเข้าทำการแข่งขันเป็นหลัก ขอให้นักกีฬาเตรียมตัวให้พร้อม เมื่อประกาศเรียกลงสนามแล้ว หากภายใน 5 นาที นักกีฬายังไม่มาแสดงตัว หรือมาแต่ไม่พร้อมลงสนาม (เช่น ยังไม่เปลี่ยนชุด ยังไม่ใส่รองเท้า หรือขอเข้าห้องน้ำ) ทีมงานจะประกาศเรียกซ้ำและจับเวลาอีก 5 นาที หากครบกำหนดครั้งที่ 2 แล้วยังไม่พร้อมแข่งขัน นักกีฬาฝั่งที่พร้อมลงสนามจะได้สิทธิ์ชนะ Bye ในแมทช์นั้น- นักกีฬาต้องลงทำการแข่งขันในรอบแบ่งกลุ่มอย่างน้อย 1 แมทช์ (ไม่นับแมทช์ที่ได้ Bye) จึงจะมีสิทธิ์เข้าเล่นในรอบ Knock Out สายล่าง (หากมี) หากไม่ลงเล่นเลยในรอบแบ่งกลุ่ม ทีมงานขอสงวนสิทธิ์ตัดสิทธิ์นักกีฬานั้นออกจากรอบ Knock Out- เมื่อนักกีฬามาถึงสนามแล้วแต่ไม่ยอมลงทำการแข่งขัน หรือจงใจไม่เล่น หากทีมงานตรวจพบ จะถือว่าทุจริต และทีมงานมีสิทธิ์ปรับแพ้ทุกแมทช์ที่เหลือทันที ตารางการแข่งขันอาจเร็วหรือช้ากว่าที่ประกาศ ทีมงานจะใช้ ‘ลำดับแมทช์’ เป็นหลัก ขอให้นักกีฬาจดจำหมายเลขแมทช์ของตนเอง ทั้งในรอบแบ่งกลุ่มและ Knock Out เพื่อเตรียมตัวให้พร้อมเมื่อใกล้ถึวแข่งขัน นักกีฬาที่ลงแข่งมากกว่า 1 ประเภท ในรอบแบ่งกลุ่ม ต้องลงแข่งขันต่อเนื่อง ส่วนในรอบ Knock Out จะมีเวลาพัก 5 – 10 นาที ก่อนแมทช์ถัดไป\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/rules",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"rules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/rules",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"rules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/rules/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"rules",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n    \"content\": \"ครีมเหนื่อยมากสุดดดดดดดดดดดดดดดดดดดดดดดดดดดดด\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/rules/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"rules",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"manage1@gmail.com\",\r\n  \"password\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tournament",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5MzU2NDMsImV4cCI6MTc2MzU0MDQ0MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.xAHjaA4_3WiYxjakQyNEfn8tgR4FUujjHpzCvEx1Vis",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "ครีมให้รางวัล",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "dpu",
+									"type": "text"
+								},
+								{
+									"key": "playType",
+									"value": "SINGLE",
+									"type": "text"
+								},
+								{
+									"key": "rank",
+									"value": "BG",
+									"type": "text"
+								},
+								{
+									"key": "shuttlePrice",
+									"value": "100",
+									"type": "text"
+								},
+								{
+									"key": "maxPlayers",
+									"value": "16",
+									"type": "text"
+								},
+								{
+									"key": "posterImg",
+									"type": "file",
+									"src": "/C:/Users/sukha/Downloads/poster3.jpg"
+								},
+								{
+									"key": "qrCodeImg",
+									"type": "file",
+									"src": "/C:/Users/sukha/Downloads/eef3320f-4f1a-4039-bc03-5964295e7598.jpg"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-11-13",
+									"type": "text"
+								},
+								{
+									"key": "ruleId",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": " isLowerBracket",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/tournament",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5MzgzMjcsImV4cCI6MTc2MzU0MzEyNywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.QgyoHP5DReaQ6Q655MMTavs64Gnn4vChT7zR5X4R2l8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/qr/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"qr",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/poster/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"poster",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/tournament",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Competition",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"time\":\"2025-12-01 09:30\",\r\n    \"detail\":\"รับมาแข่งเร็วๆ มาเด้อ\",\r\n    \"rank\":\"NB\",\r\n    \"tournamentId\":2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/compet",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"compet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"time\":\"2025-12-01 09:30\",\r\n    \"detail\":\"รับมาแข่งเร็วๆ\",\r\n    \"rank\":\"BG\",\r\n    \"tournamentId\":1\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/compet?tournamentId=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"compet"
+							],
+							"query": [
+								{
+									"key": "tournamentId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"time\":\"2025-12-01 09:30\",\r\n    \"detail\":\"รับมาแข่งเร็วๆ  มาเลยจ้าาาาาาาาาาาา\",\r\n    \"rank\":\"BG\",\r\n    \"tournamentId\":2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/compet/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"compet",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI5Mzg1OTMsImV4cCI6MTc2MzU0MzM5MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.iXUoLQsh-T-ZD1tAkPqeZ9u31Ze6xytwOGcqXvH0ZWk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/compet/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"compet",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
