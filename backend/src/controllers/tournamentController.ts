@@ -93,6 +93,11 @@ export const getTournaments = async (req: Request, res: Response) => {
         organizerId: Number(req.user.sub),
       },
       orderBy: { createdAt: "desc" },
+      include:{
+        competition:true,
+        rule:true
+      }
+
     });
 
     if (!data || data.length === 0) {
@@ -114,7 +119,9 @@ export const getTournaments = async (req: Request, res: Response) => {
       startDate: tournament.startDate,
       ruleId: tournament.ruleId,
     isLowerBracket: tournament.isLowerBracket,
-    isCancel:tournament.isCancel
+    isCancel:tournament.isCancel,
+    competition:tournament.competition,
+    rule:tournament.rule
     }));
 
     return res.status(200).json({

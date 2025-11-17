@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import domtoimage from "dom-to-image-more";
 
 /*  ตารางการแข่งขัน */
 const MatchTable = () => {
@@ -22,6 +23,8 @@ const MatchTable = () => {
   //  ตรวจว่าอยู่ในโหมดแก้ไขไหม
   const [isEditing, setIsEditing] = useState(false);
 
+   const [showToast, setShowToast] = useState(false);
+
   // เมื่อแก้ไข input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,18 +34,26 @@ const MatchTable = () => {
   };
 
   //  เมื่อกดบันทึก
-  const handleSave = () => {
+   const handleSave = () => {
     setIsEditing(false);
-    console.log(" คะแนนที่บันทึกแล้ว:", scores);
-    alert(" บันทึกคะแนนเรียบร้อย!");
+
+    // แสดง Toast
+    setShowToast(true);
+
+    // ซ่อน Toast ภายใน 2 วินาที
+    setTimeout(() => setShowToast(false), 2000);
+
+    console.log("คะแนนที่บันทึกแล้ว:", scores);
   };
 
   return (
-    <div
-      className="p-1 scale-[1.0] origin-top-left w-fit"
-      
-    >
-      
+    <div className="p-1 scale-[1.0] origin-top-left w-fit">
+      {/* ปุ่ม toggle แก้ไข / บันทึก */}
+       {showToast && (
+        <div className="fixed top-4 right-4 z-[9999] bg-green-600 text-white text-[12px] px-4 py-2 rounded shadow-lg animate-[fadeInOut_2s_ease]">
+          ✔️ บันทึกคะแนนเรียบร้อยแล้ว
+        </div>
+      )}
 
       {/* ปุ่ม toggle แก้ไข / บันทึก */}
       <div className="flex justify-end mb-1">
@@ -140,7 +151,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/*  เซตถัดไป */}
+          {/*  เซตต่อไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
             <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
@@ -169,7 +180,7 @@ const MatchTable = () => {
             </td>
           </tr>
 
-          {/*  ทีมล่าง */}
+          {/* ทีมล่าง */}
           <tr className="border border-black">
             <td className="border border-black font-semibold bg-gray-100 py-[2px]">
               N2B
@@ -278,98 +289,209 @@ interface SixteenBracketProps {
 }
 
 export default function SixteenBracket({ level }: SixteenBracketProps) {
+  const downloadFullBracket = () => {
+    const node = document.getElementById("full-bracket");
+    if (!node) return;
+
+    const realWidth = node.scrollWidth;
+    const realHeight = node.scrollHeight;
+
+    // ซ่อน BORDER ทุกอย่าง เพื่อกันเส้นดำล้อมกรอบ
+    const allNodes = node.querySelectorAll("*");
+    allNodes.forEach((el: any) => {
+      el._oldBorder = el.style.border;
+      el._oldOutline = el.style.outline;
+      el.style.border = "none";
+      el.style.outline = "none";
+    });
+
+    domtoimage
+      .toPng(node, {
+        quality: 1,
+        width: realWidth,
+        height: realHeight,
+        style: {
+          transform: "scale(1)",
+          width: `${realWidth}px`,
+          height: `${realHeight}px`,
+        },
+      })
+      .then((dataUrl: string) => {
+        // คืนค่า border กลับตามเดิม
+        allNodes.forEach((el: any) => {
+          el.style.border = el._oldBorder;
+          el.style.outline = el._oldOutline;
+        });
+
+        const link = document.createElement("a");
+        link.download = "bracket-full.png";
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((err: unknown) => {
+        // คืนค่า border กรณี error
+        allNodes.forEach((el: any) => {
+          el.style.border = el._oldBorder;
+          el.style.outline = el._oldOutline;
+        });
+        console.error("Export error:", err);
+      });
+  };
+
   return (
-    <div
-      className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
-      
-    >
-      
+    <div className="relative">
+      {/* ปุ่มดาวน์โหลดทั้งหน้า */}
+      <button
+        onClick={downloadFullBracket}
+        className="absolute top-2 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded shadow"
+      >
+        ดาวน์โหลดทั้งหน้า
+      </button>
 
-      <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
-      </h1>
+      {/* ครอบทั้งหมด */}
+      <div
+        id="full-bracket"
+        className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+      >
+        <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
+          🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
+        </h1>
 
-      <div className="flex justify-start gap-[60px] px-[68px] mb-6 text-sm text-gray-700 font-medium">
-        <div className="w-[500px] text-center">Round of 16</div>
-        <div className="w-[500px] text-center">Round of 8</div>
-        <div className="w-[500px] text-center">Semi - Finals</div>
-        <div className="w-[500px] text-center">Finals</div>
+        <div className="flex justify-start gap-[60px] px-[68px] mb-6 text-sm text-gray-700 font-medium">
+          <div className="w-[500px] text-center">Round of 16</div>
+          <div className="w-[500px] text-center">Round of 8</div>
+          <div className="w-[500px] text-center">Semi - Finals</div>
+          <div className="w-[500px] text-center">Finals</div>
+        </div>
+
+        <div className="flex flex-row justify-start gap-12 px-10">
+          {/*  Column 1 */}
+          <div className="flex flex-col justify-between h-[1000px]">
+            {[...Array(8)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
+
+            <div>
+              <div>
+                <Line top={260} left={545} length={20} angle={1} color="#555" />
+                <Line top={325} left={545} length={20} angle={1} color="#555" />
+                <Line
+                  top={260}
+                  left={565}
+                  length={67}
+                  angle={90}
+                  color="#555"
+                />
+                <Line top={295} left={565} length={35} angle={1} color="#555" />
+              </div>
+              <div>
+                <Line top={510} left={545} length={20} angle={1} color="#555" />
+                <Line top={575} left={545} length={20} angle={1} color="#555" />
+                <Line
+                  top={510}
+                  left={565}
+                  length={66}
+                  angle={90}
+                  color="#555"
+                />
+                <Line top={540} left={565} length={35} angle={1} color="#555" />
+              </div>
+              <div>
+                <Line top={760} left={545} length={20} angle={1} color="#555" />
+                <Line top={825} left={545} length={20} angle={1} color="#555" />
+                <Line
+                  top={760}
+                  left={565}
+                  length={68}
+                  angle={90}
+                  color="#555"
+                />
+                <Line top={795} left={565} length={35} angle={1} color="#555" />
+              </div>
+              <div>
+                <Line
+                  top={1010}
+                  left={545}
+                  length={20}
+                  angle={1}
+                  color="#555"
+                />
+                <Line
+                  top={1080}
+                  left={545}
+                  length={20}
+                  angle={1}
+                  color="#555"
+                />
+                <Line
+                  top={1010}
+                  left={565}
+                  length={71}
+                  angle={90}
+                  color="#555"
+                />
+                <Line
+                  top={1040}
+                  left={565}
+                  length={35}
+                  angle={1}
+                  color="#555"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2 */}
+          <div className="flex flex-col justify-between h-[1110px] mt-15">
+            {[...Array(4)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
+            <div>
+              <Line top={320} left={1100} length={20} angle={1} color="#555" />
+              <Line top={520} left={1100} length={20} angle={1} color="#555" />
+              <Line
+                top={320}
+                left={1120}
+                length={201}
+                angle={90}
+                color="#555"
+              />
+              <Line top={425} left={1120} length={35} angle={1} color="#555" />
+            </div>
+            <div>
+              <Line top={810} left={1100} length={20} angle={1} color="#555" />
+              <Line top={1005} left={1100} length={20} angle={1} color="#555" />
+              <Line
+                top={810}
+                left={1120}
+                length={197}
+                angle={90}
+                color="#555"
+              />
+              <Line top={905} left={1120} length={35} angle={1} color="#555" />
+            </div>
+          </div>
+
+          {/* Column 3 */}
+          <div className="flex flex-col justify-between h-[610px] mt-45">
+            {[...Array(2)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
+          </div>
+
+          <div>
+            <Line top={440} left={1655} length={20} angle={1} color="#555" />
+            <Line top={865} left={1655} length={20} angle={1} color="#555" />
+            <Line top={440} left={1675} length={428} angle={90} color="#555" />
+            <Line top={610} left={1675} length={100} angle={1} color="#555" />
+          </div>
+
+          {/* Column 4 */}
+          <div className="flex flex-col justify-center h-[550px] mt-40">
+            <MatchTable />
+          </div>
+        </div>
       </div>
-
-      <div className="flex flex-row justify-start gap-12 px-10">
-        {/*  โครงสร้าง bracket เดิมทั้งหมดของน้องผักกาดยังเหมือนเดิม */}
-        <div className="flex flex-col justify-between h-[1000px]">
-          {[...Array(8)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-          <div>
-            <div>
-              <Line top={260} left={545} length={20} angle={1} color="#555" />
-              <Line top={325} left={545} length={20} angle={1} color="#555" />
-              <Line top={260} left={565} length={67} angle={90} color="#555" />
-              <Line top={295} left={565} length={35} angle={1} color="#555" />
-            </div>
-            <div>
-              <Line top={510} left={545} length={20} angle={1} color="#555" />
-              <Line top={575} left={545} length={20} angle={1} color="#555" />
-              <Line top={510} left={565} length={66} angle={90} color="#555" />
-              <Line top={540} left={565} length={35} angle={1} color="#555" />
-            </div>
-            <div>
-              <Line top={760} left={545} length={20} angle={1} color="#555" />
-              <Line top={825} left={545} length={20} angle={1} color="#555" />
-              <Line top={760} left={565} length={68} angle={90} color="#555" />
-              <Line top={795} left={565} length={35} angle={1} color="#555" />
-            </div>
-            <div>
-              <Line top={1010} left={545} length={20} angle={1} color="#555" />
-              <Line top={1080} left={545} length={20} angle={1} color="#555" />
-              <Line top={1010} left={565} length={71} angle={90} color="#555" />
-              <Line top={1040} left={565} length={35} angle={1} color="#555" />
-            </div>
-          </div>
-        </div>
-
-        {/* Column 2 */}
-        <div className="flex flex-col justify-between h-[1110px] mt-15">
-          {[...Array(4)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-          <div>
-            <Line top={320} left={1100} length={20} angle={1} color="#555" />
-            <Line top={520} left={1100} length={20} angle={1} color="#555" />
-            <Line top={320} left={1120} length={201} angle={90} color="#555" />
-            <Line top={425} left={1120} length={35} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={810} left={1100} length={20} angle={1} color="#555" />
-            <Line top={1005} left={1100} length={20} angle={1} color="#555" />
-            <Line top={810} left={1120} length={197} angle={90} color="#555" />
-            <Line top={905} left={1120} length={35} angle={1} color="#555" />
-          </div>
-        </div>
-
-        {/* Column 3 */}
-        <div className="flex flex-col justify-between h-[610px] mt-45">
-          {[...Array(2)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-        </div>
-
-        <div>
-          <Line top={440} left={1655} length={20} angle={1} color="#555" />
-          <Line top={865} left={1655} length={20} angle={1} color="#555" />
-          <Line top={440} left={1675} length={428} angle={90} color="#555" />
-          <Line top={610} left={1675} length={100} angle={1} color="#555" />
-        </div>
-
-        {/* Column 4 */}
-        <div className="flex flex-col justify-center h-[550px] mt-40">
-          <MatchTable />
-        </div>
-      </div>
-
-      
     </div>
   );
 }
