@@ -11,10 +11,24 @@ import Guideline from "../../../../../../components/guideline";
 import axios from "../../../../../lib/api";
 
 export default function TournamentManagePage() {
-  const [page, setPage] = useState<"organize" | "rules" | "schedule">("organize");
+  const [page, setPage] = useState<"organize" | "rules" | "schedule">(
+    "organize"
+  );
   const router = useRouter();
 
- 
+  interface tournament {
+    name: string;
+    location: string;
+    playType: "SINGLE" | "DOUBLE" | any;
+    rank: "BG" | "NB" | "N" | "S" | "P_MINUS" | "P_PLUS" | any;
+    shuttlePrice: string;
+    maxPlayers: string;
+    posterImg: string | File | null;
+    qrCodeImg: string | File | null;
+    startDate: string;
+    ruleId: string | null;
+    isLowerBracket: boolean;
+  }
 
   // --- ข้อมูลฟอร์มหน้าแรก ---
   const [ranks, setRanks] = useState<string[]>([]);
@@ -22,11 +36,14 @@ export default function TournamentManagePage() {
   const [people, setPeople] = useState<number | null>(null);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<string | null>(null);
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [qrFile, setQrFile] = useState<File | null>(null);
   const [date, setDate] = useState("");
   const [tournamentName, setTournamentName] = useState("");
   const [shuttlecockPrice, setShuttlecockPrice] = useState("");
   const [location, setLocation] = useState("");
   const [bracketLines, setBracketLines] = useState<string[]>([]);
+  const [tournament, setTournament] = useState<tournament>();
 
   // --- รอบการแข่งขัน (ล้างคำว่า "มือ" ออกตั้งแต่เริ่ม) ---
   const [rounds, setRounds] = useState<
@@ -57,7 +74,7 @@ export default function TournamentManagePage() {
   // --- ข้อความกติกา ---
   const [rulesText, setRulesText] = useState<string>(
     [
-       "- เวลาที่ระบุในตารางเวลาเป็นเพียงเวลาประมาณการเท่านั้น กรณีที่การแข่งขันดำเนินไปเร็วกว่าที่กำหนด ทางทีมงานสามารถเรียกนักกีฬาเข้าทำการแข่งขันได้ก่อนเวลา แต่จะไม่เรียกเร็วกว่าช่วงเวลาที่กำหนดให้มาลงทะเบียนรายงานตัว ดังนั้นขอให้นักกีฬามารายงานตัวไม่เกินเวลาที่ระบุ เพื่อป้องกันการถูกตัดสิทธิ์การแข่งขัน",
+      "- เวลาที่ระบุในตารางเวลาเป็นเพียงเวลาประมาณการเท่านั้น กรณีที่การแข่งขันดำเนินไปเร็วกว่าที่กำหนด ทางทีมงานสามารถเรียกนักกีฬาเข้าทำการแข่งขันได้ก่อนเวลา แต่จะไม่เรียกเร็วกว่าช่วงเวลาที่กำหนดให้มาลงทะเบียนรายงานตัว ดังนั้นขอให้นักกีฬามารายงานตัวไม่เกินเวลาที่ระบุ เพื่อป้องกันการถูกตัดสิทธิ์การแข่งขัน",
       "- ทีมงานจะยึดตาม ‘ลำดับแมทช์’ ในการเรียกนักกีฬาเข้าทำการแข่งขันเป็นหลัก ขอให้นักกีฬาเตรียมตัวให้พร้อม เมื่อประกาศเรียกลงสนามแล้ว หากภายใน 5 นาที นักกีฬายังไม่มาแสดงตัว หรือมาแต่ไม่พร้อมลงสนาม (เช่น ยังไม่เปลี่ยนชุด ยังไม่ใส่รองเท้า หรือขอเข้าห้องน้ำ) ทีมงานจะประกาศเรียกซ้ำและจับเวลาอีก 5 นาที หากครบกำหนดครั้งที่ 2 แล้วยังไม่พร้อมแข่งขัน นักกีฬาฝั่งที่พร้อมลงสนามจะได้สิทธิ์ชนะ Bye ในแมทช์นั้น",
       "- นักกีฬาต้องลงทำการแข่งขันในรอบแบ่งกลุ่มอย่างน้อย 1 แมทช์ (ไม่นับแมทช์ที่ได้ Bye) จึงจะมีสิทธิ์เข้าเล่นในรอบ Knock Out สายล่าง (หากมี) หากไม่ลงเล่นเลยในรอบแบ่งกลุ่ม ทีมงานขอสงวนสิทธิ์ตัดสิทธิ์นักกีฬานั้นออกจากรอบ Knock Out",
       "- เมื่อนักกีฬามาถึงสนามแล้วแต่ไม่ยอมลงทำการแข่งขัน หรือจงใจไม่เล่น หากทีมงานตรวจพบ จะถือว่าทุจริต และทีมงานมีสิทธิ์ปรับแพ้ทุกแมทช์ที่เหลือทันที",
@@ -69,7 +86,6 @@ export default function TournamentManagePage() {
       "- การคิดคะแนนในรอบ Knock Out บางประเภทอาจมีกติกาแตกต่างกัน หลังจากแข่งรอบแบ่งกลุ่มครบ ขอให้นักกีฬาตรวจสอบคะแนนก่อนกลับ หากกลับไปแล้วและถูกเรียกแข่งขันต่อ เมื่อครบเวลาที่กำหนดแล้วยังไม่มา จะถือว่าสละสิทธิ์ และคู่แข่งจะได้ Bye โดยไม่ข้อโต้แย้ง",
       "- หากนักกีฬาบาดเจ็บ จะมีเวลาให้หยุดพักรักษา แมทช์ละ 2 ครั้ง รวมกันไม่เกิน 10 นาที หากครบเวลาแล้วยังไม่สามารถกลับมาแข่งขันได้ หรือกลับมาแล้วบาดเจ็บซ้ำ จะถือว่ายุติการแข่งขัน และให้อีกฝ่ายชนะ Bye เพื่อความปลอดภัยของนักกีฬา",
       "- ระหว่างการแข่งขัน เมื่อเล่นถึงแต้มที่ 11 จะมีเวลาพัก 60 วินาที และเมื่อจบแต่ละเกม จะพัก 120 วินาที",
-
     ].join("\n")
   );
 
@@ -98,25 +114,47 @@ export default function TournamentManagePage() {
     );
   };
 
-  const handleUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "poster" | "qr"
-  ) => {
+  const handleUpload = (e: any, type: any) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (type === "poster") setPosterPreview(reader.result as string);
-        if (type === "qr") setQrPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (type === "poster") {
+      setPosterFile(file);
+    } else {
+      setQrFile(file);
     }
+
+    // สำหรับ preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (type === "poster") setPosterPreview(reader.result as string);
+      if (type === "qr") setQrPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const isFormComplete =
-    date && location && shuttlecockPrice && ranks.length > 0 && types.length > 0 && people;
+    date &&
+    location &&
+    shuttlecockPrice &&
+    ranks.length > 0 &&
+    types.length > 0 &&
+    people;
 
   const handleNext = () => {
+    setTournament({
+      name: tournamentName,
+      location: location,
+      playType: types,
+      rank: ranks,
+      shuttlePrice: shuttlecockPrice,
+      maxPlayers: String(people),
+      posterImg: posterFile,
+      qrCodeImg: qrFile,
+      startDate: date,
+      ruleId: null,
+      isLowerBracket: false,
+    });
     if (isFormComplete) setPage("rules");
   };
 
@@ -180,7 +218,9 @@ export default function TournamentManagePage() {
     setRounds((prev) =>
       prev.map((r) => ({
         ...r,
-        levels: (r.levels || []).map((lvl) => lvl.replace(/^มือ\s*/, "").trim()),
+        levels: (r.levels || []).map((lvl) =>
+          lvl.replace(/^มือ\s*/, "").trim()
+        ),
       }))
     );
   }, []);
@@ -222,13 +262,14 @@ export default function TournamentManagePage() {
           />
         )}
 
-        
         {page === "rules" && (
           <Guideline
             rulesText={rulesText}
             setRulesText={setRulesText}
             setPage={setPage}
             router={router}
+            //@ts-ignore
+            tournament={tournament}
           />
         )}
 
@@ -252,7 +293,6 @@ export default function TournamentManagePage() {
             showAddModal={showAddModal}
           />
         )}
-
       </AnimatePresence>
     </div>
   );

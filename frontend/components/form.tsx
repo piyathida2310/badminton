@@ -82,7 +82,7 @@ export default function Form({
 
           <RadioStyleMultiSelect
             label="ประเภท"
-            options={["คู่", "เดี่ยว"]}
+            options={["SINGLE" , "DOUBLE"]}
             selected={types}
             onToggle={(val: string) => setTypes([val])}
           />

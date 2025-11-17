@@ -1,12 +1,58 @@
 "use client";
 
 import { motion } from "framer-motion";
-
+import axios from "../src/lib/api";
+interface tournament {
+  name: string;
+  location: string;
+  playType: "SINGLE" | "DOUBLE" | any;
+  rank: "BG" | "NB" | "N" | "S" | "P_MINUS" | "P_PLUS";
+  shuttlePrice: string;
+  maxPlayers: string;
+  posterImg: string;
+  qrCodeImg: string;
+  startDate: string;
+  ruleId: string;
+  isLowerBracket: boolean;
+}
 export default function Guideline({
   rulesText,
   setRulesText,
   setPage,
-}: any) {
+  tournament,
+}: {
+  rulesText: string;
+  setRulesText: any;
+  setPage: any;
+  tournament: tournament;
+}) {
+  const handelSummit = async () => {
+    // setPage("schedule");
+
+    const rules = await axios.post("/api/rules", { content: rulesText });
+
+    const formData = new FormData();
+
+    formData.append("name", tournament.name);
+    formData.append("playType", tournament.playType);
+    formData.append("rank", tournament.rank);
+    formData.append("location", tournament.location);
+
+    formData.append("shuttlePrice", String(tournament.shuttlePrice));
+    formData.append("maxPlayers", String(tournament.maxPlayers));
+    formData.append("posterImg", tournament.posterImg); // ถ้าเป็นไฟล์ ต้องเป็น File object
+    formData.append("qrCodeImg", tournament.qrCodeImg);
+    formData.append("startDate", tournament.startDate);
+    formData.append("ruleId", String(rules.data.data.id));
+    formData.append("isLowerBracket", String(tournament.isLowerBracket));
+    for (const pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+    await axios.post("/api/tournament",formData,{
+      headers:{'Content-Type':'multipart/form-data'}
+    })
+  };
+
   return (
     <motion.div
       key="rules"
@@ -53,13 +99,13 @@ export default function Guideline({
           ย้อนกลับ
         </motion.button>
 
-         <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={() => setPage("schedule")}
-            className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#b3e5fc] hover:bg-[#7ccff5]"
-          >
-            ถัดไป
-          </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          onClick={() => handelSummit()}
+          className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#b3e5fc] hover:bg-[#7ccff5]"
+        >
+          ถัดไป
+        </motion.button>
       </div>
     </motion.div>
   );
