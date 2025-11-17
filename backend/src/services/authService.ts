@@ -1,4 +1,4 @@
-﻿import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Role, Prisma } from '@prisma/client';
 import { jwtConfig } from '../config/authConfig';
@@ -19,6 +19,7 @@ export interface RegisterUserParams {
   confirmPassword: string;
   username?: string | null;
   role?: Role;
+  clerkId?: string;
 }
 
 export interface LoginUserParams {
@@ -70,6 +71,7 @@ export async function registerUser({
   confirmPassword,
   username,
   role = Role.PLAYER,
+  clerkId,
 }: RegisterUserParams): Promise<TokenResponse> {
   if (password !== confirmPassword) {
     throw new HttpError(
@@ -91,6 +93,7 @@ export async function registerUser({
     passwordHash,
     role,
     userName: username ?? undefined,
+    clerkId,
   });
 
   return signAccessToken(user.id, user.userName ?? user.email, user.role);
