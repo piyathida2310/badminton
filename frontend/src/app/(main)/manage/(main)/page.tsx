@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import axios from "../../../../lib/api";
+import Photo from "../../../../../components/image";
 
 interface Tournament {
   id: number;
@@ -15,36 +16,35 @@ interface Tournament {
 
 export default function TournamentPage() {
   const router = useRouter();
-
-  const [tournaments, setTournaments] = useState<Tournament[]>([
-    { id: 1, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster4.jpg", canceled: false },
-    { id: 2, title: "BADMINTON COMPETITION 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
-    { id: 3, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster3.jpg", canceled: true },
-    { id: 4, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster4.jpg", canceled: false },
-    { id: 5, title: "BADMINTON COMPETITION 2025", date: "วันที่ 30 กันยายน 2568", image: "/images/poster2.jpg", canceled: false },
-    { id: 6, title: "BADMINTON TOURNAMENT", date: "วันที่ 30 กันยายน 2568", image: "/images/poster3.jpg", canceled: true },
-    { id: 7, title: "BADMINTON 2026", date: "วันที่ 15 ตุลาคม 2569", image: "/images/poster4.jpg", canceled: false },
-    { id: 8, title: "BADMINTON CUP 2027", date: "วันที่ 10 ธันวาคม 2570", image: "/images/poster3.jpg", canceled: false },
-    { id: 9, title: "INTERNATIONAL OPEN 2028", date: "วันที่ 20 มกราคม 2571", image: "/images/poster2.jpg", canceled: false },
-  ]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const fetchTournament = async () => {
+    const res = await axios.get("/api/tournament");
+    console.log(res.data.data);
+    setTournaments(res.data.data);
+  };
+  useEffect(() => {
+    fetchTournament();
+  }, []);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const postersPerPage = 6;
 
-  const test = (id:any) =>{
-    router.push(`/manage/${id}/manage-rules/`)
-  }
+  const rules = (id: any) => {
+    router.push(`/manage/${id}/manage-rules/`);
+  };
 
-  const handleCancel = (id: number) => {
-    setTournaments(prev =>
-      prev.map(t => (t.id === id ? { ...t, canceled: !t.canceled } : t))
-    );
+  const handleCancel =async (id: number) => {
+    await axios.put(`/api/tournament/${id}`)
+    fetchTournament();
   };
 
   const totalPages = Math.ceil(tournaments.length / postersPerPage);
   const startIndex = (currentPage - 1) * postersPerPage;
-  const currentTournaments = tournaments.slice(startIndex, startIndex + postersPerPage);
+  const currentTournaments = tournaments.slice(
+    startIndex,
+    startIndex + postersPerPage
+  );
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -52,6 +52,14 @@ export default function TournamentPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+  function formatThaiDate(dateStr: string) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#FFFDF6] via-[#F9F6EE] to-[#EDEAE3] px-6 py-10">
@@ -70,11 +78,10 @@ export default function TournamentPage() {
 
       {/* Tournament Cards */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {currentTournaments.map(t => (
+        {currentTournaments.map((t) => (
           <motion.div
             key={t.id}
             whileHover={{ y: -5, scale: 1.02 }}
-            onClick={()=>test(t.id)}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
             className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
           >
@@ -82,14 +89,10 @@ export default function TournamentPage() {
               className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
               onClick={() => setSelectedImage(t.image)}
             >
-              <Image
+              <Photo
                 src={t.image}
                 alt={t.title}
-                fill
-                quality={100}
-                sizes="100vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
-                priority
               />
               {t.canceled && (
                 <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
@@ -99,10 +102,12 @@ export default function TournamentPage() {
             </div>
 
             <div className="p-4 text-center">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors">
+              <h2 onClick={() => rules(t.id)} className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors">
                 {t.title}
               </h2>
-              <p className="text-gray-500 mb-3 text-sm">{t.date}</p>
+              <p className="text-gray-500 mb-3 text-sm">
+                วันที่ {formatThaiDate(t.date)}
+              </p>
               <button
                 onClick={() => handleCancel(t.id)}
                 className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${
@@ -176,14 +181,14 @@ export default function TournamentPage() {
               exit={{ scale: 0.7, opacity: 0 }}
               transition={{ type: "spring", stiffness: 150, damping: 20 }}
             >
-              <Image
+              <Photo
                 src={selectedImage}
                 alt="Poster Full"
-                width={1600}
-                height={1000}
-                quality={100}
-                sizes="100vw"
-                className="max-w-[90vw] max-h-[85vh] rounded-3xl shadow-2xl object-contain border border-white/20"
+                // width={1600}
+                // height={1000}
+                // quality={100}
+                // sizes="100vw"
+                className="w-[90vw] h-[85vh] rounded-3xl shadow-2xl object-contain border border-white/20"
               />
             </motion.div>
           </motion.div>

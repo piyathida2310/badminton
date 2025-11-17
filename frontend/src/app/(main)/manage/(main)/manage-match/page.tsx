@@ -8,10 +8,13 @@ import { useRouter } from "next/navigation";
 import Form from "../../../../../../components/form";
 import Schedule from "../../../../../../components/schedule";
 import Guideline from "../../../../../../components/guideline";
+import axios from "../../../../../lib/api";
 
 export default function TournamentManagePage() {
   const [page, setPage] = useState<"organize" | "rules" | "schedule">("organize");
   const router = useRouter();
+
+ 
 
   // --- ข้อมูลฟอร์มหน้าแรก ---
   const [ranks, setRanks] = useState<string[]>([]);

@@ -109,17 +109,18 @@ export const getTournaments = async (req: Request, res: Response) => {
 
     const iconsWithUrl = data.map((tournament) => ({
       id: tournament.id,
+      title: tournament.name,
       location: tournament.location,
       playType: tournament.playType,
       rank: tournament.rank,
       shuttlePrice: tournament.shuttlePrice,
       maxPlayers: tournament.maxPlayers,
-      posterImg: `${process.env.APP_BASE_URL}/api/tournament/poster/${tournament.id}`,
+      image: `${process.env.APP_BASE_URL}/api/tournament/poster/${tournament.id}`,
       qrCodeImg: `${process.env.APP_BASE_URL}/api/tournament/qr/${tournament.id}`,
-      startDate: tournament.startDate,
+      date: tournament.startDate,
       ruleId: tournament.ruleId,
     isLowerBracket: tournament.isLowerBracket,
-    isCancel:tournament.isCancel,
+    canceled:tournament.isCancel,
     competition:tournament.competition,
     rule:tournament.rule
     }));
