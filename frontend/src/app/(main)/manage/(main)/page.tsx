@@ -16,42 +16,38 @@ interface Tournament {
 
 export default function TournamentPage() {
   const router = useRouter();
+
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const fetchTournament = async () => {
-    const res = await axios.get("/api/tournament");
-    console.log(res.data.data);
-    setTournaments(res.data.data);
-  };
-  useEffect(() => {
-    fetchTournament();
-  }, []);
-
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const postersPerPage = 6;
 
-  const rules = (id: any) => {
+  //  Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 6;
+  const [totalPages, setTotalPages] = useState(1);
+
+  //  โหลดข้อมูลจาก backend แบบมี pagination
+  const fetchTournament = async (page = 1) => {
+    const res = await axios.get(`/api/tournament?page=${page}&limit=${limit}`);
+
+    setTournaments(res.data.data || []);
+
+    //  ตั้งจำนวนหน้าทั้งหมดจาก backend
+    setTotalPages(res.data.pagination?.totalPages || 1);
+  };
+
+  useEffect(() => {
+    fetchTournament(currentPage);
+  }, [currentPage]);
+
+  const rules = (id: number) => {
     router.push(`/manage/${id}/manage-rules/`);
   };
 
   const handleCancel = async (id: number) => {
     await axios.put(`/api/tournament/${id}`);
-    fetchTournament();
+    fetchTournament(currentPage); // refresh
   };
 
-  const totalPages = Math.ceil(tournaments.length / postersPerPage);
-  const startIndex = (currentPage - 1) * postersPerPage;
-  const currentTournaments = tournaments.slice(
-    startIndex,
-    startIndex + postersPerPage
-  );
-
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-    if (window.innerWidth <= 768) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
   function formatThaiDate(dateStr: string) {
     const date = new Date(dateStr);
     return date.toLocaleDateString("th-TH", {
@@ -60,6 +56,13 @@ export default function TournamentPage() {
       day: "numeric",
     });
   }
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    if (window.innerWidth <= 768) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#FFFDF6] via-[#F9F6EE] to-[#EDEAE3] px-6 py-10">
@@ -78,7 +81,7 @@ export default function TournamentPage() {
 
       {/* Tournament Cards */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {currentTournaments.map((t) => (
+        {tournaments.map((t) => (
           <motion.div
             key={t.id}
             whileHover={{ y: -5, scale: 1.02 }}
@@ -94,6 +97,7 @@ export default function TournamentPage() {
                 alt={t.title}
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
+
               {t.canceled && (
                 <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
                   ยกเลิก
@@ -108,11 +112,13 @@ export default function TournamentPage() {
               >
                 {t.title}
               </h2>
+
               <p className="text-gray-500 mb-3 text-sm">
                 วันที่ {formatThaiDate(t.date)}
               </p>
+
               <button
-                disabled={t.canceled} // ← สำคัญมาก
+                disabled={t.canceled}
                 onClick={() => handleCancel(t.id)}
                 className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${
                   t.canceled
@@ -131,7 +137,7 @@ export default function TournamentPage() {
       <div className="flex justify-center items-center gap-2 mt-8">
         <button
           disabled={currentPage === 1}
-          onClick={() => goToPage(Math.max(currentPage - 1, 1))}
+          onClick={() => goToPage(currentPage - 1)}
           className={`px-3 py-1.5 rounded-md font-medium text-sm ${
             currentPage === 1
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -157,7 +163,7 @@ export default function TournamentPage() {
 
         <button
           disabled={currentPage === totalPages}
-          onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
+          onClick={() => goToPage(currentPage + 1)}
           className={`px-3 py-1.5 rounded-md font-medium text-sm ${
             currentPage === totalPages
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -188,10 +194,6 @@ export default function TournamentPage() {
               <Photo
                 src={selectedImage}
                 alt="Poster Full"
-                // width={1600}
-                // height={1000}
-                // quality={100}
-                // sizes="100vw"
                 className="w-[90vw] h-[85vh] rounded-3xl shadow-2xl object-contain border border-white/20"
               />
             </motion.div>

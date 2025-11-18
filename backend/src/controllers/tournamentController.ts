@@ -88,24 +88,29 @@ export const createTournament = async (req: Request, res: Response) => {
 
 export const getTournaments = async (req: Request, res: Response) => {
   try {
-    const data = await prisma.tournament.findMany({
+    //  รับค่าจาก query
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    // นับจำนวนทั้งหมดสำหรับ pagination
+    const total = await prisma.tournament.count({
       where: {
         organizerId: Number(req.user.sub),
       },
-      orderBy: { createdAt: "desc" },
-      include:{
-        competition:true,
-        rule:true
-      }
-
     });
 
-    if (!data || data.length === 0) {
-      return res.status(200).json({
-        message: "Tournament not found",
-        data: [],
-      });
-    }
+    //  ดึงข้อมูล page นั้น ๆ
+    const data = await prisma.tournament.findMany({
+      where: { organizerId: Number(req.user.sub) },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        competition: true,
+        rule: true,
+      },
+    });
 
     const iconsWithUrl = data.map((tournament) => ({
       id: tournament.id,
@@ -119,16 +124,27 @@ export const getTournaments = async (req: Request, res: Response) => {
       qrCodeImg: `${process.env.APP_BASE_URL}/api/tournament/qr/${tournament.id}`,
       date: tournament.startDate,
       ruleId: tournament.ruleId,
-    isLowerBracket: tournament.isLowerBracket,
-    canceled:tournament.isCancel,
-    competition:tournament.competition,
-    rule:tournament.rule
+      isLowerBracket: tournament.isLowerBracket,
+      canceled: tournament.isCancel,
+      competition: tournament.competition,
+      rule: tournament.rule,
     }));
 
     return res.status(200).json({
       message: "Tournament fetched successfully",
       data: iconsWithUrl,
+      
+      // ส่งข้อมูล pagination เพิ่มเติม 
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
+      },
     });
+
   } catch (error) {
     if (error instanceof Error) {
       return res.status(400).json({
@@ -142,6 +158,7 @@ export const getTournaments = async (req: Request, res: Response) => {
     }
   }
 };
+
 
 export const getPoster = async (req: Request, res: Response) => {
   try {
