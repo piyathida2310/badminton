@@ -6,7 +6,7 @@ interface tournament {
   name: string;
   location: string;
   playType: "SINGLE" | "DOUBLE" | any;
-  rank: "BG" | "NB" | "N" | "S" | "P_MINUS" | "P_PLUS";
+  rank: [];
   shuttlePrice: string;
   maxPlayers: string;
   posterImg: string;
@@ -38,7 +38,7 @@ export default function Guideline({
 
     formData.append("name", tournament.name);
     formData.append("playType", tournament.playType);
-    formData.append("rank", tournament.rank);
+    formData.append("rank", JSON.stringify(tournament.rank));
     formData.append("location", tournament.location);
 
     formData.append("shuttlePrice", String(tournament.shuttlePrice));
@@ -57,7 +57,7 @@ export default function Guideline({
       })
       .then((res) => {
         console.log(res.data.data.id + "hello world!!!!!!!");
-        
+
         setTournamentID(res.data.data.id);
       });
   };

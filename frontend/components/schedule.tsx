@@ -89,7 +89,6 @@ export default function Schedule({
       // reset
       setEditIndex(null);
       setEditingCompetID(null);
-
     } catch (error) {
       console.log(error);
     }
@@ -106,7 +105,9 @@ export default function Schedule({
         className="w-[90%] max-w-4xl mx-auto bg-gradient-to-br from-[#FFF8FA] via-[#FFFDF9] to-[#FFF8F5]
         rounded-3xl p-5 text-slate-800 mt-8 mb-4 shadow-md border border-pink-100"
       >
-        <h1 className="text-[30px] font-bold text-center mb-1">ตารางการแข่งขัน</h1>
+        <h1 className="text-[30px] font-bold text-center mb-1">
+          ตารางการแข่งขัน
+        </h1>
 
         <div className="flex justify-end mb-4">
           <button
@@ -146,12 +147,14 @@ export default function Schedule({
               >
                 {/* เวลา */}
                 <div className="flex flex-col items-center border-r">
-                  <span className="font-bold text-[20px]">{formatTime(r.time)}</span>
+                  <span className="font-bold text-[20px]">
+                    {formatTime(r.time)}
+                  </span>
 
                   <button
                     className="mt-2 text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300"
                     onClick={() => {
-                      setEditingCompetID(r.id);   // ⭐ กำลังแก้ตัวนี้
+                      setEditingCompetID(r.id); // ⭐ กำลังแก้ตัวนี้
                       setNewRoundTime(formatTime(r.time));
                       setNewRoundDesc(r.detail);
                       setNewRoundLevels(r.rank);
@@ -201,11 +204,20 @@ export default function Schedule({
 
         {/* ปุ่มถัดไป */}
         <div className="flex justify-between mt-6">
-          <motion.button whileHover={{ scale: 1.05 }} onClick={() => setPage("rules")} className="px-6 py-2 rounded-xl bg-gray-200 hover:bg-gray-300">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            onClick={() => setPage("rules")}
+            className="px-6 py-2 rounded-xl bg-gray-200 hover:bg-gray-300"
+          >
             ย้อนกลับ
           </motion.button>
 
-          <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => router.push("/manage")} className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]">
+          <motion.button
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.push("/manage")}
+            className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]"
+          >
             ลงทะเบียน
           </motion.button>
         </div>
@@ -229,7 +241,9 @@ export default function Schedule({
               border rounded-xl p-6 w-[95%] max-w-md text-slate-700"
             >
               <h2 className="text-lg font-bold mb-4 text-center">
-                {editingCompetID !== null ? "แก้ไขรอบการแข่งขัน" : "เพิ่มรอบการแข่งขัน"}
+                {editingCompetID !== null
+                  ? "แก้ไขรอบการแข่งขัน"
+                  : "เพิ่มรอบการแข่งขัน"}
               </h2>
 
               <div className="space-y-4 text-sm">
@@ -257,27 +271,32 @@ export default function Schedule({
                 <div>
                   <div className="mb-1 font-semibold">รายการระดับมือ</div>
                   <div className="flex flex-wrap gap-2">
-                    {levelOptions.map((opt: string) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() =>
-                          setNewRoundLevels((prev: string[]) =>
-                            prev.includes(opt)
-                              ? prev.filter((x) => x !== opt)
-                              : [...prev, opt]
-                          )
-                        }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border 
-                          ${
-                            safeLevels.includes(opt)
-                              ? "bg-pink-200 border-pink-300"
-                              : "bg-white border-gray-300"
-                          }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {levelOptions.map((opt: any) => {
+                      const value = opt.value ?? opt; // ถ้าเป็น object → ใช้ opt.value
+                      const label = opt.label ?? opt; // ถ้าเป็น object → ใช้ opt.label
+
+                      return (
+                        <button
+                          key={value} // ✔ key เป็น string ชัดเจน
+                          type="button"
+                          onClick={() =>
+                            setNewRoundLevels((prev: string[]) =>
+                              prev.includes(value)
+                                ? prev.filter((x) => x !== value)
+                                : [...prev, value]
+                            )
+                          }
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border 
+        ${
+          safeLevels.includes(value)
+            ? "bg-pink-200 border-pink-300"
+            : "bg-white border-gray-300"
+        }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

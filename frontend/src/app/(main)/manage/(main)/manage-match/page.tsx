@@ -95,7 +95,14 @@ export default function TournamentManagePage() {
   const [newRoundLevels, setNewRoundLevels] = useState<string[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
-  const levelOptions = ["BG", "NB", "N", "S", "P-", "P+"];
+const levelOptions = [
+  { label: "BG", value: "BG" },
+  { label: "NB", value: "NB" },
+  { label: "N", value: "N" },
+  { label: "S", value: "S" },
+  { label: "P-", value: "P_MINUS" },
+  { label: "P+", value: "P_PLUS" },
+];
 
   const gradient = useMemo(
     () => ({

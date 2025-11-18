@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import axios from "../../../../lib/api";
 import Photo from "../../../../../components/image";
+import { h1 } from "framer-motion/client";
 
 interface Tournament {
   id: number;
@@ -133,46 +134,48 @@ export default function TournamentPage() {
         ))}
       </div>
 
-      {/* Pagination Buttons */}
-      <div className="flex justify-center items-center gap-2 mt-8">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => goToPage(currentPage - 1)}
-          className={`px-3 py-1.5 rounded-md font-medium text-sm ${
-            currentPage === 1
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
-          }`}
-        >
-          ก่อนหน้า
-        </button>
-
-        {Array.from({ length: totalPages }, (_, i) => (
+      {
+        tournaments.length >0 ? 
+        <div className="flex justify-center items-center gap-2 mt-8">
           <button
-            key={i}
-            onClick={() => goToPage(i + 1)}
-            className={`px-3 py-1.5 rounded-md font-medium text-sm border ${
-              currentPage === i + 1
-                ? "bg-pink-500"
-                : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+            disabled={currentPage === 1}
+            onClick={() => goToPage(currentPage - 1)}
+            className={`px-3 py-1.5 rounded-md font-medium text-sm ${
+              currentPage === 1
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
             }`}
           >
-            {i + 1}
+            ก่อนหน้า
           </button>
-        ))}
 
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => goToPage(currentPage + 1)}
-          className={`px-3 py-1.5 rounded-md font-medium text-sm ${
-            currentPage === totalPages
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
-          }`}
-        >
-          ถัดไป
-        </button>
-      </div>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => goToPage(i + 1)}
+              className={`px-3 py-1.5 rounded-md font-medium text-sm border ${
+                currentPage === i + 1
+                  ? "bg-pink-500"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+            className={`px-3 py-1.5 rounded-md font-medium text-sm ${
+              currentPage === totalPages
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+            }`}
+          >
+            ถัดไป
+          </button>
+        </div>:<h1 className="text-center mt-36 text-gray-500 text-xl">ไม่มีรายการ</h1>
+      }
 
       {/* Modal แสดงรูปใหญ่ */}
       <AnimatePresence>
