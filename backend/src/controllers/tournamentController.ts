@@ -195,30 +195,32 @@ export const updateTournament = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
     const tournament = await prisma.tournament.findUnique({ where: { id } });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
+    // ❗ หากยกเลิกแล้ว ห้ามกดยกเลิกอีก
+    if (tournament.isCancel) {
+      return res.status(400).json({
+        message: "Tournament already canceled. Cannot reopen.",
+      });
+    }
+
+    // ❗ ยกเลิกแบบถาวร
     const update = await prisma.tournament.update({
-      where: {
-        id,
-      },
-      data: {
-        isCancel: !tournament.isCancel,
-      },
+      where: { id },
+      data: { isCancel: true },
     });
+
     return res.json({
-      message: `Tournament ${update.isCancel ? "cancelled" : "reopened"
-      } successfully.`,
+      message: "Tournament cancelled successfully.",
       data: update,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      return res.status(400).json({
-        message: "Something went wrong!",
-        errors: error.message,
-      });
-    } else {
-      return res.status(500).json({
-        message: "Internal server error",
-      });
-    }
+    return res.status(500).json({
+      message: "Internal server error",
+      errors: error instanceof Error ? error.message : error,
+    });
   }
 };
+

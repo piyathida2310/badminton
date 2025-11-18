@@ -55,22 +55,22 @@ enum MatchStatus {
 
 // ---------- USER ----------
 model User {
-  id         Int       @id @default(autoincrement()) @map("user_id")
-  userName   String?   @unique @map("user_name")
-  firstName  String    @map("first_name")
-  lastName   String    @map("last_name")
-  email      String    @unique
-  password   String
-  age        Int?
-  role       Role      @default(PLAYER)
-  playType   PlayType?
-  profileImg String?
-  gmail      String?   @unique
-  clerkId    String?   @unique @map("clerk_id")
-  phoneNumber String?  @map("phone_number")
-  rank       Int?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id          Int       @id @default(autoincrement()) @map("user_id")
+  userName    String?   @unique @map("user_name")
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  email       String    @unique
+  password    String
+  age         Int?
+  role        Role      @default(PLAYER)
+  playType    PlayType?
+  profileImg  String?
+  gmail       String?   @unique
+  clerkId     String?   @unique @map("clerk_id")
+  phoneNumber String?   @map("phone_number")
+  rank        Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   organizedTournaments Tournament[] @relation("OrganizerTournaments")
   registrations        Register[]
@@ -79,7 +79,7 @@ model User {
 }
 
 // ---------- TOURNAMENT ----------
-  
+
 model Tournament {
   id             Int      @id @default(autoincrement())
   name           String
@@ -95,11 +95,11 @@ model Tournament {
   updateAt       DateTime @updatedAt
   ruleId         Int
   isLowerBracket Boolean  @default(false)
-  isCancel Boolean  @default(false)
+  isCancel       Boolean  @default(false)
   organizerId    Int
 
-  organizer      User     @relation("OrganizerTournaments", fields: [organizerId], references: [id])
-  rule           Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  organizer User @relation("OrganizerTournaments", fields: [organizerId], references: [id])
+  rule      Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   matches       Match[]
   registrations Register[]
@@ -111,15 +111,15 @@ model Tournament {
 // ---------- competition ----------
 
 model Competition {
-  id     Int      @id @default(autoincrement())
-  time   DateTime
-  detail String
-  rank   HandType
+  id           Int      @id @default(autoincrement())
+  time         DateTime
+  detail       String
+  rank         String[]
   tournamentId Int
-  createdAt      DateTime @default(now())
-  updateAt       DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updateAt     DateTime @updatedAt
 
-  tournament   Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
 // ---------- RULE ----------

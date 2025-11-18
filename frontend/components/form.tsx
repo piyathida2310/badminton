@@ -48,6 +48,7 @@ export default function Form({
 
       {/* 🌸 ฟอร์มเนื้อหาหลัก */}
       <div className="p-6 grid gap-6 md:grid-cols-2 text-slate-700 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#E5D9FF] hover:scrollbar-thumb-[#F1E9FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
+
         {/* ฝั่งซ้าย */}
         <div className="space-y-4">
           <LabeledInput
@@ -56,6 +57,7 @@ export default function Form({
             value={date}
             onChange={(e: any) => setDate(e.target.value)}
           />
+
           <LabeledInput
             label="ชื่อรายการแข่ง"
             value={tournamentName}
@@ -67,12 +69,14 @@ export default function Form({
             value={location}
             onChange={(e: any) => setLocation(e.target.value)}
           />
+
           <LabeledInput
             label="ราคาลูกต่อลูก"
             value={shuttlecockPrice}
             onChange={(e: any) => setShuttlecockPrice(e.target.value)}
           />
 
+          {/* ประเภทมือ */}
           <RadioStyleMultiSelect
             label="ประเภทมือ"
             options={levelOptions}
@@ -80,12 +84,18 @@ export default function Form({
             onToggle={(val: string) => toggleValue(ranks, val, setRanks)}
           />
 
+          {/* ประเภท เดี่ยว/คู่ — ใช้ label ไทย + value อังกฤษ */}
           <RadioStyleMultiSelect
             label="ประเภท"
-            options={["SINGLE" , "DOUBLE"]}
+            options={[
+              { label: "เดี่ยว", value: "SINGLE" },
+              { label: "คู่", value: "DOUBLE" },
+            ]}
             selected={types}
             onToggle={(val: string) => setTypes([val])}
           />
+
+          {/* สายการแข่งขัน */}
           <RadioStyleMultiSelect
             label="สายการแข่งขัน"
             options={["สายล่าง"]}
@@ -151,20 +161,27 @@ function LabeledInput({ label, type = "text", value, onChange }: any) {
   );
 }
 
+/* ⭐⭐⭐ RadioStyleMultiSelect — รองรับ string และ object {label,value} */
 function RadioStyleMultiSelect({ label, options, selected, onToggle }: any) {
   return (
     <div className="text-slate-700 text-sm">
       <div className="font-semibold mb-2">{label}</div>
+
       <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-        {options.map((opt: string) => (
-          <RadioBox
-            key={opt}
-            active={selected.includes(opt)}
-            onClick={() => onToggle(opt)}
-          >
-            {opt}
-          </RadioBox>
-        ))}
+        {options.map((opt: any) => {
+          const value = typeof opt === "string" ? opt : opt.value;
+          const display = typeof opt === "string" ? opt : opt.label;
+
+          return (
+            <RadioBox
+              key={value}
+              active={selected.includes(value)}
+              onClick={() => onToggle(value)}
+            >
+              {display}
+            </RadioBox>
+          );
+        })}
       </div>
     </div>
   );

@@ -34,8 +34,8 @@ export default function TournamentPage() {
     router.push(`/manage/${id}/manage-rules/`);
   };
 
-  const handleCancel =async (id: number) => {
-    await axios.put(`/api/tournament/${id}`)
+  const handleCancel = async (id: number) => {
+    await axios.put(`/api/tournament/${id}`);
     fetchTournament();
   };
 
@@ -102,13 +102,17 @@ export default function TournamentPage() {
             </div>
 
             <div className="p-4 text-center">
-              <h2 onClick={() => rules(t.id)} className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors">
+              <h2
+                onClick={() => rules(t.id)}
+                className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors"
+              >
                 {t.title}
               </h2>
               <p className="text-gray-500 mb-3 text-sm">
                 วันที่ {formatThaiDate(t.date)}
               </p>
               <button
+                disabled={t.canceled} // ← สำคัญมาก
                 onClick={() => handleCancel(t.id)}
                 className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${
                   t.canceled

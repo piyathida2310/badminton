@@ -8,8 +8,6 @@ import { useRouter } from "next/navigation";
 import Form from "../../../../../../components/form";
 import Schedule from "../../../../../../components/schedule";
 import Guideline from "../../../../../../components/guideline";
-import axios from "../../../../../lib/api";
-
 export default function TournamentManagePage() {
   const [page, setPage] = useState<"organize" | "rules" | "schedule">(
     "organize"
@@ -44,6 +42,7 @@ export default function TournamentManagePage() {
   const [location, setLocation] = useState("");
   const [bracketLines, setBracketLines] = useState<string[]>([]);
   const [tournament, setTournament] = useState<tournament>();
+  const [tournamentID, setTournamentID] = useState<number | null>(null);
 
   // --- รอบการแข่งขัน (ล้างคำว่า "มือ" ออกตั้งแต่เริ่ม) ---
   const [rounds, setRounds] = useState<
@@ -213,6 +212,10 @@ export default function TournamentManagePage() {
     setRounds(rounds.filter((_, i) => i !== index));
   };
 
+  useEffect(() => {
+    console.log(tournamentID);
+  }, [tournamentID]);
+
   //  ล้างคำว่า "มือ" ออกจากทุก round ตอนเปิดหน้านี้ครั้งแรก
   useEffect(() => {
     setRounds((prev) =>
@@ -270,6 +273,7 @@ export default function TournamentManagePage() {
             router={router}
             //@ts-ignore
             tournament={tournament}
+            setTournamentID={setTournamentID}
           />
         )}
 
@@ -291,6 +295,7 @@ export default function TournamentManagePage() {
             setEditIndex={setEditIndex}
             handleAddRound={handleAddRound}
             showAddModal={showAddModal}
+            tournamentID={tournamentID}
           />
         )}
       </AnimatePresence>

@@ -68,7 +68,7 @@ CREATE TABLE "Competition" (
     "id" SERIAL NOT NULL,
     "time" TIMESTAMP(3) NOT NULL,
     "detail" TEXT NOT NULL,
-    "rank" "HandType" NOT NULL,
+    "rank" TEXT[],
     "tournamentId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,

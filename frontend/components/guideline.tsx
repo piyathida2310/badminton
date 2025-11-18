@@ -20,16 +20,19 @@ export default function Guideline({
   setRulesText,
   setPage,
   tournament,
+  setTournamentID,
 }: {
   rulesText: string;
   setRulesText: any;
   setPage: any;
   tournament: tournament;
+  setTournamentID: any;
 }) {
   const handelSummit = async () => {
-    // setPage("schedule");
+    setPage("schedule");
 
     const rules = await axios.post("/api/rules", { content: rulesText });
+    console.log(tournament);
 
     const formData = new FormData();
 
@@ -48,9 +51,15 @@ export default function Guideline({
     for (const pair of formData.entries()) {
       console.log(pair[0], pair[1]);
     }
-    await axios.post("/api/tournament",formData,{
-      headers:{'Content-Type':'multipart/form-data'}
-    })
+    await axios
+      .post("/api/tournament", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => {
+        console.log(res.data.data.id + "hello world!!!!!!!");
+        
+        setTournamentID(res.data.data.id);
+      });
   };
 
   return (

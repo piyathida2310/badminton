@@ -2,9 +2,17 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "../src/lib/api";
 
+interface CompetType {
+  id: number;
+  time: string;
+  detail: string;
+  rank: string[];
+  tournamentId: number;
+}
 
 export default function Schedule({
   rounds,
@@ -23,30 +31,68 @@ export default function Schedule({
   editIndex,
   setEditIndex,
   handleAddRound,
+  tournamentID,
 }: any) {
   const router = useRouter();
   const safeTime = newRoundTime || "";
   const safeDesc = newRoundDesc || "";
   const safeLevels = newRoundLevels || [];
-  
 
-  //  ฟังก์ชันแปลงเวลาให้เป็น "นาที"
-  const timeToMinutes = (timeStr: string) => {
-    if (!timeStr) return 0;
-    const clean = timeStr.replace(/[^\d:]/g, "").trim();
-    const [h, m] = clean.split(":").map(Number);
-    if (isNaN(h) || isNaN(m)) return 0;
-    return h * 60 + m;
+  const [compet, setCompet] = useState<CompetType[]>([]);
+  const [editingCompetID, setEditingCompetID] = useState<number | null>(null); // ⭐ ใช้สำหรับแก้ไข
+
+  // ⭐ Format Time สำหรับ Prisma DateTime
+  const formatTime = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   };
 
-  //  ฟังก์ชันบันทึก + เรียงเวลาอัตโนมัติ
-  const handleAddRoundAndSort = () => {
-    handleAddRound();
-    setTimeout(() => {
-      setRounds((prev: any[]) =>
-        [...prev].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time))
-      );
-    }, 0);
+  // ⭐ โหลดข้อมูลทั้งหมด
+  const fetCompet = async () => {
+    try {
+      const res = await axios.get(`/api/compet?tournamentId=${tournamentID}`);
+      setCompet(res.data.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (tournamentID) fetCompet();
+  }, [tournamentID]);
+
+  // ⭐ บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
+  const handleSubmitCom = async () => {
+    try {
+      const payload = {
+        time: safeTime,
+        detail: safeDesc,
+        rank: Array.isArray(safeLevels) ? safeLevels : [safeLevels],
+        tournamentId: tournamentID,
+      };
+
+      if (editingCompetID === null) {
+        // ➤ เพิ่มใหม่
+        await axios.post("/api/compet", payload);
+      } else {
+        // ➤ แก้ไข
+        await axios.put(`/api/compet/${editingCompetID}`, payload);
+      }
+
+      await fetCompet();
+      setShowAddModal(false);
+
+      // reset
+      setEditIndex(null);
+      setEditingCompetID(null);
+
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -60,9 +106,7 @@ export default function Schedule({
         className="w-[90%] max-w-4xl mx-auto bg-gradient-to-br from-[#FFF8FA] via-[#FFFDF9] to-[#FFF8F5]
         rounded-3xl p-5 text-slate-800 mt-8 mb-4 shadow-md border border-pink-100"
       >
-        <h1 className="text-[30px] font-bold text-center mb-1 text-slate-800">
-          ตารางการแข่งขัน
-        </h1>
+        <h1 className="text-[30px] font-bold text-center mb-1">ตารางการแข่งขัน</h1>
 
         <div className="flex justify-end mb-4">
           <button
@@ -70,9 +114,10 @@ export default function Schedule({
             onClick={() => {
               setShowAddModal(true);
               setEditIndex(null);
+              setEditingCompetID(null);
             }}
             className="bg-[#EDE9FE] hover:bg-[#F3E8FF] text-violet-700 font-semibold 
-            rounded-lg text-xs px-4 py-1.5 flex items-center gap-1 transition-all duration-300"
+            rounded-lg text-xs px-4 py-1.5 flex items-center gap-1"
           >
             <Plus size={20} /> เพิ่มรอบ
           </button>
@@ -81,70 +126,71 @@ export default function Schedule({
         <div
           className="border-2 border-[#F9CCE3] rounded-xl 
           overflow-y-auto max-h-[55vh]
-          scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb] 
-          scrollbar-track-transparent scrollbar-thumb-rounded-full"
+          scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb]"
         >
-          <div className="grid grid-cols-2 text-sm sm:text-base font-bold text-center bg-[#F9E0EC] 
-          text-slate-800 border-b-2 border-[#F9CCE3] py-2">
+          <div className="grid grid-cols-2 text-sm sm:text-base font-bold text-center bg-[#F9E0EC] border-b-2 border-[#F9CCE3] py-2">
             <div>เวลาประมาณ</div>
             <div>กำหนดการ</div>
           </div>
 
-          {rounds.length === 0 ? (
-            <div className="text-center py-5 text-slate-500 text-sm italic border-t border-[#F9CCE3]">
+          {compet.length === 0 ? (
+            <div className="text-center py-5 text-slate-500 italic border-t">
               ยังไม่มีข้อมูลรอบการแข่งขัน
             </div>
           ) : (
-            rounds.map((r: any, index: number) => (
+            compet.map((r, index) => (
               <div
-                key={index}
-                onClick={() => {
-                  // 👇 กดแถวไหนก็เข้าแก้ไขได้เลย
-                  setEditIndex(index);
-                  setNewRoundTime(r.time.replace(" น.", ""));
-                  setNewRoundDesc(r.desc);
-                  setNewRoundLevels(r.levels || []);
-                  setShowAddModal(true);
-                }}
-                className={`grid grid-cols-2 items-center py-4 px-4 border-t border-[#F9CCE3]
-                cursor-pointer hover:bg-pink-50 transition-all duration-200
+                key={r.id}
+                className={`grid grid-cols-2 items-center py-4 px-4 border-t hover:bg-pink-50
                 ${index % 2 === 0 ? "bg-[#FFF9FC]" : "bg-[#FFFDFE]"}`}
               >
-                <div className="flex justify-center border-r border-[#F9CCE3]">
-                  <span className="font-bold text-[20px] text-[#2C2C54]">
-                    {r.time}
-                  </span>
+                {/* เวลา */}
+                <div className="flex flex-col items-center border-r">
+                  <span className="font-bold text-[20px]">{formatTime(r.time)}</span>
+
+                  <button
+                    className="mt-2 text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300"
+                    onClick={() => {
+                      setEditingCompetID(r.id);   // ⭐ กำลังแก้ตัวนี้
+                      setNewRoundTime(formatTime(r.time));
+                      setNewRoundDesc(r.detail);
+                      setNewRoundLevels(r.rank);
+                      setShowAddModal(true);
+                    }}
+                  >
+                    แก้ไข
+                  </button>
                 </div>
 
+                {/* รายละเอียด */}
                 <div className="flex flex-col gap-1 pl-4">
-                  <p className="text-[14px] font-semibold text-[#2C2C54] leading-snug">
-                    {r.desc}
-                  </p>
+                  <p className="text-[14px] font-semibold">{r.detail}</p>
 
-                  {r.levels?.length > 0 && (
+                  {r.rank?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-1">
-                      {r.levels.map((lv: string, i: number) => (
+                      {r.rank.map((lv, i) => (
                         <span
                           key={i}
-                          className="px-2.5 py-0.5 rounded-full text-[15px] font-medium bg-[#f1f9c1]
-                          text-[#3C3C3C] border border-[#f5d375]"
+                          className="px-2.5 py-0.5 rounded-full text-[13px] bg-[#f1f9c1] border"
                         >
-                           {lv}
+                          {lv}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  {/* ปุ่มลบเท่านั้น */}
-                  <div className="flex gap-1.5 mt-2">
+                  {/* ลบ */}
+                  <div className="flex gap-2 mt-3">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // ❗ ป้องกันไม่ให้คลิกลบแล้วเปิด modal
-                        handleDeleteRound(index);
+                      onClick={async () => {
+                        if (confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) {
+                          await axios.delete(`/api/compet/${r.id}`);
+                          fetCompet();
+                        }
                       }}
-                      className="p-1.5 rounded-md bg-[#FFD5DB] hover:bg-[#FFAEB7] border border-[#F9A8A8]"
+                      className="px-2 py-1 text-xs bg-red-200 text-red-700 rounded-lg hover:bg-red-300 flex items-center gap-1"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={14} /> ลบ
                     </button>
                   </div>
                 </div>
@@ -153,32 +199,19 @@ export default function Schedule({
           )}
         </div>
 
-        {/* ปุ่มถัดไป / ย้อนกลับ */}
+        {/* ปุ่มถัดไป */}
         <div className="flex justify-between mt-6">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={() => setPage("rules")}
-            className="px-6 py-2 rounded-xl text-sm font-semibold bg-gray-200 hover:bg-gray-300"
-          >
+          <motion.button whileHover={{ scale: 1.05 }} onClick={() => setPage("rules")} className="px-6 py-2 rounded-xl bg-gray-200 hover:bg-gray-300">
             ย้อนกลับ
           </motion.button>
 
-          <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => router.push("/manage")}
-          className="px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base
-                  bg-[#b3e5fc] hover:bg-[#7ccff5]
-                   shadow-md transition-all duration-300"
-        >
-          ลงทะเบียน
-        </motion.button>
-
-         
+          <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={() => router.push("/manage")} className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]">
+            ลงทะเบียน
+          </motion.button>
         </div>
       </motion.div>
 
-      {/* ✅ Modal */}
+      {/* โมดัล */}
       <AnimatePresence>
         {showAddModal && (
           <motion.div
@@ -193,45 +226,36 @@ export default function Schedule({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-gradient-to-br from-pink-100 via-pink-200 to-yellow-100 
-              border border-slate-200 rounded-xl p-6 w-[95%] max-w-md text-slate-700 shadow-xl"
+              border rounded-xl p-6 w-[95%] max-w-md text-slate-700"
             >
-              <h2 className="text-lg font-bold mb-4 text-center text-slate-800">
-                {editIndex !== null ? "แก้ไขรอบการแข่งขัน" : "เพิ่มรอบการแข่งขัน"}
+              <h2 className="text-lg font-bold mb-4 text-center">
+                {editingCompetID !== null ? "แก้ไขรอบการแข่งขัน" : "เพิ่มรอบการแข่งขัน"}
               </h2>
 
               <div className="space-y-4 text-sm">
                 <label className="block">
-                  <div className="mb-1 font-semibold text-slate-700">
-                    เวลาโดยประมาณ
-                  </div>
+                  <div className="mb-1 font-semibold">เวลาโดยประมาณ</div>
                   <input
                     type="time"
                     value={safeTime}
                     onChange={(e) => setNewRoundTime(e.target.value)}
-                    className="w-full rounded-lg bg-white/90 border border-slate-200 
-                    px-3 py-2 text-slate-700 focus:ring-2 focus:ring-pink-200"
+                    className="w-full rounded-lg border px-3 py-2"
                   />
                 </label>
 
                 <label className="block">
-                  <div className="mb-1 font-semibold text-slate-700">
-                    รายละเอียดกำหนดการ
-                  </div>
+                  <div className="mb-1 font-semibold">รายละเอียดกำหนดการ</div>
                   <textarea
                     rows={6}
                     value={safeDesc}
                     onChange={(e) => setNewRoundDesc(e.target.value)}
-                    placeholder="เช่น ลงทะเบียน (อย่างช้าที่สุดไม่เกิน 08:45 น.)"
-                    className="w-full h-[150px] sm:h-[170px] rounded-lg bg-white/90 border border-slate-200 
-                    px-3 py-2 text-[15px] leading-relaxed text-slate-700 
-                    focus:ring-2 focus:ring-pink-200 resize-none overflow-auto"
+                    placeholder="เช่น ลงทะเบียนไม่เกิน 08:45 น."
+                    className="w-full rounded-lg border px-3 py-2"
                   />
                 </label>
 
                 <div>
-                  <div className="mb-1 font-semibold text-slate-700">
-                    รายการระดับมือ
-                  </div>
+                  <div className="mb-1 font-semibold">รายการระดับมือ</div>
                   <div className="flex flex-wrap gap-2">
                     {levelOptions.map((opt: string) => (
                       <button
@@ -244,11 +268,11 @@ export default function Schedule({
                               : [...prev, opt]
                           )
                         }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all 
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border 
                           ${
                             safeLevels.includes(opt)
-                              ? "bg-gradient-to-r from-pink-100 to-blue-100 text-slate-800 border-pink-300"
-                              : "bg-white/70 border-slate-200 text-slate-700 hover:bg-white/90"
+                              ? "bg-pink-200 border-pink-300"
+                              : "bg-white border-gray-300"
                           }`}
                       >
                         {opt}
@@ -258,24 +282,22 @@ export default function Schedule({
                 </div>
               </div>
 
-              {/*  ปุ่มบันทึก */}
               <div className="flex justify-center gap-4 mt-6">
                 <button
                   type="button"
-                  onClick={handleAddRoundAndSort}
-                  className="px-6 py-2 rounded-lg text-sm font-semibold text-slate-800 
-                  bg-gradient-to-r from-pink-100 via-pink-200 to-blue-100 hover:from-pink-200 hover:to-blue-200"
+                  onClick={handleSubmitCom}
+                  className="px-6 py-2 rounded-lg bg-pink-200 hover:bg-pink-300"
                 >
-                  {editIndex !== null ? "บันทึกการแก้ไข" : "บันทึก"}
+                  {editingCompetID !== null ? "บันทึกการแก้ไข" : "บันทึก"}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
-                    setEditIndex(null);
+                    setEditingCompetID(null);
                   }}
-                  className="px-6 py-2 rounded-lg text-sm bg-gray-300 hover:bg-gray-400 text-slate-700 font-semibold"
+                  className="px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
                 >
                   ยกเลิก
                 </button>

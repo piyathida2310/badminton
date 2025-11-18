@@ -52,6 +52,7 @@ export const getCompets = async (req: Request, res: Response) => {
 
       data = await prisma.competition.findMany({
         where: { tournamentId },
+        orderBy:{time: 'asc'}
       });
     }
 
