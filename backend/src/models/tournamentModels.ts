@@ -8,8 +8,9 @@ export const tournamentSchema = z.object({
   playType: z.enum(["SINGLE", "DOUBLE"]),
 
   // ค่า rank ต้องตรงกับ enum Prisma
-  rank: z.enum(["BG", "NB", "N", "S", "P_MINUS", "P_PLUS"]),
-
+  rank: z
+    .array(z.enum(["BG", "NB", "N", "S", "P_MINUS", "P_PLUS"]))
+    .min(1, "ต้องเลือกอย่างน้อย 1 ระดับ"),
   // แปลง string → number อัตโนมัติ
   shuttlePrice: z
     .string()

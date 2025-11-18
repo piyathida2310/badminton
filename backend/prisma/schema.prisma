@@ -85,7 +85,7 @@ model Tournament {
   name           String
   location       String
   playType       PlayType
-  rank           HandType
+  rank           String[]
   shuttlePrice   Float
   maxPlayers     Int
   posterImg      String?

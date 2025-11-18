@@ -11,6 +11,14 @@ const BUCKET = process.env.MINIO_BUCKET!;
 export const createTournament = async (req: Request, res: Response) => {
   try {
     // ตรวจสอบข้อมูล body ด้วย Zod
+    if (typeof req.body.rank === "string") {
+      try {
+        req.body.rank = JSON.parse(req.body.rank);
+      } catch (e) {
+        console.error("Rank parse error:", e);
+      }
+    }
+
     const validatedData = tournamentSchema.parse(req.body);
 
     //  ดึงไฟล์ออกจาก req.files
@@ -133,8 +141,8 @@ export const getTournaments = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "Tournament fetched successfully",
       data: iconsWithUrl,
-      
-      // ส่งข้อมูล pagination เพิ่มเติม 
+
+      // ส่งข้อมูล pagination เพิ่มเติม
       pagination: {
         page,
         limit,
@@ -144,7 +152,6 @@ export const getTournaments = async (req: Request, res: Response) => {
         hasPreviousPage: page > 1,
       },
     });
-
   } catch (error) {
     if (error instanceof Error) {
       return res.status(400).json({
@@ -158,7 +165,6 @@ export const getTournaments = async (req: Request, res: Response) => {
     }
   }
 };
-
 
 export const getPoster = async (req: Request, res: Response) => {
   try {
@@ -240,4 +246,3 @@ export const updateTournament = async (req: Request, res: Response) => {
     });
   }
 };
-

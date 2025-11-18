@@ -47,7 +47,7 @@ CREATE TABLE "Tournament" (
     "name" TEXT NOT NULL,
     "location" TEXT NOT NULL,
     "playType" "PlayType" NOT NULL,
-    "rank" "HandType" NOT NULL,
+    "rank" TEXT[],
     "shuttlePrice" DOUBLE PRECISION NOT NULL,
     "maxPlayers" INTEGER NOT NULL,
     "posterImg" TEXT,
