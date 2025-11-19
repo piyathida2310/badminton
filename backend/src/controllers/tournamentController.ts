@@ -94,6 +94,59 @@ export const createTournament = async (req: Request, res: Response) => {
   }
 };
 
+export const getTournament = async (req: Request, res: Response) => {
+  try {
+    const _id = req.params.id;
+
+    //  ดึงข้อมูล page นั้น ๆ
+    const data = await prisma.tournament.findUnique({
+      where: { id: Number(_id) },
+      include: {
+        rule: true,
+        competition: {
+          orderBy: {
+            time: "asc", // หรือ 'desc'
+          },
+        },
+      },
+    });
+
+    const iconsWithUrl = {
+      id: data.id,
+      title: data.name,
+      location: data.location,
+      playType: data.playType,
+      rank: data.rank,
+      shuttlePrice: data.shuttlePrice,
+      maxPlayers: data.maxPlayers,
+      image: `${process.env.APP_BASE_URL}/api/tournament/poster/${data.id}`,
+      qrCodeImg: `${process.env.APP_BASE_URL}/api/tournament/qr/${data.id}`,
+      date: data.startDate,
+      ruleId: data.ruleId,
+      isLowerBracket: data.isLowerBracket,
+      canceled: data.isCancel,
+      competition: data.competition,
+      rule: data.rule,
+    };
+
+    return res.status(200).json({
+      message: "Tournament fetched successfully",
+      data: iconsWithUrl,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({
+        message: "Something went wrong!",
+        errors: error.message,
+      });
+    } else {
+      return res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  }
+};
+
 export const getTournaments = async (req: Request, res: Response) => {
   try {
     //  รับค่าจาก query
