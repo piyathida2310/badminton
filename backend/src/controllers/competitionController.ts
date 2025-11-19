@@ -40,6 +40,22 @@ export const getCompets = async (req: Request, res: Response) => {
   try {
     const tournamentIdParam = req.query.tournamentId;
 
+    const Categories = await prisma.competition.count({
+      where: { tournamentId: Number(tournamentIdParam) },
+    });
+
+    if (Categories === 0) {
+      const presetCategories = await prisma.competition.findMany({
+        where: { tournamentId: null },
+      });
+      const userCategories = presetCategories.map((validateData) => ({
+        time: validateData.time,
+        detail: validateData.detail,
+        rank: validateData.rank,
+        tournamentId:Number(tournamentIdParam),
+      }));
+      await prisma.competition.createMany({ data: userCategories });
+    }
     // ถ้าไม่ส่ง tournamentId -> แสดงทั้งหมด
     let data;
     if (!tournamentIdParam) {
@@ -47,12 +63,14 @@ export const getCompets = async (req: Request, res: Response) => {
     } else {
       const tournamentId = Number(tournamentIdParam);
       if (isNaN(tournamentId)) {
-        return res.status(400).json({ message: "tournamentId must be a number" });
+        return res
+          .status(400)
+          .json({ message: "tournamentId must be a number" });
       }
 
       data = await prisma.competition.findMany({
         where: { tournamentId },
-        orderBy:{time: 'asc'}
+        orderBy: { time: "asc" },
       });
     }
 
@@ -83,26 +101,25 @@ export const getCompets = async (req: Request, res: Response) => {
 export const updateCompet = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-            if (isNaN(id)) {
-          return res.status(400).json({ message: 'Invalid  id' });
-        }
-        const validateData = competitionSchema.partial().parse(req.body);
-        const existingCompetition = await prisma.competition.findUnique({
-          where: { id, },
-        });
-        if (!existingCompetition) {
-          return res.status(404).json({ message: 'Competition not found' });
-        }
-        const updated = await prisma.competition.update({
-          where: { id, },
-          data: validateData,
-        });
-    
-        return res.status(200).json({
-          message: 'Competition updated successfully',
-          data: updated,
-        });
-    
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid  id" });
+    }
+    const validateData = competitionSchema.partial().parse(req.body);
+    const existingCompetition = await prisma.competition.findUnique({
+      where: { id },
+    });
+    if (!existingCompetition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+    const updated = await prisma.competition.update({
+      where: { id },
+      data: validateData,
+    });
+
+    return res.status(200).json({
+      message: "Competition updated successfully",
+      data: updated,
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return res.status(400).json({
@@ -124,26 +141,23 @@ export const updateCompet = async (req: Request, res: Response) => {
 export const deleteCompet = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-            if (isNaN(id)) {
-          return res.status(400).json({ message: 'Invalid  id' });
-        }
-       
-        const existingCompetition = await prisma.competition.findUnique({
-          where: { id, },
-        });
-        if (!existingCompetition) {
-          return res.status(404).json({ message: 'Competition not found' });
-        }
-       await prisma.competition.delete({
-          where: { id, },
-         
-        });
-    
-        return res.status(200).json({
-          message: 'Competition delete successfully',
-          
-        });
-    
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid  id" });
+    }
+
+    const existingCompetition = await prisma.competition.findUnique({
+      where: { id },
+    });
+    if (!existingCompetition) {
+      return res.status(404).json({ message: "Competition not found" });
+    }
+    await prisma.competition.delete({
+      where: { id },
+    });
+
+    return res.status(200).json({
+      message: "Competition delete successfully",
+    });
   } catch (error) {
     if (error instanceof Error) {
       return res.status(400).json({

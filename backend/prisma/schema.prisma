@@ -115,11 +115,11 @@ model Competition {
   time         DateTime
   detail       String
   rank         String[]
-  tournamentId Int
+  tournamentId Int?
   createdAt    DateTime @default(now())
   updateAt     DateTime @updatedAt
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament Tournament? @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
 // ---------- RULE ----------

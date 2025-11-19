@@ -39,9 +39,9 @@ export default function Schedule({
   const safeLevels = newRoundLevels || [];
 
   const [compet, setCompet] = useState<CompetType[]>([]);
-  const [editingCompetID, setEditingCompetID] = useState<number | null>(null); // ⭐ ใช้สำหรับแก้ไข
+  const [editingCompetID, setEditingCompetID] = useState<number | null>(null); //  ใช้สำหรับแก้ไข
 
-  // ⭐ Format Time สำหรับ Prisma DateTime
+  //  Format Time สำหรับ Prisma DateTime
   const formatTime = (dateString: string) => {
     const d = new Date(dateString);
     return d.toLocaleTimeString("th-TH", {
@@ -51,7 +51,7 @@ export default function Schedule({
     });
   };
 
-  // ⭐ โหลดข้อมูลทั้งหมด
+  //  โหลดข้อมูลทั้งหมด
   const fetCompet = async () => {
     try {
       const res = await axios.get(`/api/compet?tournamentId=${tournamentID}`);
@@ -65,7 +65,7 @@ export default function Schedule({
     if (tournamentID) fetCompet();
   }, [tournamentID]);
 
-  // ⭐ บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
+  //  บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
   const handleSubmitCom = async () => {
     try {
       const payload = {
@@ -154,7 +154,7 @@ export default function Schedule({
                   <button
                     className="mt-2 text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300"
                     onClick={() => {
-                      setEditingCompetID(r.id); // ⭐ กำลังแก้ตัวนี้
+                      setEditingCompetID(r.id); // กำลังแก้ตัวนี้
                       setNewRoundTime(formatTime(r.time));
                       setNewRoundDesc(r.detail);
                       setNewRoundLevels(r.rank);

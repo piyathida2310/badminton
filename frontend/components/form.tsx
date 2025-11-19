@@ -46,7 +46,7 @@ export default function Form({
         </h1>
       </div>
 
-      {/* 🌸 ฟอร์มเนื้อหาหลัก */}
+      {/* ฟอร์มเนื้อหาหลัก */}
       <div className="p-6 grid gap-6 md:grid-cols-2 text-slate-700 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#E5D9FF] hover:scrollbar-thumb-[#F1E9FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
 
         {/* ฝั่งซ้าย */}
@@ -142,7 +142,7 @@ export default function Form({
   );
 }
 
-/* ---------- 🧩 Components ย่อย ---------- */
+/* ---------- Components ย่อย ---------- */
 function LabeledInput({ label, type = "text", value, onChange }: any) {
   const today = new Date().toISOString().split("T")[0];
   return (
@@ -161,7 +161,7 @@ function LabeledInput({ label, type = "text", value, onChange }: any) {
   );
 }
 
-/* ⭐⭐⭐ RadioStyleMultiSelect — รองรับ string และ object {label,value} */
+/*  RadioStyleMultiSelect — รองรับ string และ object {label,value} */
 function RadioStyleMultiSelect({ label, options, selected, onToggle }: any) {
   return (
     <div className="text-slate-700 text-sm">
@@ -227,7 +227,7 @@ function PeopleSelector({ people, setPeople }: any) {
   );
 }
 
-/* ---------- 🌈 Upload Section ---------- */
+/* ---------- 🌈Upload Section ---------- */
 function UploadPreview({ title, onUpload, preview }: any) {
   return (
     <label
