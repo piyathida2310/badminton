@@ -2,18 +2,18 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "../src/lib/api";
-
-
+import Swal from "sweetalert2";
 
 interface mathRules {
+  id: string;
   content: string;
 }
 
 interface mathCom {
+  id: string;
   time: string;
   rank: string[];
   detail: string;
-
 }
 
 interface tournamentmath {
@@ -27,14 +27,12 @@ export default function RulesTablesPage() {
 
   // ------------ STATE สำหรับ UI EDIT ----------------
   const [editingRule, setEditingRule] = useState(false);
-  const [ruleText, setRuleText] = useState("");
-
   const [editingCompet, setEditingCompet] = useState<number | null>(null);
   const [compUI, setCompUI] = useState({
     time: "",
     rank: "",
     detail: "",
-    openRankDropdown: false, 
+    openRankDropdown: false,
   });
 
   // ============ popup ยืนยันบันทึก ===============
@@ -45,6 +43,7 @@ export default function RulesTablesPage() {
   const fetchRules = async () => {
     const res = await axios.get(`/api/tournament/${id}`);
     const data = res.data.data;
+    console.log(data);
 
     setTournament({
       rule: data.rule,
@@ -55,6 +54,84 @@ export default function RulesTablesPage() {
   useEffect(() => {
     fetchRules();
   }, [id]);
+
+  const handelUpdateRule = async (id: string) => {
+    try {
+      await axios.put(`/api/rules/${id}`, {
+        content: tournament?.rule.content,
+      });
+
+      Swal.fire({
+        title: "อัปเดตสำเร็จ!",
+        text: "ข้อมูลกฎกติกาได้รับการบันทึกแล้ว",
+        icon: "success",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#f9a825",
+        background: "#fffef5",
+      });
+    } catch (error) {
+      console.log(error);
+
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "อัปเดตไม่สำเร็จ กรุณาลองใหม่",
+        icon: "error",
+        confirmButtonText: "ปิด",
+        confirmButtonColor: "#e53935",
+        background: "#fff7f7",
+      });
+    }
+  };
+
+  const handelUpdateCom = async (id: string, index: number) => {
+    try {
+      // rank เป็น string เช่น "BG / NB"
+      // ต้องแปลงกลับไปเป็น array
+      const rankArray = compUI.rank.split(" / ").filter((r) => r.trim() !== "");
+
+      const payload = {
+        time: compUI.time, // string เช่น "14:30"
+        detail: compUI.detail, // ข้อความ
+        rank: rankArray, // array เช่น ["BG", "NB"]
+      };
+
+      await axios.put(`/api/compet/${id}`, payload);
+
+      Swal.fire({
+        title: "อัปเดตสำเร็จ!",
+        text: "ข้อมูลรอบการแข่งขันได้รับการบันทึกแล้ว",
+        icon: "success",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#f9a825",
+        background: "#fffef5",
+      });
+
+      // อัปเดต UI บนหน้าโดยตรง
+      setTournament((prev: any) => {
+        const updatedComp = [...prev!.competition];
+        updatedComp[index] = {
+          ...updatedComp[index],
+          time: new Date(`1970-01-01T${compUI.time}:00`).toISOString(), // ทำให้ UI ใช้ได้ทันที
+          detail: compUI.detail,
+          rank: rankArray,
+        };
+
+        return { ...prev, competition: updatedComp };
+      });
+
+      setEditingCompet(null);
+    } catch (error) {
+      console.log(error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "อัปเดตไม่สำเร็จ กรุณาลองใหม่",
+        icon: "error",
+        confirmButtonText: "ปิด",
+        confirmButtonColor: "#e53935",
+        background: "#fff7f7",
+      });
+    }
+  };
 
   const competitionTypeData = [
     {
@@ -111,9 +188,17 @@ export default function RulesTablesPage() {
                 <button
                   className="px-4 py-2 bg-[#e07a5f] text-white rounded-lg"
                   onClick={() => {
-                    // TODO: ตรงนี้ค่อยเพิ่ม axios.put
                     setConfirmSave(false);
-                    setEditingRule(false);
+
+                    if (saveType === "rule") {
+                      handelUpdateRule(tournament?.rule.id ?? "");
+                    }
+
+                    if (saveType === "compet" && saveIndex !== null) {
+                      const compId = tournament?.competition[saveIndex].id; // ต้องมี id ของ competition
+                      handelUpdateCom(String(compId), saveIndex);
+                    }
+
                     setEditingCompet(null);
                   }}
                 >
@@ -312,6 +397,7 @@ export default function RulesTablesPage() {
                           <button
                             onClick={() => {
                               setSaveType("rule");
+
                               setConfirmSave(true);
                             }}
                             className="px-4 py-2 bg-[#e07a5f] text-white rounded-lg"
@@ -359,10 +445,12 @@ export default function RulesTablesPage() {
                       onDoubleClick={() => {
                         setEditingCompet(index);
                         setCompUI({
-                          time: item.time,
+                          time: new Date(item.time)
+                            .toISOString()
+                            .substring(11, 16), // <-- แก้ตรงนี้
                           rank: item.rank.join(" / "),
                           detail: item.detail,
-                          openRankDropdown: false, 
+                          openRankDropdown: false,
                         });
                       }}
                       className="p-3 bg-[#fffaf7] border cursor-pointer"
@@ -370,11 +458,14 @@ export default function RulesTablesPage() {
                       {editingCompet === index ? (
                         <div className="space-y-2">
                           <input
-                            autoFocus
                             type="time"
-                            defaultValue={new Date(item.time)
-                              .toISOString()
-                              .substring(11, 16)}
+                            value={compUI.time}
+                            onChange={(e) =>
+                              setCompUI((prev) => ({
+                                ...prev,
+                                time: e.target.value,
+                              }))
+                            }
                             className="p-2 border rounded-lg"
                           />
 
@@ -414,67 +505,74 @@ export default function RulesTablesPage() {
                       onDoubleClick={() => {
                         setEditingCompet(index);
                         setCompUI({
-                          time: item.time,
+                          time: new Date(item.time)
+                            .toISOString()
+                            .substring(11, 16),
                           rank: item.rank.join(" / "),
                           detail: item.detail,
-                          openRankDropdown: false, 
+                          openRankDropdown: false,
                         });
                       }}
                       className="p-3 bg-[#fffaf7] border cursor-pointer"
                     >
                       {editingCompet === index ? (
-  <div className="relative">
-    {/* ปุ่มเปิด dropdown */}
-    <div
-      className="p-2 border rounded-lg w-full bg-white cursor-pointer text-left"
-      onClick={() =>
-        setCompUI((prev:any) => ({
-          ...prev,
-          openRankDropdown: !prev.openRankDropdown,
-        }))
-      }
-    >
-      {compUI.rank || "เลือกระดับฝีมือ"}
-    </div>
+                        <div className="relative">
+                          {/* ปุ่มเปิด dropdown */}
+                          <div
+                            className="p-2 border rounded-lg w-full bg-white cursor-pointer text-left"
+                            onClick={() =>
+                              setCompUI((prev: any) => ({
+                                ...prev,
+                                openRankDropdown: !prev.openRankDropdown,
+                              }))
+                            }
+                          >
+                            {compUI.rank || "เลือกระดับฝีมือ"}
+                          </div>
 
-    {/* กล่อง dropdown */}
-    {compUI.openRankDropdown && (
-      <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg p-2 space-y-1 max-h-40 overflow-y-auto">
-        {["BG", "NB", "N", "S", "P-", "P+"].map((rk) => (
-          <label
-            key={rk}
-            className="flex items-center gap-2 p-2 rounded-lg hover:bg-pink-100 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              className="w-4 h-4 accent-pink-500"
-              checked={compUI.rank.split(" / ").includes(rk)}
-              onChange={() => {
-                const current = compUI.rank ? compUI.rank.split(" / ") : [];
-                let newRank;
+                          {/* กล่อง dropdown */}
+                          {compUI.openRankDropdown && (
+                            <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg p-2 space-y-1 max-h-40 overflow-y-auto">
+                              {["BG", "NB", "N", "S", "P-", "P+"].map((rk) => (
+                                <label
+                                  key={rk}
+                                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-pink-100 cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="w-4 h-4 accent-pink-500"
+                                    checked={compUI.rank
+                                      .split(" / ")
+                                      .includes(rk)}
+                                    onChange={() => {
+                                      const current = compUI.rank
+                                        ? compUI.rank.split(" / ")
+                                        : [];
+                                      let newRank;
 
-                if (current.includes(rk)) {
-                  newRank = current.filter((x) => x !== rk);
-                } else {
-                  newRank = [...current, rk];
-                }
+                                      if (current.includes(rk)) {
+                                        newRank = current.filter(
+                                          (x) => x !== rk
+                                        );
+                                      } else {
+                                        newRank = [...current, rk];
+                                      }
 
-                setCompUI((prev) => ({
-                  ...prev,
-                  rank: newRank.join(" / "),
-                }));
-              }}
-            />
-            <span className="text-gray-700">{rk}</span>
-          </label>
-        ))}
-      </div>
-    )}
-  </div>
-) : (
-  <>ระดับ {item.rank.join(" / ")}</>
-)}
-
+                                      setCompUI((prev) => ({
+                                        ...prev,
+                                        rank: newRank.join(" / "),
+                                      }));
+                                    }}
+                                  />
+                                  <span className="text-gray-700">{rk}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>ระดับ {item.rank.join(" / ")}</>
+                      )}
                     </td>
 
                     {/* DETAIL */}
@@ -482,17 +580,25 @@ export default function RulesTablesPage() {
                       onDoubleClick={() => {
                         setEditingCompet(index);
                         setCompUI({
-                          time: item.time,
+                          time: new Date(item.time)
+                            .toISOString()
+                            .substring(11, 16),
                           rank: item.rank.join(" / "),
                           detail: item.detail,
-                          openRankDropdown: false, 
+                          openRankDropdown: false,
                         });
                       }}
                       className="p-3 bg-[#fffaf7] border cursor-pointer text-left whitespace-pre-line"
                     >
                       {editingCompet === index ? (
                         <textarea
-                          defaultValue={item.detail}
+                          value={compUI.detail}
+                          onChange={(e) =>
+                            setCompUI((prev) => ({
+                              ...prev,
+                              detail: e.target.value,
+                            }))
+                          }
                           className="w-full p-2 border rounded-lg"
                           rows={3}
                         />

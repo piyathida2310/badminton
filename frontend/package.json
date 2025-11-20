@@ -20,7 +20,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-tournament-bracket": "^0.2.4",
-    "reactflow": "^11.11.4"
+    "reactflow": "^11.11.4",
+    "sweetalert2": "^11.26.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

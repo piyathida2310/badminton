@@ -163,7 +163,7 @@ export const getTournaments = async (req: Request, res: Response) => {
 
     //  ดึงข้อมูล page นั้น ๆ
     const data = await prisma.tournament.findMany({
-      where: { organizerId: Number(req.user.sub) },
+      // where: { organizerId: Number(req.user.sub) },  //จะเห็นการแข่งขันี่ผู้จัดสร้างของทุกคน
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
