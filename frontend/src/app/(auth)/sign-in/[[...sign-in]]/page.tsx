@@ -104,25 +104,18 @@ return (
 
     {/* ---------------- HEADER ---------------- */}
     <div className="text-center mb-8 sm:mb-10">
-      <h1
-        className="
-        text-4xl sm:text-5xl lg:text-6xl 
-        font-extrabold tracking-wide
-        bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]
-        bg-clip-text text-transparent drop-shadow-sm
-      ">
-        Badminton
-      </h1>
+     <h1
+  className="
+    text-[45px] font-extrabold font-prompt tracking-wide
+    bg-[#ef5689]
+    bg-clip-text text-transparent 
+    drop-shadow-[0_2px_6px_rgba(255,122,162,0.2)]
+  "
+>
+  เข้าสู่ระบบ
+</h1>
 
-      <h2
-        className="
-        text-xl sm:text-2xl lg:text-3xl 
-        font-semibold mt-2
-        bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]
-        bg-clip-text text-transparent drop-shadow-sm
-      ">
-        Competition Management
-      </h2>
+
     </div>
 
    
