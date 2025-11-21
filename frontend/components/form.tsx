@@ -27,6 +27,7 @@ export default function Form({
   levelOptions,
   toggleValue,
 }: any) {
+  const isImagesUploaded = posterPreview && qrPreview;
   return (
     <motion.div
       key="organize"
@@ -72,6 +73,7 @@ export default function Form({
 
           <LabeledInput
             label="ราคาลูกต่อลูก"
+            type="number"
             value={shuttlecockPrice}
             onChange={(e: any) => setShuttlecockPrice(e.target.value)}
           />
@@ -126,10 +128,10 @@ export default function Form({
       {/* ปุ่มถัดไป */}
       <div className="flex justify-center mt-4 pb-6">
         <motion.button
-          disabled={!isFormComplete}
+          disabled={!isFormComplete || !isImagesUploaded}
           className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-slate-800 text-base transition-all duration-300
                   ${
-                    isFormComplete
+                    isFormComplete && isImagesUploaded
                       ? "bg-[#b3e5fc] hover:bg-[#7ccff5] hover:scale-105 text-[#4B4B4B]"
                       : "bg-gray-300/50 text-gray-500 cursor-not-allowed"
                   }`}
