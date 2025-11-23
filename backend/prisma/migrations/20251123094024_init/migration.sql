@@ -69,7 +69,7 @@ CREATE TABLE "Competition" (
     "time" TIMESTAMP(3) NOT NULL,
     "detail" TEXT NOT NULL,
     "rank" TEXT[],
-    "tournamentId" INTEGER NOT NULL,
+    "tournamentId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
 
@@ -98,6 +98,12 @@ CREATE TABLE "Register" (
     "status" "EvaluationStatus" NOT NULL DEFAULT 'WAITING',
     "score" DOUBLE PRECISION,
     "comment" TEXT,
+    "managerName" TEXT,
+    "player1Name" TEXT,
+    "player1Birthday" TIMESTAMP(3),
+    "player2Name" TEXT,
+    "player2Phone" TEXT,
+    "player2Birthday" TIMESTAMP(3),
     "groupId" INTEGER,
 
     CONSTRAINT "Register_pkey" PRIMARY KEY ("id")

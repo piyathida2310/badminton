@@ -145,6 +145,18 @@ model Register {
   score        Float?
   comment      String?
 
+  // ข้อมูลผู้จัดการทีม
+  managerName  String?
+
+  // ข้อมูลผู้เล่นคนที่ 1
+  player1Name     String?
+  player1Birthday DateTime?
+
+  // ข้อมูลผู้เล่นคนที่ 2 (สำหรับแบบคู่)
+  player2Name     String?
+  player2Phone    String?
+  player2Birthday DateTime?
+
   // Foreign key สำหรับ Group
   groupId Int? // <-- เพิ่มบรรทัดนี้
   group   Group? @relation(fields: [groupId], references: [id])

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import axios from "../src/lib/api";
 import Swal from "sweetalert2";
 
@@ -21,9 +21,17 @@ interface tournamentmath {
   competition: mathCom[]; // ต้องเป็น array
 }
 
-export default function RulesTablesPage() {
-  const { id } = useParams();
+interface RulesTablesPageProps {
+  tournamentId?: string | string[];
+}
+
+export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps = {}) {
+  const params = useParams();
+  const searchParams = useSearchParams();
   const [tournament, setTournament] = useState<tournamentmath>();
+
+  // Get tournament ID from props, URL params, or query params
+  const id = tournamentId || params?.id || searchParams?.get("id");
 
   // ------------ STATE สำหรับ UI EDIT ----------------
   const [editingRule, setEditingRule] = useState(false);
@@ -41,18 +49,29 @@ export default function RulesTablesPage() {
   const [saveIndex, setSaveIndex] = useState<number | null>(null);
 
   const fetchRules = async () => {
-    const res = await axios.get(`/api/tournament/${id}`);
-    const data = res.data.data;
-    console.log(data);
+    if (!id) {
+      console.error("No tournament ID provided");
+      return;
+    }
 
-    setTournament({
-      rule: data.rule,
-      competition: data.competition,
-    });
+    try {
+      const res = await axios.get(`/api/tournament/${id}`);
+      const data = res.data.data;
+      console.log("Tournament data:", data);
+
+      setTournament({
+        rule: data.rule,
+        competition: data.competition,
+      });
+    } catch (error) {
+      console.error("Failed to fetch tournament rules:", error);
+    }
   };
 
   useEffect(() => {
-    fetchRules();
+    if (id) {
+      fetchRules();
+    }
   }, [id]);
 
   const handelUpdateRule = async (id: string) => {

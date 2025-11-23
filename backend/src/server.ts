@@ -16,11 +16,12 @@ import rulesRouter from './routes/rulesRoutes'
 import tournamentRouter from './routes/tournamentRoutes'
 import competitionRouter from './routes/competitionRoutes'
 import userRouter from './routes/userRoutes'
+import registerRouter from './routes/registerRoutes'
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
 });
- checkBucket();
+checkBucket();
 async function bootstrap(): Promise<void> {
   const app = express();
 
@@ -45,6 +46,7 @@ async function bootstrap(): Promise<void> {
   app.use('/api', tournamentRouter);
   app.use('/api', competitionRouter);
   app.use('/api/users', userRouter);
+  app.use('/api', registerRouter);
 
 
 
