@@ -23,9 +23,10 @@ interface tournamentmath {
 
 interface RulesTablesPageProps {
   tournamentId?: string | string[];
+  readOnly?: boolean;
 }
 
-export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps = {}) {
+export default function RulesTablesPage({ tournamentId, readOnly = false }: RulesTablesPageProps = {}) {
   const params = useParams();
   const searchParams = useSearchParams();
   const [tournament, setTournament] = useState<tournamentmath>();
@@ -386,8 +387,8 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
                     {/* VIEW MODE */}
                     {!editingRule && (
                       <p
-                        onDoubleClick={() => setEditingRule(true)}
-                        className="cursor-pointer bg-white p-3 rounded-xl border shadow-inner h-72 overflow-y-auto whitespace-pre-line"
+                        onDoubleClick={!readOnly ? () => setEditingRule(true) : undefined}
+                        className={`${!readOnly ? 'cursor-pointer' : ''} bg-white p-3 rounded-xl border shadow-inner h-72 overflow-y-auto whitespace-pre-line`}
                       >
                         {tournament?.rule.content}
                       </p>
@@ -461,7 +462,7 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
                   <tr key={index} className="text-center">
                     {/* TIME */}
                     <td
-                      onDoubleClick={() => {
+                      onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
                         setCompUI({
                           time: new Date(item.time)
@@ -471,8 +472,8 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
                           detail: item.detail,
                           openRankDropdown: false,
                         });
-                      }}
-                      className="p-3 bg-[#fffaf7] border cursor-pointer"
+                      } : undefined}
+                      className={`p-3 bg-[#fffaf7] border ${!readOnly ? 'cursor-pointer' : ''}`}
                     >
                       {editingCompet === index ? (
                         <div className="space-y-2">
@@ -521,7 +522,7 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
 
                     {/* RANK */}
                     <td
-                      onDoubleClick={() => {
+                      onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
                         setCompUI({
                           time: new Date(item.time)
@@ -531,8 +532,8 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
                           detail: item.detail,
                           openRankDropdown: false,
                         });
-                      }}
-                      className="p-3 bg-[#fffaf7] border cursor-pointer"
+                      } : undefined}
+                      className={`p-3 bg-[#fffaf7] border ${!readOnly ? 'cursor-pointer' : ''}`}
                     >
                       {editingCompet === index ? (
                         <div className="relative">
@@ -596,7 +597,7 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
 
                     {/* DETAIL */}
                     <td
-                      onDoubleClick={() => {
+                      onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
                         setCompUI({
                           time: new Date(item.time)
@@ -606,8 +607,8 @@ export default function RulesTablesPage({ tournamentId }: RulesTablesPageProps =
                           detail: item.detail,
                           openRankDropdown: false,
                         });
-                      }}
-                      className="p-3 bg-[#fffaf7] border cursor-pointer text-left whitespace-pre-line"
+                      } : undefined}
+                      className={`p-3 bg-[#fffaf7] border ${!readOnly ? 'cursor-pointer' : ''} text-left whitespace-pre-line`}
                     >
                       {editingCompet === index ? (
                         <textarea
