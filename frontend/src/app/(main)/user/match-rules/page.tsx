@@ -23,11 +23,17 @@ export default function Page() {
       try {
         const response = await axios.get("/api/user/registrations");
         const data = response.data.data;
-        setRegistrations(data);
+        
+        // กรองเพื่อให้แสดงเฉพาะทัวร์นาเมนต์ที่ไม่ซ้ำกัน
+        const uniqueTournaments = data.filter((reg: Registration, index: number, self: Registration[]) => 
+          index === self.findIndex((r: Registration) => r.tournament.id === reg.tournament.id)
+        );
+        
+        setRegistrations(uniqueTournaments);
 
         // เลือกรายการแข่งแรกโดยอัตโนมัติถ้ามี
-        if (data.length > 0) {
-          setSelectedTournamentId(String(data[0].tournament.id));
+        if (uniqueTournaments.length > 0) {
+          setSelectedTournamentId(String(uniqueTournaments[0].tournament.id));
         }
       } catch (error) {
         console.error("Failed to fetch user registrations:", error);

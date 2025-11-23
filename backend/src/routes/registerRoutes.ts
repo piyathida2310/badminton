@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../middleware/authMiddleware";
 import { upload } from "../middleware/upload";
+import { uploadVideo } from "../middleware/uploadVideo";
 import {
     createRegistration,
     getRegistrationsByTournament,
@@ -13,7 +14,7 @@ const router = Router();
 router.post(
     "/tournament/:tournamentId/register",
     authMiddleware,
-    upload.fields([{ name: "video" }]),
+    uploadVideo.fields([{ name: "video" }]),
     createRegistration
 );
 

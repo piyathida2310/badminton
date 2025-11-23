@@ -50,6 +50,98 @@
 					"response": []
 				},
 				{
+					"name": "Create Registration with Video",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "teamName",
+									"value": "ทีมแชมป์เยาวชน",
+									"type": "text"
+								},
+								{
+									"key": "managerName",
+									"value": "จักรพรรดิ แชมป์",
+									"type": "text"
+								},
+								{
+									"key": "player1Name",
+									"value": "นักกีฬา คนที่1",
+									"type": "text"
+								},
+								{
+									"key": "player1Phone",
+									"value": "0812345678",
+									"type": "text"
+								},
+								{
+									"key": "player1Birthday",
+									"value": "2000-01-15",
+									"type": "text"
+								},
+								{
+									"key": "player2Name",
+									"value": "นักกีฬา คนที่2",
+									"type": "text"
+								},
+								{
+									"key": "player2Phone",
+									"value": "0823456789",
+									"type": "text"
+								},
+								{
+									"key": "player2Birthday",
+									"value": "2000-05-20",
+									"type": "text"
+								},
+								{
+									"key": "playType",
+									"value": "BG",
+									"type": "text"
+								},
+								{
+									"key": "mode",
+									"value": "double",
+									"type": "text"
+								},
+								{
+									"key": "video",
+									"type": "file",
+									"src": "C:/Users/18987/Desktop/test-video.mp4"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/1/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"1",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "New Request",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
@@ -565,6 +657,234 @@
 								"api",
 								"compet",
 								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registration",
+			"item": [
+				{
+					"name": "Create Registration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "video",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/1/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"1",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Registration Test (No Video)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "teamName",
+									"value": "ทีมแชมป์เยาวชน",
+									"type": "text"
+								},
+								{
+									"key": "managerName",
+									"value": "จักรพรรดิ แชมป์",
+									"type": "text"
+								},
+								{
+									"key": "player1Name",
+									"value": "นักกีฬา คนที่1",
+									"type": "text"
+								},
+								{
+									"key": "player1Phone",
+									"value": "0812345678",
+									"type": "text"
+								},
+								{
+									"key": "player1Birthday",
+									"value": "2000-01-15",
+									"type": "text"
+								},
+								{
+									"key": "player2Name",
+									"value": "นักกีฬา คนที่2",
+									"type": "text"
+								},
+								{
+									"key": "player2Phone",
+									"value": "0823456789",
+									"type": "text"
+								},
+								{
+									"key": "player2Birthday",
+									"value": "2000-05-20",
+									"type": "text"
+								},
+								{
+									"key": "playType",
+									"value": "BG",
+									"type": "text"
+								},
+								{
+									"key": "mode",
+									"value": "double",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/1/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"1",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tournament Registrations Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/tournament/1/registrations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"tournament",
+								"1",
+								"registrations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Registrations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/user/registrations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"user",
+								"registrations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Registrations Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJtYW5hZ2UxQGdtYWlsLmNvbSIsInJvbGUiOiJPUkdBTklaRVIiLCJpYXQiOjE3NjI4NTc1NTMsImV4cCI6MTc2MzQ2MjM1MywiYXVkIjoieW91ci1hcHAtdXNlcnMiLCJpc3MiOiJ5b3VyLWFwcC1uYW1lIn0.Ro54N-hMniUYYvNpjkSKKifzvOcuiPoOn7P_LKMsf5E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/user/registrations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"user",
+								"registrations"
 							]
 						}
 					},

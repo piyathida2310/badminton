@@ -1,9 +1,16 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadCloud } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "../../../../../../lib/api";
+
+interface Tournament {
+  id: number;
+  name: string;
+  playType: string;
+  rank: string[];
+}
 
 export default function RegisterPage() {
   const { id } = useParams();
@@ -13,6 +20,8 @@ export default function RegisterPage() {
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [tournamentLoading, setTournamentLoading] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -26,7 +35,30 @@ export default function RegisterPage() {
     player2Birthday: "",
   });
 
-  const ranks = ["BG", "NB", "N", "S", "P-", "P+"];
+  // Fetch tournament data
+  useEffect(() => {
+    const fetchTournament = async () => {
+      try {
+        const response = await axios.get(`/api/tournament/${id}`);
+        setTournament(response.data.data);
+        
+        // Set default mode based on tournament playType
+        if (response.data.data.playType === "SINGLE") {
+          setMode("single");
+        } else if (response.data.data.playType === "DOUBLE") {
+          setMode("double");
+        }
+      } catch (error) {
+        console.error("Failed to fetch tournament:", error);
+      } finally {
+        setTournamentLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchTournament();
+    }
+  }, [id]);
 
   // handle file upload - accept all video formats
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,9 +85,13 @@ export default function RegisterPage() {
       formData.player1Name &&
       formData.player1Phone &&
       formData.player1Birthday &&
-      selectedRank;
+      selectedRank &&
+      tournament; // Ensure tournament data is loaded
 
-    if (mode === "double") {
+    // Check if tournament requires double mode
+    const requiresDouble = tournament && tournament.playType === "DOUBLE";
+    
+    if (requiresDouble) {
       return (
         baseValid &&
         formData.player2Name &&
@@ -87,9 +123,9 @@ export default function RegisterPage() {
       formDataToSend.append("player1Phone", formData.player1Phone);
       formDataToSend.append("player1Birthday", formData.player1Birthday);
       formDataToSend.append("playType", selectedRank!);
-      formDataToSend.append("mode", mode);
+      formDataToSend.append("mode", tournament?.playType === "SINGLE" ? "single" : "double");
 
-      if (mode === "double") {
+      if (tournament?.playType === "DOUBLE") {
         formDataToSend.append("player2Name", formData.player2Name);
         formDataToSend.append("player2Phone", formData.player2Phone);
         formDataToSend.append("player2Birthday", formData.player2Birthday);
@@ -101,10 +137,15 @@ export default function RegisterPage() {
         formDataToSend.append("video", video, video.name);
       }
 
-      // Don't set Content-Type header - let browser set it with boundary
+      // Override the default Content-Type to allow browser to set multipart/form-data with boundary
       const response = await axios.post(
         `/api/tournament/${id}/register`,
-        formDataToSend
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': undefined,
+          },
+        }
       );
 
       if (response.status === 201) {
@@ -138,21 +179,23 @@ export default function RegisterPage() {
             ประเภทการแข่งขัน
           </label>
           <div className="flex gap-8">
-            {["single", "double"].map((type) => (
-              <label
-                key={type}
-                className="flex items-center gap-2 text-lg cursor-pointer text-[#5E4B8A]"
-              >
+            {tournamentLoading ? (
+              <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
+            ) : tournament ? (
+              <label className="flex items-center gap-2 text-lg cursor-pointer text-[#5E4B8A]">
                 <input
                   type="radio"
                   name="mode"
-                  checked={mode === type}
-                  onChange={() => setMode(type as "single" | "double")}
+                  checked={mode === (tournament.playType === "SINGLE" ? "single" : "double")}
+                  onChange={() => {}}
                   className="accent-pink-500 w-4 h-4"
+                  disabled
                 />
-                {type === "single" ? "เดี่ยว" : "คู่"}
+                {tournament.playType === "SINGLE" ? "เดี่ยว" : "คู่"}
               </label>
-            ))}
+            ) : (
+              <div className="text-red-500">ไม่สามารถโหลดข้อมูลการแข่งขันได้</div>
+            )}
           </div>
         </section>
 
@@ -235,78 +278,81 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* ผู้เล่นคนที่ 2 */}
-          <AnimatePresence>
-            {mode === "double" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="bg-[#D6E6FF]/80 border border-[#9CC5FF] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
-              >
-                <p className="font-semibold text-[#364C8A] mb-3 text-base">
-                  ผู้เล่นคนที่ 2
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <label className="block mb-1 font-medium">ชื่อ–นามสกุล</label>
-                    <input
-                      type="text"
-                      name="player2Name"
-                      value={formData.player2Name}
-                      onChange={handleInputChange}
-                      placeholder="ชื่อผู้เล่นอีกคน"
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
-                      required={mode === "double"}
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium">เบอร์โทรศัพท์</label>
-                    <input
-                      type="text"
-                      name="player2Phone"
-                      value={formData.player2Phone}
-                      onChange={handleInputChange}
-                      placeholder="08x-xxx-xxxx"
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
-                      required={mode === "double"}
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium">วันเกิด</label>
-                    <input
-                      type="date"
-                      name="player2Birthday"
-                      value={formData.player2Birthday}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
-                      required={mode === "double"}
-                    />
-                  </div>
+          {/* ผู้เล้นคนที่ 2 */}
+          {tournament?.playType === "DOUBLE" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-[#D6E6FF]/80 border border-[#9CC5FF] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+            >
+              <p className="font-semibold text-[#364C8A] mb-3 text-base">
+                ผู้เล่นคนที่ 2
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                  <label className="block mb-1 font-medium">ชื่อ–นามสกุล</label>
+                  <input
+                    type="text"
+                    name="player2Name"
+                    value={formData.player2Name}
+                    onChange={handleInputChange}
+                    placeholder="ชื่อผู้เล่นอีกคน"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    required
+                  />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <div>
+                  <label className="block mb-1 font-medium">เบอร์โทรศัพท์</label>
+                  <input
+                    type="text"
+                    name="player2Phone"
+                    value={formData.player2Phone}
+                    onChange={handleInputChange}
+                    placeholder="08x-xxx-xxxx"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">วันเกิด</label>
+                  <input
+                    type="date"
+                    name="player2Birthday"
+                    value={formData.player2Birthday}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
         </section>
 
         {/* แรงค์ */}
         <section className="mb-8">
           <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">ประเภทมือ</h2>
           <div className="flex flex-wrap gap-3">
-            {ranks.map((rank) => (
-              <button
-                key={rank}
-                type="button"
-                onClick={() => setSelectedRank(rank)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
-                    ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                    : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
-                  }`}
-              >
-                {rank}
-              </button>
-            ))}
+            {tournamentLoading ? (
+              <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
+            ) : tournament && tournament.rank.length > 0 ? (
+              tournament.rank.map((rank) => (
+                <button
+                  key={rank}
+                  type="button"
+                  onClick={() => setSelectedRank(rank)}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
+                      ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
+                      : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                    }`}
+                >
+                  {rank}
+                </button>
+              ))
+            ) : (
+              <div className="text-red-500">ไม่มีข้อมูลประเภทมือ</div>
+            )}
           </div>
         </section>
 
