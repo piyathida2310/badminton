@@ -1,47 +1,108 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import api from "../../../../../lib/api";
+
+type EvaluationStatus = "WAITING" | "PASSED" | "FAILED";
+type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED";
+
+interface ApplicantResponse {
+  registrationId: number;
+  tournamentId: number;
+  tournamentName: string;
+  userId: number;
+  user: {
+    id: number;
+    userName: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    phoneNumber: string | null;
+  };
+  teamName?: string | null;
+  managerName?: string | null;
+  players: {
+    name?: string | null;
+    phoneNumber?: string | null;
+    birthday?: string | null;
+  }[];
+  rank: string;
+  rankLabel?: string | null;
+  matchType: "SINGLE" | "DOUBLE";
+  matchTypeLabel?: string | null;
+  status: {
+    evaluation: EvaluationStatus;
+    score?: number | null;
+    comment?: string | null;
+  };
+  payment?: {
+    status: PaymentStatus;
+    slipUrl?: string | null;
+  } | null;
+  media?: {
+    videoUrl?: string | null;
+  } | null;
+}
 
 interface Player {
+  registrationId: number;
   team: string;
   names: string[];
   rank: string;
   type: string;
-  videoUrl: string;
-  slipUrl: string;
-  status: string;
-  paymentStatus: string;
-  score?: number;
+  videoUrl?: string | null;
+  slipUrl?: string | null;
+  status: EvaluationStatus;
+  paymentStatus: PaymentStatus;
+  score?: number | null;
   comment?: string;
 }
 
-export default function RegisterStatusPage() {
-  const [players, setPlayers] = useState<Player[]>([
-    {
-      team: "ส้มตำปูปลาร้า",
-      names: ["นางสาวปิยธิดา อันชม", "นางสาวสุขหทัย พลยะเรศ"],
-      rank: "N",
-      type: "คู่",
-      videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-      slipUrl:
-        "https://i.pinimg.com/736x/0c/49/4d/0c494db03ae6c6871c1f3ebe8709e891.jpg",
-      status: "รอตรวจสอบ",
-      paymentStatus: "รอตรวจสอบ",
-    },
-    {
-      team: "มะเดี่ยว",
-      names: ["นางสาวใจดี อวยพร"],
-      rank: "BG",
-      type: "เดี่ยว",
-      videoUrl: "https://www.w3schools.com/html/movie.mp4",
-      slipUrl:
-        "https://i.pinimg.com/236x/a0/d4/3b/a0d43b32aa058b89ce717765a957e044.jpg",
-      status: "รอตรวจสอบ",
-      paymentStatus: "รอตรวจสอบ",
-    },
-  ]);
+const evaluationStatusLabel: Record<EvaluationStatus, string> = {
+  WAITING: "รอตรวจสอบ",
+  PASSED: "ผ่าน",
+  FAILED: "ไม่ผ่าน",
+};
 
-  const [selectedRank, setSelectedRank] = useState("BG");
-  const [selectedType, setSelectedType] = useState("เดี่ยว");
+const evaluationStatusColor: Record<EvaluationStatus, string> = {
+  WAITING: "text-gray-500",
+  PASSED: "text-green-600",
+  FAILED: "text-red-500",
+};
+
+const paymentStatusLabel: Record<PaymentStatus, string> = {
+  PENDING: "รอตรวจสอบ",
+  CONFIRMED: "สำเร็จ",
+  REJECTED: "ไม่สำเร็จ",
+};
+
+const paymentStatusColor: Record<PaymentStatus, string> = {
+  PENDING: "text-gray-500",
+  CONFIRMED: "text-green-600",
+  REJECTED: "text-red-500",
+};
+
+const mapHandTypeLabel = (value?: string | null) => {
+  if (!value) return "-";
+  if (value === "P_MINUS") return "P-";
+  if (value === "P_PLUS") return "P+";
+  return value;
+};
+
+const mapMatchTypeLabel = (value?: string | null) => {
+  if (!value) return "-";
+  return value === "DOUBLE" ? "คู่" : "เดี่ยว";
+};
+
+export default function RegisterStatusPage() {
+  const { id } = useParams<{ id: string }>();
+
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [selectedRank, setSelectedRank] = useState("");
+  const [selectedType, setSelectedType] = useState("");
   const [modalVideo, setModalVideo] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [selectedPlayerIndex, setSelectedPlayerIndex] = useState<number | null>(
@@ -49,43 +110,175 @@ export default function RegisterStatusPage() {
   );
   const [videoScore, setVideoScore] = useState<number>(0);
 
-  const handleStatusChange = (
+  const rankOptions = useMemo(() => {
+    const options = Array.from(new Set(players.map((p) => p.rank).filter(Boolean)));
+    return options.length ? options : ["BG", "NB", "N", "S", "P-", "P+"];
+  }, [players]);
+
+  const typeOptions = useMemo(() => {
+    const options = Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
+    return options.length ? options : ["เดี่ยว", "คู่"];
+  }, [players]);
+
+  const mapApplicantToPlayer = (applicant: ApplicantResponse): Player => {
+    const fallbackName =
+      `${applicant.user.firstName ?? ""} ${applicant.user.lastName ?? ""}`.trim() ||
+      applicant.user.userName ||
+      "ไม่ระบุชื่อ";
+
+    const playerNames =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => p.name || fallbackName).filter(Boolean)
+        : [fallbackName];
+
+    return {
+      registrationId: applicant.registrationId,
+      team: applicant.teamName || applicant.managerName || fallbackName,
+      names: playerNames,
+      rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
+      type: applicant.matchTypeLabel || mapMatchTypeLabel(applicant.matchType),
+      videoUrl: applicant.media?.videoUrl ?? null,
+      slipUrl: applicant.payment?.slipUrl ?? null,
+      status: applicant.status?.evaluation ?? "WAITING",
+      paymentStatus: applicant.payment?.status ?? "PENDING",
+      score: applicant.status?.score ?? undefined,
+      comment: applicant.status?.comment ?? "",
+    };
+  };
+
+  useEffect(() => {
+    const fetchApplicants = async () => {
+      if (!id) {
+        setLoading(false);
+        setError("ไม่พบรหัสทัวร์นาเมนต์");
+        return;
+      }
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await api.get(`/api/tournament/${id}/applicants`);
+        const applicants: ApplicantResponse[] = response.data?.data?.applicants ?? [];
+        setPlayers(applicants.map(mapApplicantToPlayer));
+
+
+
+      } catch (err: any) {
+        console.error("Failed to load applicants", err);
+        let message =
+          err?.response?.data?.message ||
+          "ไม่สามารถโหลดรายชื่อผู้สมัครได้ โปรดลองใหม่อีกครั้ง";
+
+        if (
+          err?.response?.status === 403 ||
+          message.includes("Forbidden: only the tournament organizer can view applicants")
+        ) {
+          message = "คุณไม่สามารถดูข้อมูลนี้ได้ เนื่องจากไม่ใช่รายการแข่งขันของคุณ";
+        }
+
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplicants();
+  }, [id]);
+
+  const handleStatusChange = async (
     index: number,
     type: "status" | "payment",
-    value: string
+    value: EvaluationStatus | PaymentStatus
   ) => {
-    const updated = [...players];
-    if (type === "status") {
-      updated[index].status = value === "ยืนยัน" ? "ผ่าน" : "ไม่ผ่าน";
-    } else {
-      updated[index].paymentStatus =
-        value === "ยืนยัน" ? "สำเร็จ" : "ไม่สำเร็จ";
+    const player = players[index];
+    if (!player) return;
+
+    try {
+      if (type === "status") {
+        // Update evaluation status
+        await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+          status: value,
+        });
+
+        setPlayers((prev) => {
+          const updated = [...prev];
+          updated[index].status = value as EvaluationStatus;
+          return updated;
+        });
+      } else {
+        // Update payment status
+        await api.patch(`/api/registration/${player.registrationId}/payment/status`, {
+          status: value,
+        });
+
+        setPlayers((prev) => {
+          const updated = [...prev];
+          updated[index].paymentStatus = value as PaymentStatus;
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง");
     }
-    setPlayers(updated);
   };
 
-  const handleConfirmScore = () => {
+  const handleConfirmScore = async () => {
     if (selectedPlayerIndex !== null) {
-      const updated = [...players];
-      updated[selectedPlayerIndex].score = videoScore;
-      setPlayers(updated);
-      setModalVideo(null);
-      setSelectedPlayerIndex(null);
-      setVideoScore(0);
+      const player = players[selectedPlayerIndex];
+      if (!player) return;
+
+      try {
+        // Update score in database
+        await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+          score: videoScore,
+        });
+
+        setPlayers((prev) => {
+          const updated = [...prev];
+          updated[selectedPlayerIndex].score = videoScore;
+          return updated;
+        });
+
+        setModalVideo(null);
+        setSelectedPlayerIndex(null);
+        setVideoScore(0);
+      } catch (error) {
+        console.error("Failed to save score:", error);
+        alert("ไม่สามารถบันทึกคะแนนได้ กรุณาลองใหม่อีกครั้ง");
+      }
     }
   };
 
-  const handleCommentChange = (index: number, value: string) => {
-    const updated = [...players];
-    updated[index].comment = value;
-    setPlayers(updated);
+  const handleCommentChange = async (index: number, value: string) => {
+    const player = players[index];
+    if (!player) return;
+
+    try {
+      // Update comment in database
+      await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+        comment: value,
+      });
+
+      setPlayers((prev) => {
+        const updated = [...prev];
+        if (updated[index]) {
+          updated[index].comment = value;
+        }
+        return updated;
+      });
+    } catch (error) {
+      console.error("Failed to save comment:", error);
+      // Optionally show error to user
+    }
   };
 
-  const filteredPlayers = players.filter(
-    (p) =>
-      (selectedRank === p.rank || !selectedRank) &&
-      (selectedType === p.type || !selectedType)
-  );
+  const filteredPlayers = players.filter((p) => {
+    const rankMatch = !selectedRank || p.rank === selectedRank;
+    const typeMatch = !selectedType || p.type === selectedType;
+    return rankMatch && typeMatch;
+  });
+
 
   const groupedPlayers = filteredPlayers.reduce(
     (acc: Record<string, Player[]>, player) => {
@@ -102,37 +295,61 @@ export default function RegisterStatusPage() {
         สถานะการสมัคร
       </h1>
 
-      {/* Filter */}
-      <div className="max-w-6xl mx-auto mb-8 flex flex-wrap justify-center gap-4">
-        <div className="flex items-center gap-2 text-sm sm:text-base">
-          <label className="font-medium text-[#334155]">แรงค์</label>
-          <select
-            value={selectedRank}
-            onChange={(e) => setSelectedRank(e.target.value)}
-            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
-          >
-            {["BG", "NB", "N", "S", "P-", "P+"].map((r) => (
-              <option key={r}>{r}</option>
-            ))}
-          </select>
-        </div>
+      {/* Filter - Only show if no error */}
+      {!error && (
+        <div className="max-w-6xl mx-auto mb-8 flex flex-wrap justify-center gap-4">
+          <div className="flex items-center gap-2 text-sm sm:text-base">
+            <label className="font-medium text-[#334155]">ประเภทมือ</label>
+            <select
+              value={selectedRank}
+              onChange={(e) => setSelectedRank(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
+            >
+              <option value="">ทั้งหมด</option>
+              {rankOptions.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="flex items-center gap-2 text-sm sm:text-base">
-          <label className="font-medium text-[#334155]">ประเภท</label>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
-          >
-            {["เดี่ยว", "คู่"].map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2 text-sm sm:text-base">
+            <label className="font-medium text-[#334155]">ประเภท</label>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
+            >
+              <option value="">ทั้งหมด</option>
+              {typeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
+
+      {error && (
+        <div className="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-center">
+          {error}
+        </div>
+      )}
+      {loading && (
+        <div className="max-w-4xl mx-auto mb-6 bg-slate-50 border border-slate-200 text-slate-600 px-4 py-3 rounded-xl text-center">
+          กำลังโหลดข้อมูลผู้สมัคร...
+        </div>
+      )}
 
       {/* ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
+        {Object.entries(groupedPlayers).length === 0 && !loading && !error && (
+          <div className="text-center text-slate-600 bg-white/80 border border-slate-200 rounded-2xl py-10 shadow-sm">
+            ไม่มีข้อมูลผู้สมัครสำหรับทัวร์นาเมนต์นี้
+          </div>
+        )}
         {Object.entries(groupedPlayers).map(([teamName, members]) => (
           <div
             key={teamName}
@@ -141,7 +358,7 @@ export default function RegisterStatusPage() {
             {/* หัวทีม */}
             <div className="relative rounded-t-2xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
-              <div className="relative py-3 text-center text-base sm:text-lg font-semibold text-white tracking-wide z-10">
+              <div className="relative py-3 text-center text-base sm:text-xl font-semibold text-white tracking-wide z-10">
                 ทีม {teamName}
               </div>
             </div>
@@ -151,7 +368,7 @@ export default function RegisterStatusPage() {
                 <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
                   <tr>
                     <th className="border p-2">ชื่อ–นามสกุล</th>
-                    <th className="border p-2">แรงค์</th>
+                    <th className="border p-2">ประเภทมือ</th>
                     <th className="border p-2">ประเภท</th>
                     <th className="border p-2">วิดีโอ</th>
                     <th className="border p-2">คะแนน</th>
@@ -164,11 +381,14 @@ export default function RegisterStatusPage() {
                 <tbody>
                   {members.map((p, i) => {
                     const globalIndex = players.findIndex(
-                      (pl) => pl.team === teamName && pl.names[0] === p.names[0]
+                      (pl) => pl.registrationId === p.registrationId
                     );
+                    const safeIndex = globalIndex === -1 ? i : globalIndex;
+                    const hasVideo = Boolean(p.videoUrl);
+                    const hasSlip = Boolean(p.slipUrl);
                     return (
                       <tr
-                        key={i}
+                        key={p.registrationId}
                         className="even:bg-slate-50 odd:bg-[#F8FAFF] hover:bg-[#E9F5FF] transition-all"
                       >
                         <td className="border p-2">
@@ -183,23 +403,24 @@ export default function RegisterStatusPage() {
                         <td className="border p-2">
                           <button
                             onClick={() => {
-                              setModalVideo(p.videoUrl);
-                              setSelectedPlayerIndex(globalIndex);
+                              if (!hasVideo) return;
+                              setModalVideo(p.videoUrl || null);
+                              setSelectedPlayerIndex(safeIndex);
                             }}
-                            className="px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md hover:opacity-90 shadow-sm"
+                            disabled={!hasVideo}
+                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                              }`}
                           >
                             ดูวิดีโอ
                           </button>
                         </td>
                         <td className="border p-2 text-pink-700 font-semibold">
-                          {p.score ? `${p.score} / 10` : "-"}
+                          {p.score !== undefined && p.score !== null ? `${p.score} / 10` : "-"}
                         </td>
                         <td className="border p-2">
                           <textarea
                             value={p.comment || ""}
-                            onChange={(e) =>
-                              handleCommentChange(globalIndex, e.target.value)
-                            }
+                            onChange={(e) => handleCommentChange(safeIndex, e.target.value)}
                             placeholder="เพิ่มความคิดเห็น..."
                             className="w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm"
                           />
@@ -207,38 +428,30 @@ export default function RegisterStatusPage() {
                         <td className="border p-2">
                           <div className="flex flex-col items-center gap-2">
                             <div
-                              className={`text-sm font-semibold ${
-                                p.status === "ผ่าน"
-                                  ? "text-green-600"
-                                  : p.status === "ไม่ผ่าน"
-                                  ? "text-red-500"
-                                  : "text-gray-500"
-                              }`}
+                              className={`text-sm font-semibold ${evaluationStatusColor[p.status]}`}
                             >
-                              {p.status}
+                              {evaluationStatusLabel[p.status] ?? p.status}
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() =>
-                                  handleStatusChange(globalIndex, "status", "ยืนยัน")
+                                  handleStatusChange(safeIndex, "status", "PASSED")
                                 }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${
-                                  p.status === "ผ่าน"
-                                    ? "bg-green-500 text-white"
-                                    : "bg-green-100 text-green-700"
-                                }`}
+                                className={`px-3 py-1 rounded-lg shadow-sm ${p.status === "PASSED"
+                                  ? "bg-green-500 text-white"
+                                  : "bg-green-100 text-green-700"
+                                  }`}
                               >
                                 ยืนยัน
                               </button>
                               <button
                                 onClick={() =>
-                                  handleStatusChange(globalIndex, "status", "ยกเลิก")
+                                  handleStatusChange(safeIndex, "status", "FAILED")
                                 }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${
-                                  p.status === "ไม่ผ่าน"
-                                    ? "bg-red-500 text-white"
-                                    : "bg-red-100 text-red-700"
-                                }`}
+                                className={`px-3 py-1 rounded-lg shadow-sm ${p.status === "FAILED"
+                                  ? "bg-red-500 text-white"
+                                  : "bg-red-100 text-red-700"
+                                  }`}
                               >
                                 ยกเลิก
                               </button>
@@ -247,8 +460,10 @@ export default function RegisterStatusPage() {
                         </td>
                         <td className="border p-2">
                           <button
-                            onClick={() => setModalImage(p.slipUrl)}
-                            className="px-3 py-1 bg-gradient-to-r from-[#a882f5] to-[#c874d6] text-white rounded-md hover:opacity-90 shadow-sm"
+                            onClick={() => hasSlip && setModalImage(p.slipUrl || null)}
+                            disabled={!hasSlip}
+                            className={`px-3 py-1 bg-gradient-to-r from-[#a882f5] to-[#c874d6] text-white rounded-md shadow-sm ${hasSlip ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                              }`}
                           >
                             ดูรูปภาพ
                           </button>
@@ -256,38 +471,30 @@ export default function RegisterStatusPage() {
                         <td className="border p-2">
                           <div className="flex flex-col items-center gap-2">
                             <div
-                              className={`text-sm font-semibold ${
-                                p.paymentStatus === "สำเร็จ"
-                                  ? "text-green-600"
-                                  : p.paymentStatus === "ไม่สำเร็จ"
-                                  ? "text-red-500"
-                                  : "text-gray-500"
-                              }`}
+                              className={`text-sm font-semibold ${paymentStatusColor[p.paymentStatus]}`}
                             >
-                              {p.paymentStatus}
+                              {paymentStatusLabel[p.paymentStatus] ?? p.paymentStatus}
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() =>
-                                  handleStatusChange(globalIndex, "payment", "ยืนยัน")
+                                  handleStatusChange(safeIndex, "payment", "CONFIRMED")
                                 }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${
-                                  p.paymentStatus === "สำเร็จ"
-                                    ? "bg-green-500 text-white"
-                                    : "bg-green-100 text-green-700"
-                                }`}
+                                className={`px-3 py-1 rounded-lg shadow-sm ${p.paymentStatus === "CONFIRMED"
+                                  ? "bg-green-500 text-white"
+                                  : "bg-green-100 text-green-700"
+                                  }`}
                               >
                                 ยืนยัน
                               </button>
                               <button
                                 onClick={() =>
-                                  handleStatusChange(globalIndex, "payment", "ยกเลิก")
+                                  handleStatusChange(safeIndex, "payment", "REJECTED")
                                 }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${
-                                  p.paymentStatus === "ไม่สำเร็จ"
-                                    ? "bg-red-500 text-white"
-                                    : "bg-red-100 text-red-700"
-                                }`}
+                                className={`px-3 py-1 rounded-lg shadow-sm ${p.paymentStatus === "REJECTED"
+                                  ? "bg-red-500 text-white"
+                                  : "bg-red-100 text-red-700"
+                                  }`}
                               >
                                 ยกเลิก
                               </button>
@@ -304,7 +511,7 @@ export default function RegisterStatusPage() {
         ))}
       </div>
 
-      {/* ✅ Modal วิดีโอ */}
+      {/* Modal วิดีโอ */}
       {modalVideo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="relative bg-white rounded-xl p-4 w-[90%] md:w-[600px] shadow-xl">
@@ -318,34 +525,43 @@ export default function RegisterStatusPage() {
             >
               ✕
             </button>
-            <video src={modalVideo} controls className="rounded-lg w-full mb-4" />
+
+
+            <div className="w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
+              <video
+                src={modalVideo}
+                controls
+                className="w-full h-full object-contain"
+              />
+            </div>
+
             <div className="text-center">
               <p className="mb-2 font-semibold text-pink-700">
                 ให้คะแนนวิดีโอ (1–10)
               </p>
+
               <div className="flex flex-wrap justify-center gap-2">
                 {[...Array(10)].map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setVideoScore(idx + 1)}
-                    className={`w-8 h-8 rounded-full border ${
-                      videoScore === idx + 1
-                        ? "bg-pink-500 text-white"
-                        : "bg-white hover:bg-pink-100"
-                    }`}
+                    className={`w-8 h-8 rounded-full border ${videoScore === idx + 1
+                      ? "bg-pink-500 text-white"
+                      : "bg-white hover:bg-pink-100"
+                      }`}
                   >
                     {idx + 1}
                   </button>
                 ))}
               </div>
+
               <button
                 onClick={handleConfirmScore}
                 disabled={videoScore === 0}
-                className={`mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all ${
-                  videoScore > 0
-                    ? "bg-pink-500 hover:bg-pink-600"
-                    : "bg-gray-300 cursor-not-allowed"
-                }`}
+                className={`mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all ${videoScore > 0
+                  ? "bg-pink-500 hover:bg-pink-600"
+                  : "bg-gray-300 cursor-not-allowed"
+                  }`}
               >
                 ตกลง
               </button>
@@ -353,6 +569,7 @@ export default function RegisterStatusPage() {
           </div>
         </div>
       )}
+
 
       {/* Modal รูปภาพ */}
       {modalImage && (

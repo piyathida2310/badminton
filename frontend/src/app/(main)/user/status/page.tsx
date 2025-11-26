@@ -1,56 +1,115 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
+import api from "@/lib/api";
+
+// Helper to map backend status to frontend display text
+const mapStatus = (status: string) => {
+  switch (status) {
+    case "WAITING":
+      return "รอยืนยัน";
+    case "PASSED":
+      return "สมัครผ่าน";
+    case "FAILED":
+      return "ไม่ผ่าน";
+    default:
+      return status;
+  }
+};
+
+const mapPaymentStatus = (status: string | undefined | null) => {
+  if (!status) return "—";
+  switch (status) {
+    case "PENDING":
+      return "รอยืนยัน";
+    case "CONFIRMED":
+      return "ชำระเงินสำเร็จ";
+    case "REJECTED":
+      return "ไม่ผ่าน";
+    default:
+      return status;
+  }
+};
+
+const mapRank = (rank: string) => {
+  switch (rank) {
+    case "P_MINUS":
+      return "P-";
+    case "P_PLUS":
+      return "P+";
+    default:
+      return rank;
+  }
+};
 
 export default function StatusPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [currentRegistrationId, setCurrentRegistrationId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   const [filter, setFilter] = useState({
     rank: "BG",
     type: "เดี่ยว",
   });
 
-  const [teams, setTeams] = useState([
-    {
-      teamName: "นิติมินี",
-      members: [
-        {
-          id: 1,
-          name: "นางสาวปิยธิดา อันชม",
-          rank: "N",
-          type: "คู่",
-          register: "สมัครผ่าน",
-          payment: "รอยืนยัน",
-        },
-        {
-          id: 2,
-          name: "นางสาวสุขหทัย พลยะเรศ",
-          rank: "N",
-          type: "คู่",
-          register: "รอยืนยัน",
-          payment: "—",
-        },
-      ],
-    },
-    {
-      teamName: "นักตบเทพ",
-      members: [
-        {
-          id: 3,
-          name: "นางสาวปิยธิดา อันชม",
-          rank: "BG",
-          type: "เดี่ยว",
-          register: "ไม่ผ่าน",
-          payment: "—",
-        },
-      ],
-    },
-  ]);
+  const [teams, setTeams] = useState<any[]>([]);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchRegistrations = async () => {
+      try {
+        const response = await api.get("/api/user/registrations");
+        const registrations = response.data.data;
+
+        const formattedTeams = registrations.map((reg: any) => {
+          const isDouble = reg.tournament.playType === "DOUBLE";
+          const members = [
+            {
+              id: reg.id,
+              name: reg.player1Name,
+              rank: mapRank(reg.playType),
+              type: isDouble ? "คู่" : "เดี่ยว",
+              register: mapStatus(reg.status),
+              payment: mapPaymentStatus(reg.payment?.status),
+            },
+          ];
+
+          if (isDouble && reg.player2Name) {
+            members.push({
+              id: `${reg.id}_2`,
+              name: reg.player2Name,
+              rank: mapRank(reg.playType),
+              type: "คู่",
+              register: mapStatus(reg.status),
+              payment: mapPaymentStatus(reg.payment?.status),
+            });
+          }
+
+          return {
+            teamName: reg.teamName || "ไม่มีชื่อทีม",
+            registrationId: reg.id,
+            members,
+          };
+        });
+
+        setTeams(formattedTeams);
+      } catch (error) {
+        console.error("Failed to fetch registrations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegistrations();
+  }, []);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUploadedFile(file);
       const reader = new FileReader();
       reader.onload = (ev) => {
         setUploadedSlip(ev.target?.result as string);
@@ -59,26 +118,71 @@ export default function StatusPage() {
     }
   };
 
-  const confirmPayment = () => {
-    setTeams((prev) =>
-      prev.map((team) => ({
-        ...team,
-        members: team.members.map((m) =>
-          m.register === "สมัครผ่าน" ? { ...m, payment: "ชำระเงินสำเร็จ" } : m
-        ),
-      }))
-    );
-    setShowPayment(false);
+  const confirmPayment = async () => {
+    if (!uploadedFile || !currentRegistrationId) {
+      alert("กรุณาอัปโหลดสลิปการชำระเงิน");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("slip", uploadedFile);
+
+      await api.post(
+        `/api/registration/${currentRegistrationId}/payment/slip`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // Update local state to show pending payment
+      setTeams((prev) =>
+        prev.map((team) =>
+          team.registrationId === currentRegistrationId
+            ? {
+              ...team,
+              members: team.members.map((m: any) => ({
+                ...m,
+                payment: "รอยืนยัน",
+              })),
+            }
+            : team
+        )
+      );
+
+      setShowPayment(false);
+      setUploadedSlip(null);
+      setUploadedFile(null);
+      setCurrentRegistrationId(null);
+      alert("อัปโหลดสลิปการชำระเงินสำเร็จ รอการตรวจสอบจากผู้จัด");
+    } catch (error) {
+      console.error("Failed to upload payment slip:", error);
+      alert("ไม่สามารถอัปโหลดสลิปได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const filteredTeams = teams.map((team) => ({
     ...team,
-    members: team.members.filter((m) => {
+    members: team.members.filter((m: any) => {
       const rankOK = !filter.rank || m.rank === filter.rank;
       const typeOK = !filter.type || m.type === filter.type;
       return rankOK && typeOK;
     }),
   }));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF]">
+        <div className="text-[#1E293B] text-xl font-semibold">กำลังโหลดข้อมูล...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF] py-10 px-4 sm:px-6 text-[#2F3E46]">
@@ -121,134 +225,81 @@ export default function StatusPage() {
 
       {/* 🔹 ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
-        {filteredTeams.map(
-          (team) =>
-            team.members.length > 0 && (
-              <div
-                key={team.teamName}
-                className="rounded-2xl shadow-lg border border-slate-200 bg-gradient-to-br from-[#FFFFFF] to-[#E6F3F9] backdrop-blur-sm"
-              >
-                {/* หัวตาราง */}
-                <div className="relative rounded-t-2xl overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
-                  <div className="relative py-3 text-center text-base sm:text-lg font-semibold text-white tracking-wide z-10">
-                    ทีม {team.teamName}
+        {filteredTeams.length === 0 ? (
+          <div className="text-center text-gray-500 py-10">ไม่พบข้อมูลการสมัคร</div>
+        ) : (
+          filteredTeams.map(
+            (team) =>
+              team.members.length > 0 && (
+                <div
+                  key={team.teamName}
+                  className="rounded-2xl shadow-lg border border-slate-200 bg-gradient-to-br from-[#FFFFFF] to-[#E6F3F9] backdrop-blur-sm"
+                >
+                  {/* หัวตาราง */}
+                  <div className="relative rounded-t-2xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
+                    <div className="relative py-3 text-center text-base sm:text-lg font-semibold text-white tracking-wide z-10">
+                      ทีม {team.teamName}
+                    </div>
                   </div>
-                </div>
 
-                {/* ตาราง */}
-                <div className="overflow-x-auto rounded-b-2xl">
-                  <table className="w-full text-center border-collapse text-sm sm:text-base min-w-[600px]">
-                    <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
-                      <tr>
-                        <th className="p-3 border">ชื่อ–นามสกุล</th>
-                        <th className="p-3 border">แรงค์</th>
-                        <th className="p-3 border">ประเภท</th>
-                        <th className="p-3 border">สถานะการสมัคร</th>
-                        <th className="p-3 border">ชำระเงิน</th>
-                        <th className="p-3 border">สถานะการชำระเงิน</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* ทีมคู่ */}
-                      {team.members[0].type === "คู่" ? (
-                        <tr className="hover:bg-slate-50 transition-all">
-                          <td className="p-3 border text-center leading-relaxed">
-                            {team.members.map((m) => (
-                              <div key={m.id}>{m.name}</div>
-                            ))}
-                          </td>
-                          <td className="p-2 border">{team.members[0].rank}</td>
-                          <td className="p-2 border">{team.members[0].type}</td>
-
-                          {/* ✅ รวมสถานะการสมัครทั้งทีม */}
-                          <td className="p-2 border">
-                            {(() => {
-                              const statuses = team.members.map((m) => m.register);
-                              const finalStatus = statuses.includes("รอยืนยัน")
-                                ? "รอยืนยัน"
-                                : statuses.includes("สมัครผ่าน")
-                                ? "สมัครผ่าน"
-                                : "ไม่ผ่าน";
-                              return (
-                                <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                    finalStatus === "สมัครผ่าน"
-                                      ? "bg-green-200 text-green-800"
-                                      : finalStatus === "รอยืนยัน"
-                                      ? "bg-amber-200 text-amber-800"
-                                      : "bg-red-200 text-red-800"
-                                  }`}
-                                >
-                                  {finalStatus}
-                                </span>
-                              );
-                            })()}
-                          </td>
-
-                          {/* ชำระเงิน */}
-                          <td className="p-2 border">
-                            {team.members.some((m) => m.register === "สมัครผ่าน") ? (
-                              <button
-                                onClick={() => setShowPayment(true)}
-                                className="px-3 py-1 bg-gradient-to-r from-[#93E7E1] to-[#66C2F5] hover:opacity-90 text-[#134E4A] rounded-md text-sm font-semibold shadow-sm"
-                              >
-                                ชำระเงิน
-                              </button>
-                            ) : (
-                              <span className="text-gray-400 text-sm">—</span>
-                            )}
-                          </td>
-
-                          {/* ✅ รวมสถานะการชำระเงินทั้งทีม */}
-                          <td className="p-2 border">
-                            {(() => {
-                              const payments = team.members.map((m) => m.payment);
-                              const finalPay = payments.includes("รอยืนยัน")
-                                ? "รอยืนยัน"
-                                : payments.includes("ชำระเงินสำเร็จ")
-                                ? "ชำระเงินสำเร็จ"
-                                : "—";
-                              return (
-                                <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                    finalPay === "รอยืนยัน"
-                                      ? "bg-yellow-200 text-yellow-800"
-                                      : finalPay === "ชำระเงินสำเร็จ"
-                                      ? "bg-emerald-200 text-emerald-800"
-                                      : "text-gray-400"
-                                  }`}
-                                >
-                                  {finalPay}
-                                </span>
-                              );
-                            })()}
-                          </td>
+                  {/* ตาราง */}
+                  <div className="overflow-x-auto rounded-b-2xl">
+                    <table className="w-full text-center border-collapse text-sm sm:text-base min-w-[600px]">
+                      <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
+                        <tr>
+                          <th className="p-3 border">ชื่อ–นามสกุล</th>
+                          <th className="p-3 border">แรงค์</th>
+                          <th className="p-3 border">ประเภท</th>
+                          <th className="p-3 border">สถานะการสมัคร</th>
+                          <th className="p-3 border">ชำระเงิน</th>
+                          <th className="p-3 border">สถานะการชำระเงิน</th>
                         </tr>
-                      ) : (
-                        /* เดี่ยว */
-                        team.members.map((m) => (
-                          <tr key={m.id} className="hover:bg-slate-50 transition-all">
-                            <td className="p-2 border">{m.name}</td>
-                            <td className="p-2 border">{m.rank}</td>
-                            <td className="p-2 border">{m.type}</td>
-                            <td className="p-2 border">
-                              <span
-                                className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                  m.register === "สมัครผ่าน"
-                                    ? "bg-green-200 text-green-800"
-                                    : m.register === "รอยืนยัน"
-                                    ? "bg-amber-200 text-amber-800"
-                                    : "bg-red-200 text-red-800"
-                                }`}
-                              >
-                                {m.register}
-                              </span>
+                      </thead>
+                      <tbody>
+                        {/* ทีมคู่ */}
+                        {team.members[0].type === "คู่" ? (
+                          <tr className="hover:bg-slate-50 transition-all">
+                            <td className="p-3 border text-center leading-relaxed">
+                              {team.members.map((m: any) => (
+                                <div key={m.id}>{m.name}</div>
+                              ))}
                             </td>
+                            <td className="p-2 border">{team.members[0].rank}</td>
+                            <td className="p-2 border">{team.members[0].type}</td>
+
+                            {/* ✅ รวมสถานะการสมัครทั้งทีม */}
                             <td className="p-2 border">
-                              {m.register === "สมัครผ่าน" ? (
+                              {(() => {
+                                const statuses = team.members.map((m: any) => m.register);
+                                const finalStatus = statuses.includes("รอยืนยัน")
+                                  ? "รอยืนยัน"
+                                  : statuses.includes("สมัครผ่าน")
+                                    ? "สมัครผ่าน"
+                                    : "ไม่ผ่าน";
+                                return (
+                                  <span
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === "สมัครผ่าน"
+                                        ? "bg-green-200 text-green-800"
+                                        : finalStatus === "รอยืนยัน"
+                                          ? "bg-amber-200 text-amber-800"
+                                          : "bg-red-200 text-red-800"
+                                      }`}
+                                  >
+                                    {finalStatus}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+
+                            {/* ชำระเงิน */}
+                            <td className="p-2 border">
+                              {team.members.some((m: any) => m.register === "สมัครผ่าน") ? (
                                 <button
-                                  onClick={() => setShowPayment(true)}
+                                  onClick={() => {
+                                    setCurrentRegistrationId(team.registrationId);
+                                    setShowPayment(true);
+                                  }}
                                   className="px-3 py-1 bg-gradient-to-r from-[#93E7E1] to-[#66C2F5] hover:opacity-90 text-[#134E4A] rounded-md text-sm font-semibold shadow-sm"
                                 >
                                   ชำระเงิน
@@ -257,27 +308,86 @@ export default function StatusPage() {
                                 <span className="text-gray-400 text-sm">—</span>
                               )}
                             </td>
+
+                            {/* ✅ รวมสถานะการชำระเงินทั้งทีม */}
                             <td className="p-2 border">
-                              <span
-                                className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                  m.payment === "รอยืนยัน"
-                                    ? "bg-yellow-200 text-yellow-800"
-                                    : m.payment === "ชำระเงินสำเร็จ"
-                                    ? "bg-emerald-200 text-emerald-800"
-                                    : "text-gray-400"
-                                }`}
-                              >
-                                {m.payment}
-                              </span>
+                              {(() => {
+                                const payments = team.members.map((m: any) => m.payment);
+                                const finalPay = payments.includes("รอยืนยัน")
+                                  ? "รอยืนยัน"
+                                  : payments.includes("ชำระเงินสำเร็จ")
+                                    ? "ชำระเงินสำเร็จ"
+                                    : "—";
+                                return (
+                                  <span
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalPay === "รอยืนยัน"
+                                        ? "bg-yellow-200 text-yellow-800"
+                                        : finalPay === "ชำระเงินสำเร็จ"
+                                          ? "bg-emerald-200 text-emerald-800"
+                                          : "text-gray-400"
+                                      }`}
+                                  >
+                                    {finalPay}
+                                  </span>
+                                );
+                              })()}
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          /* เดี่ยว */
+                          team.members.map((m: any) => (
+                            <tr key={m.id} className="hover:bg-slate-50 transition-all">
+                              <td className="p-2 border">{m.name}</td>
+                              <td className="p-2 border">{m.rank}</td>
+                              <td className="p-2 border">{m.type}</td>
+                              <td className="p-2 border">
+                                <span
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.register === "สมัครผ่าน"
+                                      ? "bg-green-200 text-green-800"
+                                      : m.register === "รอยืนยัน"
+                                        ? "bg-amber-200 text-amber-800"
+                                        : "bg-red-200 text-red-800"
+                                    }`}
+                                >
+                                  {m.register}
+                                </span>
+                              </td>
+                              <td className="p-2 border">
+                                {m.register === "สมัครผ่าน" ? (
+                                  <button
+                                    onClick={() => {
+                                      setCurrentRegistrationId(team.registrationId);
+                                      setShowPayment(true);
+                                    }}
+                                    className="px-3 py-1 bg-gradient-to-r from-[#93E7E1] to-[#66C2F5] hover:opacity-90 text-[#134E4A] rounded-md text-sm font-semibold shadow-sm"
+                                  >
+                                    ชำระเงิน
+                                  </button>
+                                ) : (
+                                  <span className="text-gray-400 text-sm">—</span>
+                                )}
+                              </td>
+                              <td className="p-2 border">
+                                <span
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.payment === "รอยืนยัน"
+                                      ? "bg-yellow-200 text-yellow-800"
+                                      : m.payment === "ชำระเงินสำเร็จ"
+                                        ? "bg-emerald-200 text-emerald-800"
+                                        : "text-gray-400"
+                                    }`}
+                                >
+                                  {m.payment}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            )
+              )
+          )
         )}
       </div>
 
@@ -332,9 +442,11 @@ export default function StatusPage() {
             <div className="text-center mt-6">
               <button
                 onClick={confirmPayment}
-                className="bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base"
+                disabled={uploading || !uploadedFile}
+                className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                  }`}
               >
-                เสร็จสิ้น
+                {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
               </button>
             </div>
           </div>

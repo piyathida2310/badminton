@@ -6,6 +6,10 @@ import {
     createRegistration,
     getRegistrationsByTournament,
     getUserRegistrations,
+    getTournamentApplicantsForOrganizer,
+    updateRegistrationEvaluation,
+    updatePaymentStatus,
+    uploadPaymentSlip,
 } from "../controllers/registerController";
 
 const router = Router();
@@ -25,7 +29,36 @@ router.get(
     getRegistrationsByTournament
 );
 
+// Get registrations with user/payment details for organizer dashboard
+router.get(
+    "/tournament/:tournamentId/applicants",
+    authMiddleware,
+    getTournamentApplicantsForOrganizer
+);
+
 // Get all registrations for the authenticated user
 router.get("/user/registrations", authMiddleware, getUserRegistrations);
+
+// Update registration evaluation (score, comment, status) - Organizer only
+router.patch(
+    "/registration/:registrationId/evaluation",
+    authMiddleware,
+    updateRegistrationEvaluation
+);
+
+// Update payment status - Organizer only
+router.patch(
+    "/registration/:registrationId/payment/status",
+    authMiddleware,
+    updatePaymentStatus
+);
+
+// Upload payment slip - User only
+router.post(
+    "/registration/:registrationId/payment/slip",
+    authMiddleware,
+    upload.fields([{ name: "slip" }]),
+    uploadPaymentSlip
+);
 
 export default router;
