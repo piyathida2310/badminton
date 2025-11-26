@@ -236,7 +236,7 @@ export default function StatusPage() {
       {/* 🔽 Filter */}
       <div className="max-w-6xl mx-auto mb-8 flex flex-wrap justify-center gap-4">
         <div className="flex items-center gap-2 text-sm sm:text-base">
-          <label className="font-medium text-[#334155]">แรงค์</label>
+          <label className="font-medium text-[#334155]">ประเภทมือ</label>
           <select
             value={filter.rank}
             onChange={(e) =>
@@ -296,7 +296,7 @@ export default function StatusPage() {
                       <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
                         <tr>
                           <th className="p-3 border">ชื่อ–นามสกุล</th>
-                          <th className="p-3 border">แรงค์</th>
+                          <th className="p-3 border">ประเภทมือ</th>
                           <th className="p-3 border">ประเภท</th>
                           <th className="p-3 border">สถานะการสมัคร</th>
                           <th className="p-3 border">ชำระเงิน</th>

@@ -25,7 +25,7 @@ export default function GroupStageScoresPage() {
 
   const theme = themeMap[groupName];
 
-   // ข้อมูลทุกกลุ่ม
+  // ข้อมูลทุกกลุ่ม
   const groupData: Record<string, { rank: any[][]; matches: any[][] }> = {
     "Group A": {
       rank: [
@@ -73,6 +73,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGA2 อัฟฟ้านานน ผู้จัดการบังคับให้มา",
           "เวฟ - หยก",
+          "",
         ],
         [
           "09:30",
@@ -85,6 +86,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
           "ประวุฒิ - อนันตา",
+          "",
         ],
         [
           "10:30",
@@ -97,6 +99,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGA3 นักแบด Full-Time",
           "ธนภัทร - เบียร์",
+          "",
         ],
         [
           "10:30",
@@ -109,6 +112,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
           "ประวุฒิ - อนันตา",
+          "",
         ],
         [
           "11:30",
@@ -121,6 +125,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
           "ประวุฒิ - อนันตา",
+          "",
         ],
         [
           "11:30",
@@ -133,6 +138,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGA3 นักแบด Full-Time",
           "ธนภัทร - เบียร์",
+          "",
         ],
       ],
     },
@@ -182,6 +188,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGB2 บ้านยิ้มสวย",
           "ชัยชม - รัชพล",
+          "",
         ],
         [
           "09:30",
@@ -194,6 +201,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGB4 แบดจาร์ทที่ 1",
           "ตรีพิพัฒน์ - ไกด์",
+          "",
         ],
         [
           "10:30",
@@ -206,6 +214,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGB3 ขอคิดก่อนค่ะ",
           "ณัฎฐินันท์ - ก้อย",
+          "",
         ],
         [
           "10:30",
@@ -218,6 +227,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGB4 แบดจาร์ทที่ 1",
           "ตรีพิพัฒน์ - ไกด์",
+          "",
         ],
         [
           "11:30",
@@ -230,6 +240,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGB4 แบดจาร์ทที่ 1",
           "ตรีพิพัฒน์ - ไกด์",
+          "",
         ],
         [
           "11:30",
@@ -242,6 +253,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGB3 ขอคิดก่อนค่ะ",
           "ณัฎฐินันท์ - ก้อย",
+          "",
         ],
       ],
     },
@@ -291,6 +303,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGC2 แมวป่าวไงตัวววว",
           "วิทยา - โนโม้ เบลล์",
+          "",
         ],
         [
           "09:30",
@@ -303,6 +316,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGC4 สมุกี้",
           "พรชัย - กร",
+          "",
         ],
         [
           "10:30",
@@ -315,6 +329,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGC3 LP 81 Racing Parts",
           "พรธิดา - N.Anns",
+          "",
         ],
         [
           "10:30",
@@ -327,6 +342,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGC4 สมุกี้",
           "พรชัย - กร",
+          "",
         ],
         [
           "11:30",
@@ -339,6 +355,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGC4 สมุกี้",
           "พรชัย - กร",
+          "",
         ],
         [
           "11:30",
@@ -351,6 +368,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGC3 LP 81 Racing Parts",
           "พรธิดา - N.Anns",
+          "",
         ],
       ],
     },
@@ -409,6 +427,7 @@ export default function GroupStageScoresPage() {
           "2",
           "BGD2 แบดจาร์ทที่ 2",
           "พนมพร - โต",
+          "",
         ],
         [
           "09:30",
@@ -421,6 +440,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGD4 หนียายกันแดด",
           "อภิวิฒน์ - น้ำพุ",
+          "",
         ],
         [
           "10:30",
@@ -433,6 +453,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGD3 แยมโรโบ้บี้",
           "นนท์นีน - นนท์",
+          "",
         ],
         [
           "10:30",
@@ -445,6 +466,7 @@ export default function GroupStageScoresPage() {
           "0",
           "BGD4 หนียายกันแดด",
           "อภิวิฒน์ - น้ำพุ",
+          "",
         ],
         [
           "11:30",
@@ -457,6 +479,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGD4 หนียายกันแดด",
           "อภิวิฒน์ - น้ำพุ",
+          "",
         ],
         [
           "11:30",
@@ -469,6 +492,7 @@ export default function GroupStageScoresPage() {
           "1",
           "BGD3 แยมโรโบ้บี้",
           "นนท์นีน - นนท์",
+          "",
         ],
       ],
     },
@@ -495,11 +519,11 @@ export default function GroupStageScoresPage() {
           rows={selected.rank}
         />
 
-       <GroupTableEditable
-  title="ตารางการแข่งขันแต่ละรอบ"
-  headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น"]}
-  rows={selected.matches}
-/>
+        <GroupTableEditable
+          title="ตารางการแข่งขันแต่ละรอบ"
+          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น", "ลูกแบต"]}
+          rows={selected.matches}
+        />
 
       </div>
     </div>
