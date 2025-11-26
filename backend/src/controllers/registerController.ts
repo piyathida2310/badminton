@@ -222,7 +222,7 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
         const organizerId = Number(req.user.sub);
         const tournament = await prisma.tournament.findUnique({
             where: { id: parsedTournamentId },
-            select: { id: true, organizerId: true, playType: true, name: true },
+            select: { id: true, organizerId: true, playType: true, name: true, rank: true },
         });
 
         if (!tournament) {
@@ -336,6 +336,7 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
                     id: tournament.id,
                     name: tournament.name,
                     playType: tournament.playType,
+                    ranks: tournament.rank,
                 },
                 applicants,
                 meta: {

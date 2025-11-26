@@ -61,7 +61,7 @@ interface Player {
 const evaluationStatusLabel: Record<EvaluationStatus, string> = {
   WAITING: "รอตรวจสอบ",
   PASSED: "ผ่าน",
-  FAILED: "ไม่ผ่าน",
+  FAILED: "ยกเลิก",
 };
 
 const evaluationStatusColor: Record<EvaluationStatus, string> = {
@@ -73,7 +73,7 @@ const evaluationStatusColor: Record<EvaluationStatus, string> = {
 const paymentStatusLabel: Record<PaymentStatus, string> = {
   PENDING: "รอตรวจสอบ",
   CONFIRMED: "สำเร็จ",
-  REJECTED: "ไม่สำเร็จ",
+  REJECTED: "ยกเลิก",
 };
 
 const paymentStatusColor: Record<PaymentStatus, string> = {
@@ -100,6 +100,7 @@ export default function RegisterStatusPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tournamentRanks, setTournamentRanks] = useState<string[]>([]);
 
   const [selectedRank, setSelectedRank] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -111,14 +112,17 @@ export default function RegisterStatusPage() {
   const [videoScore, setVideoScore] = useState<number>(0);
 
   const rankOptions = useMemo(() => {
+    if (tournamentRanks.length > 0) return tournamentRanks;
     const options = Array.from(new Set(players.map((p) => p.rank).filter(Boolean)));
     return options.length ? options : ["BG", "NB", "N", "S", "P-", "P+"];
-  }, [players]);
+  }, [players, tournamentRanks]);
 
   const typeOptions = useMemo(() => {
     const options = Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
     return options.length ? options : ["เดี่ยว", "คู่"];
   }, [players]);
+
+
 
   const mapApplicantToPlayer = (applicant: ApplicantResponse): Player => {
     const fallbackName =
@@ -140,7 +144,7 @@ export default function RegisterStatusPage() {
       videoUrl: applicant.media?.videoUrl ?? null,
       slipUrl: applicant.payment?.slipUrl ?? null,
       status: applicant.status?.evaluation ?? "WAITING",
-      paymentStatus: applicant.payment?.status ?? "PENDING",
+      paymentStatus: applicant.status?.evaluation === "FAILED" ? "REJECTED" : (applicant.payment?.status ?? "PENDING"),
       score: applicant.status?.score ?? undefined,
       comment: applicant.status?.comment ?? "",
     };
@@ -158,11 +162,12 @@ export default function RegisterStatusPage() {
 
       try {
         const response = await api.get(`/api/tournament/${id}/applicants`);
-        const applicants: ApplicantResponse[] = response.data?.data?.applicants ?? [];
+        const data = response.data?.data;
+        const applicants: ApplicantResponse[] = data?.applicants ?? [];
+        const ranks: string[] = data?.tournament?.ranks ?? [];
+
         setPlayers(applicants.map(mapApplicantToPlayer));
-
-
-
+        setTournamentRanks(ranks);
       } catch (err: any) {
         console.error("Failed to load applicants", err);
         let message =
@@ -203,6 +208,9 @@ export default function RegisterStatusPage() {
         setPlayers((prev) => {
           const updated = [...prev];
           updated[index].status = value as EvaluationStatus;
+          if (value === "FAILED") {
+            updated[index].paymentStatus = "REJECTED";
+          }
           return updated;
         });
       } else {
@@ -432,30 +440,26 @@ export default function RegisterStatusPage() {
                             >
                               {evaluationStatusLabel[p.status] ?? p.status}
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(safeIndex, "status", "PASSED")
-                                }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${p.status === "PASSED"
-                                  ? "bg-green-500 text-white"
-                                  : "bg-green-100 text-green-700"
-                                  }`}
-                              >
-                                ยืนยัน
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(safeIndex, "status", "FAILED")
-                                }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${p.status === "FAILED"
-                                  ? "bg-red-500 text-white"
-                                  : "bg-red-100 text-red-700"
-                                  }`}
-                              >
-                                ยกเลิก
-                              </button>
-                            </div>
+                            {p.status === "WAITING" && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(safeIndex, "status", "PASSED")
+                                  }
+                                  className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
+                                >
+                                  ยืนยัน
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(safeIndex, "status", "FAILED")
+                                  }
+                                  className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
+                                >
+                                  ยกเลิก
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="border p-2">
@@ -475,30 +479,26 @@ export default function RegisterStatusPage() {
                             >
                               {paymentStatusLabel[p.paymentStatus] ?? p.paymentStatus}
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(safeIndex, "payment", "CONFIRMED")
-                                }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${p.paymentStatus === "CONFIRMED"
-                                  ? "bg-green-500 text-white"
-                                  : "bg-green-100 text-green-700"
-                                  }`}
-                              >
-                                ยืนยัน
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(safeIndex, "payment", "REJECTED")
-                                }
-                                className={`px-3 py-1 rounded-lg shadow-sm ${p.paymentStatus === "REJECTED"
-                                  ? "bg-red-500 text-white"
-                                  : "bg-red-100 text-red-700"
-                                  }`}
-                              >
-                                ยกเลิก
-                              </button>
-                            </div>
+                            {p.paymentStatus === "PENDING" && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(safeIndex, "payment", "CONFIRMED")
+                                  }
+                                  className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
+                                >
+                                  ยืนยัน
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(safeIndex, "payment", "REJECTED")
+                                  }
+                                  className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
+                                >
+                                  ยกเลิก
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>

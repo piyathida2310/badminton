@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Upload } from "lucide-react";
 import api from "@/lib/api";
 
@@ -11,7 +11,7 @@ const mapStatus = (status: string) => {
     case "PASSED":
       return "สมัครผ่าน";
     case "FAILED":
-      return "ไม่ผ่าน";
+      return "ยกเลิก";
     default:
       return status;
   }
@@ -25,22 +25,32 @@ const mapPaymentStatus = (status: string | undefined | null) => {
     case "CONFIRMED":
       return "ชำระเงินสำเร็จ";
     case "REJECTED":
-      return "ไม่ผ่าน";
+      return "ยกเลิก";
     default:
       return status;
   }
 };
 
-const mapRank = (rank: string) => {
-  switch (rank) {
+const mapRank = (rank: string | undefined | null) => {
+  if (!rank) return "";
+  const r = rank.trim().toUpperCase();
+
+  if (["BG", "NB", "N", "S", "P-", "P+"].includes(r)) {
+    return r;
+  }
+
+  switch (r) {
     case "P_MINUS":
+    case "P_MINUS ":
       return "P-";
     case "P_PLUS":
+    case "P_PLUS ":
       return "P+";
     default:
-      return rank;
+      return r;
   }
 };
+
 
 export default function StatusPage() {
   const [showPayment, setShowPayment] = useState(false);
@@ -51,8 +61,8 @@ export default function StatusPage() {
   const [uploading, setUploading] = useState(false);
 
   const [filter, setFilter] = useState({
-    rank: "BG",
-    type: "เดี่ยว",
+    rank: "",
+    type: "",
   });
 
   const [teams, setTeams] = useState<any[]>([]);
@@ -65,15 +75,17 @@ export default function StatusPage() {
         const registrations = response.data.data;
 
         const formattedTeams = registrations.map((reg: any) => {
+
           const isDouble = reg.tournament.playType === "DOUBLE";
           const members = [
             {
               id: reg.id,
               name: reg.player1Name,
-              rank: mapRank(reg.playType),
+              rank: mapRank(reg.playType?.trim()?.toUpperCase()),
+
               type: isDouble ? "คู่" : "เดี่ยว",
               register: mapStatus(reg.status),
-              payment: mapPaymentStatus(reg.payment?.status),
+              payment: reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
             },
           ];
 
@@ -84,7 +96,7 @@ export default function StatusPage() {
               rank: mapRank(reg.playType),
               type: "คู่",
               register: mapStatus(reg.status),
-              payment: mapPaymentStatus(reg.payment?.status),
+              payment: reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
             });
           }
 
@@ -93,6 +105,21 @@ export default function StatusPage() {
             registrationId: reg.id,
             members,
           };
+        });
+
+        // Sort: Waiting/Pending first
+        formattedTeams.sort((a: any, b: any) => {
+          const getPriority = (team: any) => {
+            const status = team.members[0].register;
+            const payment = team.members[0].payment;
+
+            if (status === "รอยืนยัน" || payment === "รอยืนยัน") return 1;
+            if (status === "สมัครผ่าน") return 2;
+            if (status === "ยกเลิก") return 3;
+            return 4;
+          };
+
+          return getPriority(a) - getPriority(b);
         });
 
         setTeams(formattedTeams);
@@ -134,8 +161,8 @@ export default function StatusPage() {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
-          },
+            "Content-Type": undefined,
+          } as any,
         }
       );
 
@@ -167,14 +194,30 @@ export default function StatusPage() {
     }
   };
 
-  const filteredTeams = teams.map((team) => ({
-    ...team,
-    members: team.members.filter((m: any) => {
-      const rankOK = !filter.rank || m.rank === filter.rank;
-      const typeOK = !filter.type || m.type === filter.type;
-      return rankOK && typeOK;
-    }),
-  }));
+
+
+  const rankOptions = useMemo(() => {
+    const ranks = new Set<string>();
+    teams.forEach((team) => {
+      team.members.forEach((m: any) => {
+        if (m.rank) ranks.add(m.rank);
+      });
+    });
+    return Array.from(ranks).sort();
+  }, [teams]);
+
+  const filteredTeams = teams
+    .map((team) => ({
+      ...team,
+      members: team.members.filter((m: any) => {
+        const rankOK = filter.rank === "" || m.rank === filter.rank;
+        const typeOK = filter.type === "" || m.type === filter.type;
+        return rankOK && typeOK;
+      }),
+    }))
+    .filter((team) => team.members.length > 0);
+
+  const hasData = filteredTeams.some((t) => t.members.length > 0);
 
   if (loading) {
     return (
@@ -201,8 +244,9 @@ export default function StatusPage() {
             }
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
           >
-            {["BG", "NB", "N", "S", "P-", "P+"].map((r) => (
-              <option key={r}>{r}</option>
+            <option value="">ทั้งหมด</option>
+            {rankOptions.map((r) => (
+              <option key={r} value={r}>{r}</option>
             ))}
           </select>
         </div>
@@ -216,8 +260,9 @@ export default function StatusPage() {
             }
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
           >
+            <option value="">ทั้งหมด</option>
             {["คู่", "เดี่ยว"].map((t) => (
-              <option key={t}>{t}</option>
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
         </div>
@@ -225,14 +270,16 @@ export default function StatusPage() {
 
       {/* 🔹 ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
-        {filteredTeams.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">ไม่พบข้อมูลการสมัคร</div>
+        {!hasData ? (
+          <div className="text-center text-gray-500 py-10">
+            ไม่พบข้อมูลสำหรับตัวเลือกนี้
+          </div>
         ) : (
           filteredTeams.map(
             (team) =>
               team.members.length > 0 && (
                 <div
-                  key={team.teamName}
+                  key={team.registrationId}
                   className="rounded-2xl shadow-lg border border-slate-200 bg-gradient-to-br from-[#FFFFFF] to-[#E6F3F9] backdrop-blur-sm"
                 >
                   {/* หัวตาราง */}
@@ -280,10 +327,10 @@ export default function StatusPage() {
                                 return (
                                   <span
                                     className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === "สมัครผ่าน"
-                                        ? "bg-green-200 text-green-800"
-                                        : finalStatus === "รอยืนยัน"
-                                          ? "bg-amber-200 text-amber-800"
-                                          : "bg-red-200 text-red-800"
+                                      ? "bg-green-200 text-green-800"
+                                      : finalStatus === "รอยืนยัน"
+                                        ? "bg-amber-200 text-amber-800"
+                                        : "bg-red-200 text-red-800"
                                       }`}
                                   >
                                     {finalStatus}
@@ -321,10 +368,10 @@ export default function StatusPage() {
                                 return (
                                   <span
                                     className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalPay === "รอยืนยัน"
-                                        ? "bg-yellow-200 text-yellow-800"
-                                        : finalPay === "ชำระเงินสำเร็จ"
-                                          ? "bg-emerald-200 text-emerald-800"
-                                          : "text-gray-400"
+                                      ? "bg-yellow-200 text-yellow-800"
+                                      : finalPay === "ชำระเงินสำเร็จ"
+                                        ? "bg-emerald-200 text-emerald-800"
+                                        : "text-gray-400"
                                       }`}
                                   >
                                     {finalPay}
@@ -343,10 +390,10 @@ export default function StatusPage() {
                               <td className="p-2 border">
                                 <span
                                   className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.register === "สมัครผ่าน"
-                                      ? "bg-green-200 text-green-800"
-                                      : m.register === "รอยืนยัน"
-                                        ? "bg-amber-200 text-amber-800"
-                                        : "bg-red-200 text-red-800"
+                                    ? "bg-green-200 text-green-800"
+                                    : m.register === "รอยืนยัน"
+                                      ? "bg-amber-200 text-amber-800"
+                                      : "bg-red-200 text-red-800"
                                     }`}
                                 >
                                   {m.register}
@@ -370,10 +417,10 @@ export default function StatusPage() {
                               <td className="p-2 border">
                                 <span
                                   className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.payment === "รอยืนยัน"
-                                      ? "bg-yellow-200 text-yellow-800"
-                                      : m.payment === "ชำระเงินสำเร็จ"
-                                        ? "bg-emerald-200 text-emerald-800"
-                                        : "text-gray-400"
+                                    ? "bg-yellow-200 text-yellow-800"
+                                    : m.payment === "ชำระเงินสำเร็จ"
+                                      ? "bg-emerald-200 text-emerald-800"
+                                      : "text-gray-400"
                                     }`}
                                 >
                                   {m.payment}
