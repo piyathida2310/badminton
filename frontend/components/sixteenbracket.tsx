@@ -23,7 +23,7 @@ const MatchTable = () => {
   //  ตรวจว่าอยู่ในโหมดแก้ไขไหม
   const [isEditing, setIsEditing] = useState(false);
 
-   const [showToast, setShowToast] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   // เมื่อแก้ไข input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +34,7 @@ const MatchTable = () => {
   };
 
   //  เมื่อกดบันทึก
-   const handleSave = () => {
+  const handleSave = () => {
     setIsEditing(false);
 
     // แสดง Toast
@@ -48,15 +48,16 @@ const MatchTable = () => {
 
   return (
     <div className="p-1 scale-[1.0] origin-top-left w-fit">
-      {/* ปุ่ม toggle แก้ไข / บันทึก */}
-       {showToast && (
-        <div className="fixed top-4 right-4 z-[9999] bg-green-600 text-white text-[12px] px-4 py-2 rounded shadow-lg animate-[fadeInOut_2s_ease]">
-          ✔️ บันทึกคะแนนเรียบร้อยแล้ว
-        </div>
-      )}
+      {/* จำนวนลูก + ปุ่มแก้ไขคะแนน (แถวเดียวกัน) */}
+      <div className="flex justify-end items-center gap-2 mb-1">
+        {/* ช่องกรอกจำนวนลูก */}
+        <input
+          type="number"
+          placeholder="จำนวนลูก"
+          className="text-[10px] w-20 px-1 py-[2px] border border-gray-400 rounded text-center"
+        />
 
-      {/* ปุ่ม toggle แก้ไข / บันทึก */}
-      <div className="flex justify-end mb-1">
+        {/* ปุ่ม toggle แก้ไขคะแนน */}
         {isEditing ? (
           <button
             onClick={handleSave}
@@ -351,7 +352,7 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
       {/* ครอบทั้งหมด */}
       <div
         id="full-bracket"
-        className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+        className="h-[1280px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
       >
         <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
           🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
@@ -374,39 +375,39 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
             <div>
               <div>
                 <Line top={260} left={545} length={20} angle={1} color="#555" />
-                <Line top={325} left={545} length={20} angle={1} color="#555" />
+                <Line top={385} left={545} length={20} angle={1} color="#555" />
                 <Line
                   top={260}
                   left={565}
-                  length={67}
+                  length={127}
                   angle={90}
                   color="#555"
                 />
-                <Line top={295} left={565} length={35} angle={1} color="#555" />
+                <Line top={325} left={565} length={35} angle={1} color="#555" />
               </div>
               <div>
                 <Line top={510} left={545} length={20} angle={1} color="#555" />
-                <Line top={575} left={545} length={20} angle={1} color="#555" />
+                <Line top={655} left={545} length={20} angle={1} color="#555" />
                 <Line
                   top={510}
                   left={565}
-                  length={66}
+                  length={146}
                   angle={90}
                   color="#555"
                 />
-                <Line top={540} left={565} length={35} angle={1} color="#555" />
+                <Line top={590} left={565} length={35} angle={1} color="#555" />
               </div>
               <div>
                 <Line top={760} left={545} length={20} angle={1} color="#555" />
-                <Line top={825} left={545} length={20} angle={1} color="#555" />
+                <Line top={915} left={545} length={20} angle={1} color="#555" />
                 <Line
                   top={760}
                   left={565}
-                  length={68}
+                  length={157}
                   angle={90}
                   color="#555"
                 />
-                <Line top={795} left={565} length={35} angle={1} color="#555" />
+                <Line top={835} left={565} length={35} angle={1} color="#555" />
               </div>
               <div>
                 <Line
@@ -414,24 +415,24 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
                   left={545}
                   length={20}
                   angle={1}
+                  color="#555"
+                />
+                <Line
+                  top={1180}
+                  left={545}
+                  length={20}
+                  angle={1}
+                  color="#555"
+                />
+                <Line
+                  top={1010}
+                  left={565}
+                  length={171}
+                  angle={90}
                   color="#555"
                 />
                 <Line
                   top={1080}
-                  left={545}
-                  length={20}
-                  angle={1}
-                  color="#555"
-                />
-                <Line
-                  top={1010}
-                  left={565}
-                  length={71}
-                  angle={90}
-                  color="#555"
-                />
-                <Line
-                  top={1040}
                   left={565}
                   length={35}
                   angle={1}
@@ -448,27 +449,27 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
             ))}
             <div>
               <Line top={320} left={1100} length={20} angle={1} color="#555" />
-              <Line top={520} left={1100} length={20} angle={1} color="#555" />
+              <Line top={580} left={1100} length={20} angle={1} color="#555" />
               <Line
                 top={320}
                 left={1120}
-                length={201}
+                length={261}
                 angle={90}
                 color="#555"
               />
-              <Line top={425} left={1120} length={35} angle={1} color="#555" />
+              <Line top={455} left={1120} length={35} angle={1} color="#555" />
             </div>
             <div>
               <Line top={810} left={1100} length={20} angle={1} color="#555" />
-              <Line top={1005} left={1100} length={20} angle={1} color="#555" />
+              <Line top={1085} left={1100} length={20} angle={1} color="#555" />
               <Line
                 top={810}
                 left={1120}
-                length={197}
+                length={277}
                 angle={90}
                 color="#555"
               />
-              <Line top={905} left={1120} length={35} angle={1} color="#555" />
+              <Line top={945} left={1120} length={35} angle={1} color="#555" />
             </div>
           </div>
 
@@ -481,9 +482,9 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
 
           <div>
             <Line top={440} left={1655} length={20} angle={1} color="#555" />
-            <Line top={865} left={1655} length={20} angle={1} color="#555" />
-            <Line top={440} left={1675} length={428} angle={90} color="#555" />
-            <Line top={610} left={1675} length={100} angle={1} color="#555" />
+            <Line top={925} left={1655} length={20} angle={1} color="#555" />
+            <Line top={440} left={1675} length={487} angle={90} color="#555" />
+            <Line top={650} left={1675} length={100} angle={1} color="#555" />
           </div>
 
           {/* Column 4 */}
