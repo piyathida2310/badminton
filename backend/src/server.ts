@@ -17,6 +17,7 @@ import tournamentRouter from './routes/tournamentRoutes'
 import competitionRouter from './routes/competitionRoutes'
 import userRouter from './routes/userRoutes'
 import registerRouter from './routes/registerRoutes'
+import {ensureOpenAIConnection} from './config/openAI';
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),

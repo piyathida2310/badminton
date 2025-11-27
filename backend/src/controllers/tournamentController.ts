@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { tournamentSchema } from "../models/tournamentModels";
 import { ZodError } from "zod";
 import { prisma } from "../services/prismaClient";
 import crypto from "crypto";
 import minioClient from "../config/minioManage";
 import dotenv from "dotenv";
+import {manageGroup,Player} from "../services/openai"
 dotenv.config();
+
 const BUCKET = process.env.MINIO_BUCKET!;
 
 export const createTournament = async (req: Request, res: Response) => {
@@ -300,5 +302,64 @@ export const updateTournament = async (req: Request, res: Response) => {
       message: "Internal server error",
       errors: error instanceof Error ? error.message : error,
     });
+  }
+};
+
+
+export const managegroup = async (req: Request, res: Response) => {
+  try {
+    const tournamentId = Number(req.params.id);
+    const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม"
+
+    // 🎯 ดึงข้อมูล tournament พร้อมผู้ลงทะเบียน
+    const tournament = await prisma.tournament.findUnique({
+      where: {
+        id: tournamentId,
+      },
+      include: {
+        registrations: {
+          select: {
+            id: true,
+            score: true,
+            comment: true,
+            userId:true
+          },
+        },
+      },
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // 🎯 เตรียมข้อมูลผู้เล่นให้เป็น Player[]
+    const players: Player[] = tournament.registrations.map((reg) => ({
+      id: reg.userId,
+      score: reg.score,
+      comment: reg.comment,
+    }));
+
+    // 🎯 เรียก AI เพื่อจัดกลุ่ม
+    const result = await manageGroup(players,detail);
+
+    if(!result)return res.status(400).json({ message: "Cannot Create Group" });
+    return res.status(200).json({
+      message: "จัดกลุ่มสำเร็จ คนสวย 💗",
+      groups: result,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    if (error instanceof Error) {
+      return res.status(400).json({
+        message: "Something went wrong!",
+        errors: error.message,
+      });
+    } else {
+      return res.status(500).json({
+        message: "Internal server error",
+      });
+    }
   }
 };

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../middleware/authMiddleware";
 import { upload } from "../middleware/upload";
-import {createTournament,getTournaments,getTournament,getPoster,getQr,updateTournament} from "../controllers/tournamentController"
+import {createTournament,getTournaments,getTournament,getPoster,getQr,updateTournament,managegroup} from "../controllers/tournamentController"
 
 const router = Router();
 
@@ -18,5 +18,7 @@ router.post(
   ]),createTournament
 );
 router.put("/tournament/:id", authMiddleware,updateTournament);
+router.post("/tournament/managegroup/:id", authMiddleware,managegroup);
+
 
 export default router;
