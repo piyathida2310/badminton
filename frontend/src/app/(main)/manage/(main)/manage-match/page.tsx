@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import {tournament} from "../../../../../../interface/manage"
 
 // import component ที่แยกไว้
 import Form from "../../../../../../components/form";
@@ -14,19 +15,7 @@ export default function TournamentManagePage() {
   );
   const router = useRouter();
 
-  interface tournament {
-    name: string;
-    location: string;
-    playType: "SINGLE" | "DOUBLE" | any;
-    rank: "BG" | "NB" | "N" | "S" | "P_MINUS" | "P_PLUS" | any;
-    shuttlePrice: string;
-    maxPlayers: string;
-    posterImg: string | File | null;
-    qrCodeImg: string | File | null;
-    startDate: string;
-    ruleId: string | null;
-    isLowerBracket: boolean;
-  }
+
 
   // --- ข้อมูลฟอร์มหน้าแรก ---
   const [ranks, setRanks] = useState<string[]>([]);
@@ -114,13 +103,13 @@ const levelOptions = [
   );
 
   // --- toggle ---
-  const toggleValue = (arr: string[], val: string, setArr: any) => {
+  const toggleValue = (arr: string[], val: string, setArr: React.Dispatch<React.SetStateAction<string[]>>) => {
     setArr((prev: string[]) =>
       prev.includes(val) ? prev.filter((x) => x !== val) : [...prev, val]
     );
   };
 
-  const handleUpload = (e: any, type: any) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>, type: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
