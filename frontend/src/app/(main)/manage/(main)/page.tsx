@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import axios from "../../../../lib/api";
 import Photo from "../../../../../components/image";
 import { h1 } from "framer-motion/client";
+import { error } from "console";
+import Swal from "sweetalert2";
 
 interface Tournament {
   id: number;
@@ -13,6 +15,7 @@ interface Tournament {
   date: string;
   image: string;
   canceled: boolean;
+  IsOwner : boolean;
 }
 
 export default function TournamentPage() {
@@ -44,10 +47,50 @@ export default function TournamentPage() {
     router.push(`/manage/${id}/manage-rules/`);
   };
 
+  
   const handleCancel = async (id: number) => {
+  // แจ้งเตือนยืนยันก่อนยกเลิก
+  const confirm = await Swal.fire({
+    title: "ต้องการยกเลิกรายการจัดแข่งหรือไม่?",
+    text: "เมื่อตกลงแล้วจะไม่สามารถย้อนกลับได้",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "ตกลง",
+    cancelButtonText: "ยกเลิก",
+    confirmButtonColor: "#10b981", // สีเขียว (emerald green)
+    cancelButtonColor: "#6b7280",
+  });
+
+  if (!confirm.isConfirmed) return; // ถ้ากด "ยกเลิก" ให้หยุดตรงนี้
+
+  try {
     await axios.put(`/api/tournament/${id}`);
     fetchTournament(currentPage); // refresh
-  };
+
+    // แจ้งเตือนสำเร็จ
+    Swal.fire({
+      title: "ยกเลิกสำเร็จ!",
+      text: "รายการถูกยกเลิกเรียบร้อยแล้ว",
+      icon: "success",
+      confirmButtonText: "ตกลง",
+      confirmButtonColor: "#10b981"
+    });
+
+  } catch (error: any) {
+    console.log(error);
+
+    const message = error.response?.data?.message || "เกิดข้อผิดพลาด";
+
+    Swal.fire({
+      title: "ผิดพลาด",
+      text: message,
+      icon: "error",
+      confirmButtonText: "ตกลง",
+    });
+  }
+};
+
+
 
   function formatThaiDate(dateStr: string) {
     const date = new Date(dateStr);
@@ -120,14 +163,13 @@ export default function TournamentPage() {
 
               <button
                 disabled={t.canceled}
-                onClick={() => handleCancel(t.id)}
+                onClick={t.IsOwner? () => handleCancel(t.id):() => null}
                 className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${
-                  t.canceled
-                    ? "bg-gray-400 cursor-not-allowed text-gray-200"
-                    : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
+                  t.IsOwner  ? t.canceled? "bg-gray-400 cursor-not-allowed text-gray-200":"bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
+                    :"bg-gray-400 cursor-not-allowed text-gray-200"
                 }`}
               >
-                {t.canceled ? "ยกเลิกแล้ว" : "ยกเลิกจัดแข่ง"}
+                {t.IsOwner === true? t.canceled?"ยกเลิกสำเร็จ":"ยกเลิกรายการจัดแข่ง":"คุณไม่สามารถยกเลิกได้"}
               </button>
             </div>
           </motion.div>

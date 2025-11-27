@@ -189,6 +189,7 @@ export const getTournaments = async (req: Request, res: Response) => {
       canceled: tournament.isCancel,
       competition: tournament.competition,
       rule: tournament.rule,
+      IsOwner:Number(req.user.sub) === tournament.organizerId
     }));
 
     return res.status(200).json({
@@ -274,6 +275,8 @@ export const updateTournament = async (req: Request, res: Response) => {
     if (!tournament) {
       return res.status(404).json({ message: "Tournament not found" });
     }
+
+    if(Number(req.user.sub) !== tournament.organizerId) return res.status(400).json({ message: "You can only cancel tournament your own." });
 
     // ❗ หากยกเลิกแล้ว ห้ามกดยกเลิกอีก
     if (tournament.isCancel) {
