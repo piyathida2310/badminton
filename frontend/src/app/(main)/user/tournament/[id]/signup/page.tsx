@@ -362,7 +362,7 @@ export default function RegisterPage() {
 
         {/* Upload */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">วิดีโอแนะนำตัว (ไม่บังคับ)</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">วิดีโอการเล่น </h2>
           <label className="flex flex-col items-center justify-center text-center border-2 border-dashed border-pink-300 rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
             <UploadCloud className="w-10 h-10 text-pink-400 mb-3" />
             {video ? (
@@ -370,7 +370,7 @@ export default function RegisterPage() {
             ) : (
               <>
                 <p className="font-semibold text-pink-700">
-                  อัปโหลดวิดีโอแนะนำตัว
+                  อัปโหลดวิดีโอการเล่น
                 </p>
                 <p className="text-xs text-gray-500 mt-1">รองรับไฟล์วิดีโอทุกประเภท</p>
               </>
