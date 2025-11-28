@@ -193,6 +193,16 @@ export default function RegisterStatusPage() {
         setPlayers(applicants.map(mapApplicantToPlayer));
         setTournamentRanks(ranks);
         setTournamentTypes(types);
+        // ⭐ ตั้งค่า default เฉพาะครั้งแรกเท่านั้น เพื่อไม่ให้เด้งเวลาเปลี่ยนสถานะ
+setSelectedRank(prev => prev || (ranks.length > 0
+  ? mapHandTypeLabel(ranks[0])
+  : (applicants.length > 0 ? mapHandTypeLabel(applicants[0].rank) : "")
+));
+
+setSelectedType(prev => prev || (types.length > 0
+  ? types[0]
+  : (applicants.length > 0 ? mapMatchTypeLabel(applicants[0].matchType) : "")
+));
       } catch (err: any) {
         console.error("Failed to load applicants", err);
         let message =
@@ -215,18 +225,6 @@ export default function RegisterStatusPage() {
     fetchApplicants();
   }, [id]);
 
-// ตั้งค่าแค่ตอนเริ่มต้น ไม่ใช่ตอน players เปลี่ยน
-useEffect(() => {
-  if (!selectedRank && rankOptions.length > 0) {
-    setSelectedRank(rankOptions[0]);
-  }
-}, [rankOptions, selectedRank]);
-
-useEffect(() => {
-  if (!selectedType && typeOptions.length > 0) {
-    setSelectedType(typeOptions[0]);
-  }
-}, [typeOptions, selectedType]);
 
 
 
