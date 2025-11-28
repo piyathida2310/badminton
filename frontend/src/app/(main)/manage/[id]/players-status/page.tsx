@@ -103,7 +103,7 @@ export default function RegisterStatusPage() {
   const [tournamentRanks, setTournamentRanks] = useState<string[]>([]);
   const [tournamentTypes, setTournamentTypes] = useState<string[]>([]);
   const [selectedRank, setSelectedRank] = useState("");
-  
+
   const [selectedType, setSelectedType] = useState("");
   const [modalVideo, setModalVideo] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -119,8 +119,8 @@ export default function RegisterStatusPage() {
   }, [players, tournamentRanks]);
 
   const typeOptions = useMemo(() => {
-  return Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
-}, [players]);
+    return Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
+  }, [players]);
 
 
   // Removed auto-selection useEffects to allow "All" (empty) as default
@@ -151,7 +151,7 @@ export default function RegisterStatusPage() {
     };
   };
 
-  
+
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -215,19 +215,19 @@ export default function RegisterStatusPage() {
     fetchApplicants();
   }, [id]);
 
-  // Auto-select ประเภทมือ
+// ตั้งค่าแค่ตอนเริ่มต้น ไม่ใช่ตอน players เปลี่ยน
 useEffect(() => {
-  if (rankOptions.length > 0) {
+  if (!selectedRank && rankOptions.length > 0) {
     setSelectedRank(rankOptions[0]);
   }
-}, [rankOptions]);
+}, [rankOptions, selectedRank]);
 
-// Auto-select ประเภท (เดี่ยว/คู่)
 useEffect(() => {
-  if (typeOptions.length > 0) {
+  if (!selectedType && typeOptions.length > 0) {
     setSelectedType(typeOptions[0]);
   }
-}, [typeOptions]);
+}, [typeOptions, selectedType]);
+
 
 
 
@@ -354,7 +354,7 @@ useEffect(() => {
               onChange={(e) => setSelectedRank(e.target.value)}
               className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
             >
-              
+
               {rankOptions.map((r) => (
                 <option key={r} value={r}>
                   {r}
@@ -370,7 +370,7 @@ useEffect(() => {
               onChange={(e) => setSelectedType(e.target.value)}
               className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
             >
-              
+
               {typeOptions.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -452,12 +452,12 @@ useEffect(() => {
                         <td className="border p-2">
                           <button
                             onClick={() => {
-                              if (!hasVideo || p.status === "PASSED") return;
+                              if (!hasVideo || p.status === "PASSED" || p.status === "FAILED") return;
                               setModalVideo(p.videoUrl || null);
                               setSelectedPlayerIndex(safeIndex);
                             }}
-                            disabled={!hasVideo || p.status === "PASSED"}
-                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                            disabled={!hasVideo || p.status === "PASSED" || p.status === "FAILED"}
+                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
                             ดูวิดีโอ
@@ -471,8 +471,8 @@ useEffect(() => {
                             value={p.comment || ""}
                             onChange={(e) => handleCommentChange(safeIndex, e.target.value)}
                             placeholder="เพิ่มความคิดเห็น..."
-                            disabled={p.status === "PASSED"}
-                            className={`w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm ${p.status === "PASSED" ? "opacity-50 cursor-not-allowed bg-gray-100" : ""
+                            disabled={p.status === "PASSED" || p.status === "FAILED"}
+                            className={`w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm ${p.status === "PASSED" || p.status === "FAILED" ? "opacity-50 cursor-not-allowed bg-gray-100" : ""
                               }`}
                           />
                         </td>
@@ -486,17 +486,21 @@ useEffect(() => {
                             {p.status === "WAITING" && (
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() =>
-                                    handleStatusChange(safeIndex, "status", "PASSED")
-                                  }
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(safeIndex, "status", "PASSED");
+                                  }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
                                 >
                                   ยืนยัน
                                 </button>
                                 <button
-                                  onClick={() =>
-                                    handleStatusChange(safeIndex, "status", "FAILED")
-                                  }
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(safeIndex, "status", "FAILED");
+                                  }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
                                 >
                                   ยกเลิก
@@ -525,17 +529,21 @@ useEffect(() => {
                             {p.paymentStatus === "PENDING" && (
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() =>
-                                    handleStatusChange(safeIndex, "payment", "CONFIRMED")
-                                  }
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(safeIndex, "payment", "CONFIRMED");
+                                  }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
                                 >
                                   ยืนยัน
                                 </button>
                                 <button
-                                  onClick={() =>
-                                    handleStatusChange(safeIndex, "payment", "REJECTED")
-                                  }
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(safeIndex, "payment", "REJECTED");
+                                  }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
                                 >
                                   ยกเลิก
