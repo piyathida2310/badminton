@@ -102,8 +102,8 @@ export default function RegisterStatusPage() {
   const [error, setError] = useState<string | null>(null);
   const [tournamentRanks, setTournamentRanks] = useState<string[]>([]);
   const [tournamentTypes, setTournamentTypes] = useState<string[]>([]);
-
   const [selectedRank, setSelectedRank] = useState("");
+  
   const [selectedType, setSelectedType] = useState("");
   const [modalVideo, setModalVideo] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -119,11 +119,9 @@ export default function RegisterStatusPage() {
   }, [players, tournamentRanks]);
 
   const typeOptions = useMemo(() => {
-    if (tournamentTypes.length > 0) return tournamentTypes;
-    if (players.length === 0) return ["เดี่ยว", "คู่"];
-    const options = Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
-    return options.length ? options : ["เดี่ยว", "คู่"];
-  }, [players, tournamentTypes]);
+  return Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
+}, [players]);
+
 
   // Removed auto-selection useEffects to allow "All" (empty) as default
 
@@ -143,7 +141,7 @@ export default function RegisterStatusPage() {
       team: applicant.teamName || applicant.managerName || fallbackName,
       names: playerNames,
       rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
-      type: applicant.matchTypeLabel || mapMatchTypeLabel(applicant.matchType),
+      type: mapMatchTypeLabel(applicant.matchType),
       videoUrl: applicant.media?.videoUrl ?? null,
       slipUrl: applicant.payment?.slipUrl ?? null,
       status: applicant.status?.evaluation ?? "WAITING",
@@ -152,6 +150,8 @@ export default function RegisterStatusPage() {
       comment: applicant.status?.comment ?? "",
     };
   };
+
+  
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -214,6 +214,22 @@ export default function RegisterStatusPage() {
 
     fetchApplicants();
   }, [id]);
+
+  // Auto-select ประเภทมือ
+useEffect(() => {
+  if (rankOptions.length > 0) {
+    setSelectedRank(rankOptions[0]);
+  }
+}, [rankOptions]);
+
+// Auto-select ประเภท (เดี่ยว/คู่)
+useEffect(() => {
+  if (typeOptions.length > 0) {
+    setSelectedType(typeOptions[0]);
+  }
+}, [typeOptions]);
+
+
 
   const handleStatusChange = async (
     index: number,
@@ -338,7 +354,7 @@ export default function RegisterStatusPage() {
               onChange={(e) => setSelectedRank(e.target.value)}
               className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
             >
-              <option value="">ทั้งหมด</option>
+              
               {rankOptions.map((r) => (
                 <option key={r} value={r}>
                   {r}
@@ -354,7 +370,7 @@ export default function RegisterStatusPage() {
               onChange={(e) => setSelectedType(e.target.value)}
               className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
             >
-              <option value="">ทั้งหมด</option>
+              
               {typeOptions.map((t) => (
                 <option key={t} value={t}>
                   {t}
