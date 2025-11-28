@@ -10,6 +10,7 @@ import {
     updateRegistrationEvaluation,
     updatePaymentStatus,
     uploadPaymentSlip,
+    getPaymentSlip,
 } from "../controllers/registerController";
 
 const router = Router();
@@ -59,6 +60,13 @@ router.post(
     authMiddleware,
     upload.fields([{ name: "slip" }]),
     uploadPaymentSlip
+);
+
+// Get payment slip URL - User only
+router.get(
+    "/payment/slip/:registrationId",
+    authMiddleware,
+    getPaymentSlip
 );
 
 export default router;

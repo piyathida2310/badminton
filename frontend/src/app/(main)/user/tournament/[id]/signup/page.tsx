@@ -41,7 +41,7 @@ export default function RegisterPage() {
       try {
         const response = await axios.get(`/api/tournament/${id}`);
         setTournament(response.data.data);
-        
+
         // Set default mode based on tournament playType
         if (response.data.data.playType === "SINGLE") {
           setMode("single");
@@ -90,7 +90,7 @@ export default function RegisterPage() {
 
     // Check if tournament requires double mode
     const requiresDouble = tournament && tournament.playType === "DOUBLE";
-    
+
     if (requiresDouble) {
       return (
         baseValid &&
@@ -187,7 +187,7 @@ export default function RegisterPage() {
                   type="radio"
                   name="mode"
                   checked={mode === (tournament.playType === "SINGLE" ? "single" : "double")}
-                  onChange={() => {}}
+                  onChange={() => { }}
                   className="accent-pink-500 w-4 h-4"
                   disabled
                 />
@@ -260,6 +260,7 @@ export default function RegisterPage() {
                   value={formData.player1Phone}
                   onChange={handleInputChange}
                   placeholder="08x-xxx-xxxx"
+                  maxLength={10}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
                   required
                 />
@@ -271,6 +272,7 @@ export default function RegisterPage() {
                   name="player1Birthday"
                   value={formData.player1Birthday}
                   onChange={handleInputChange}
+                  max={new Date().toISOString().split("T")[0]}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
                   required
                 />
@@ -310,6 +312,7 @@ export default function RegisterPage() {
                     value={formData.player2Phone}
                     onChange={handleInputChange}
                     placeholder="08x-xxx-xxxx"
+                    maxLength={10}
                     className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
                     required
                   />
@@ -321,6 +324,7 @@ export default function RegisterPage() {
                     name="player2Birthday"
                     value={formData.player2Birthday}
                     onChange={handleInputChange}
+                    max={new Date().toISOString().split("T")[0]}
                     className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
                     required
                   />
@@ -343,11 +347,11 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setSelectedRank(rank)}
                   className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
-                      ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                      : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                    ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
+                    : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
                     }`}
                 >
-                  {rank}
+                  {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
                 </button>
               ))
             ) : (

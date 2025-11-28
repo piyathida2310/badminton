@@ -282,6 +282,9 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
                 const videoUrl = await getSignedUrlOrNull(registration.videoUrl);
                 const slipUrl = await getSignedUrlOrNull(registration.payment?.slipImg);
 
+                // Determine if it's a double match based on player 2 presence
+                const isDouble = Boolean(registration.player2Name);
+
                 return {
                     registrationId: registration.id,
                     tournamentId: registration.tournamentId,
@@ -296,7 +299,7 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
                             phoneNumber: registration.phoneNumber,
                             birthday: registration.player1Birthday,
                         },
-                        registration.tournament.playType === "DOUBLE"
+                        isDouble
                             ? {
                                 name: registration.player2Name,
                                 phoneNumber: registration.player2Phone,
@@ -306,9 +309,8 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
                     ].filter((player): player is NonNullable<typeof player> => Boolean(player)),
                     rank: registration.playType,
                     rankLabel: HAND_TYPE_LABELS[registration.playType] || registration.playType,
-                    matchType: registration.tournament.playType,
-                    matchTypeLabel:
-                        MATCH_TYPE_LABELS[registration.tournament.playType] || registration.tournament.playType,
+                    matchType: isDouble ? "DOUBLE" : "SINGLE",
+                    matchTypeLabel: isDouble ? "คู่" : "เดี่ยว",
                     status: {
                         evaluation: registration.status,
                         score: registration.score,
@@ -609,6 +611,65 @@ export const uploadPaymentSlip = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error("Upload Payment Slip Error:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: error instanceof Error ? error.message : error,
+        });
+    }
+};
+
+// Get payment slip URL
+export const getPaymentSlip = async (req: Request, res: Response) => {
+    try {
+        const { registrationId } = req.params;
+
+        if (!registrationId) {
+            return res.status(400).json({
+                message: "Registration ID is required",
+            });
+        }
+
+        const parsedRegistrationId = Number(registrationId);
+        if (Number.isNaN(parsedRegistrationId)) {
+            return res.status(400).json({
+                message: "Invalid registration ID",
+            });
+        }
+
+        // Get registration
+        const registration = await prisma.register.findUnique({
+            where: { id: parsedRegistrationId },
+            include: { payment: true },
+        });
+
+        if (!registration) {
+            return res.status(404).json({
+                message: "Registration not found",
+            });
+        }
+
+        // Check if user owns this registration
+        const userId = Number(req.user.sub);
+        if (registration.userId !== userId) {
+            return res.status(403).json({
+                message: "Forbidden: you can only view payment slip for your own registration",
+            });
+        }
+
+        if (!registration.payment || !registration.payment.slipImg) {
+            return res.status(404).json({
+                message: "Payment slip not found",
+            });
+        }
+
+        const slipUrl = await getSignedUrlOrNull(registration.payment.slipImg);
+
+        return res.status(200).json({
+            message: "Payment slip fetched successfully",
+            url: slipUrl,
+        });
+    } catch (error) {
+        console.error("Get Payment Slip Error:", error);
         return res.status(500).json({
             message: "Internal server error",
             error: error instanceof Error ? error.message : error,

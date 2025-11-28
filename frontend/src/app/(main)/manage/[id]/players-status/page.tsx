@@ -101,6 +101,7 @@ export default function RegisterStatusPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tournamentRanks, setTournamentRanks] = useState<string[]>([]);
+  const [tournamentTypes, setTournamentTypes] = useState<string[]>([]);
 
   const [selectedRank, setSelectedRank] = useState("");
   const [selectedType, setSelectedType] = useState("");
@@ -112,17 +113,19 @@ export default function RegisterStatusPage() {
   const [videoScore, setVideoScore] = useState<number>(0);
 
   const rankOptions = useMemo(() => {
-    if (tournamentRanks.length > 0) return tournamentRanks;
+    if (tournamentRanks.length > 0) return tournamentRanks.map(r => mapHandTypeLabel(r));
     const options = Array.from(new Set(players.map((p) => p.rank).filter(Boolean)));
     return options.length ? options : ["BG", "NB", "N", "S", "P-", "P+"];
   }, [players, tournamentRanks]);
 
   const typeOptions = useMemo(() => {
+    if (tournamentTypes.length > 0) return tournamentTypes;
+    if (players.length === 0) return ["เดี่ยว", "คู่"];
     const options = Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
     return options.length ? options : ["เดี่ยว", "คู่"];
-  }, [players]);
+  }, [players, tournamentTypes]);
 
-
+  // Removed auto-selection useEffects to allow "All" (empty) as default
 
   const mapApplicantToPlayer = (applicant: ApplicantResponse): Player => {
     const fallbackName =
@@ -166,8 +169,30 @@ export default function RegisterStatusPage() {
         const applicants: ApplicantResponse[] = data?.applicants ?? [];
         const ranks: string[] = data?.tournament?.ranks ?? [];
 
+        // Handle playType which might be a string or array of strings
+        let playTypesRaw = data?.tournament?.playType;
+        let types: string[] = [];
+
+        if (Array.isArray(playTypesRaw)) {
+          types = playTypesRaw.map((t: string) => mapMatchTypeLabel(t));
+        } else if (typeof playTypesRaw === 'string') {
+          // In case it's a single string, though usually it's an array for checkboxes
+          // If it's a JSON string representation of array
+          try {
+            const parsed = JSON.parse(playTypesRaw);
+            if (Array.isArray(parsed)) {
+              types = parsed.map((t: string) => mapMatchTypeLabel(t));
+            } else {
+              types = [mapMatchTypeLabel(playTypesRaw)];
+            }
+          } catch {
+            types = [mapMatchTypeLabel(playTypesRaw)];
+          }
+        }
+
         setPlayers(applicants.map(mapApplicantToPlayer));
         setTournamentRanks(ranks);
+        setTournamentTypes(types);
       } catch (err: any) {
         console.error("Failed to load applicants", err);
         let message =
@@ -411,12 +436,12 @@ export default function RegisterStatusPage() {
                         <td className="border p-2">
                           <button
                             onClick={() => {
-                              if (!hasVideo) return;
+                              if (!hasVideo || p.status === "PASSED") return;
                               setModalVideo(p.videoUrl || null);
                               setSelectedPlayerIndex(safeIndex);
                             }}
-                            disabled={!hasVideo}
-                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                            disabled={!hasVideo || p.status === "PASSED"}
+                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
                             ดูวิดีโอ
@@ -430,7 +455,9 @@ export default function RegisterStatusPage() {
                             value={p.comment || ""}
                             onChange={(e) => handleCommentChange(safeIndex, e.target.value)}
                             placeholder="เพิ่มความคิดเห็น..."
-                            className="w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm"
+                            disabled={p.status === "PASSED"}
+                            className={`w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm ${p.status === "PASSED" ? "opacity-50 cursor-not-allowed bg-gray-100" : ""
+                              }`}
                           />
                         </td>
                         <td className="border p-2">

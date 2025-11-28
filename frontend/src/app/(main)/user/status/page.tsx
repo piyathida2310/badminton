@@ -59,6 +59,8 @@ export default function StatusPage() {
   const [currentRegistrationId, setCurrentRegistrationId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [modalQrCodeUrl, setModalQrCodeUrl] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
 
   const [filter, setFilter] = useState({
     rank: "",
@@ -104,6 +106,9 @@ export default function StatusPage() {
             teamName: reg.teamName || "ไม่มีชื่อทีม",
             registrationId: reg.id,
             members,
+            qrCodeUrl: reg.tournament?.qrCodeImg,
+            tournamentId: reg.tournament?.id,
+            slipUrl: reg.payment?.slipImg,
           };
         });
 
@@ -132,6 +137,47 @@ export default function StatusPage() {
 
     fetchRegistrations();
   }, []);
+
+  // Fetch QR and Slip when modal opens
+  useEffect(() => {
+    if (showPayment && currentRegistrationId) {
+      const team = teams.find((t) => t.registrationId === currentRegistrationId);
+      if (team) {
+        // Fetch QR Code
+        if (team.tournamentId) {
+          setLoadingQr(true);
+          api.get(`/api/payment/qr/${team.tournamentId}`)
+            .then((res) => {
+              setModalQrCodeUrl(res.data.url);
+            })
+            .catch((err) => {
+              console.error("Failed to fetch QR code:", err);
+              setModalQrCodeUrl(null);
+            })
+            .finally(() => {
+              setLoadingQr(false);
+            });
+        }
+
+        // Fetch existing slip if available
+        if (team.slipUrl) {
+          api.get(`/api/payment/slip/${team.registrationId}`)
+            .then((res) => {
+              setUploadedSlip(res.data.url);
+            })
+            .catch((err) => {
+              console.error("Failed to fetch slip:", err);
+              setUploadedSlip(null);
+            });
+        } else {
+          setUploadedSlip(null);
+        }
+      }
+    } else {
+      setModalQrCodeUrl(null);
+      setUploadedSlip(null);
+    }
+  }, [showPayment, currentRegistrationId, teams]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -193,8 +239,6 @@ export default function StatusPage() {
       setUploading(false);
     }
   };
-
-
 
   const rankOptions = useMemo(() => {
     const ranks = new Set<string>();
@@ -314,8 +358,6 @@ export default function StatusPage() {
                             </td>
                             <td className="p-2 border">{team.members[0].rank}</td>
                             <td className="p-2 border">{team.members[0].type}</td>
-
-                            {/* ✅ รวมสถานะการสมัครทั้งทีม */}
                             <td className="p-2 border">
                               {(() => {
                                 const statuses = team.members.map((m: any) => m.register);
@@ -323,7 +365,7 @@ export default function StatusPage() {
                                   ? "รอยืนยัน"
                                   : statuses.includes("สมัครผ่าน")
                                     ? "สมัครผ่าน"
-                                    : "ไม่ผ่าน";
+                                    : "ยกเลิก";
                                 return (
                                   <span
                                     className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === "สมัครผ่าน"
@@ -338,10 +380,8 @@ export default function StatusPage() {
                                 );
                               })()}
                             </td>
-
-                            {/* ชำระเงิน */}
                             <td className="p-2 border">
-                              {team.members.some((m: any) => m.register === "สมัครผ่าน") ? (
+                              {team.members[0].register === "สมัครผ่าน" ? (
                                 <button
                                   onClick={() => {
                                     setCurrentRegistrationId(team.registrationId);
@@ -436,69 +476,114 @@ export default function StatusPage() {
               )
           )
         )}
-      </div>
+      </div >
 
       {/* 💳 Modal ชำระเงิน */}
-      {showPayment && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full relative border-2 border-sky-200">
-            <button
-              onClick={() => setShowPayment(false)}
-              className="absolute top-3 right-4 text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
-            <h2 className="text-lg sm:text-xl font-bold text-center mb-6 text-[#1E293B]">
-              ช่องทางการชำระเงิน
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
-              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                <img
-                  src="/images/qrcode.jpeg"
-                  alt="QR Code"
-                  className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#CFE8FA] shadow-md object-contain mb-3"
-                />
-                <p className="text-sm text-gray-600 text-center mt-1">
-                  สแกน QR เพื่อโอนเข้าบัญชี
-                </p>
-              </div>
-
-              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[300px]">
-                {uploadedSlip ? (
-                  <img
-                    src={uploadedSlip}
-                    alt="slip"
-                    className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#CFE8FA] shadow-md mb-2"
-                  />
-                ) : (
-                  <label className="flex flex-col items-center justify-center text-gray-500 cursor-pointer">
-                    <Upload className="w-8 h-8 mb-2" />
-                    <p className="text-sm text-center">อัปโหลดสลิปชำระเงิน</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleUpload}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
-            <div className="text-center mt-6">
+      {
+        showPayment && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full relative border-2 border-sky-200">
               <button
-                onClick={confirmPayment}
-                disabled={uploading || !uploadedFile}
-                className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
-                  }`}
+                onClick={() => {
+                  setShowPayment(false);
+                  setUploadedSlip(null);
+                  setUploadedFile(null);
+                }}
+                className="absolute top-3 right-4 text-gray-500 hover:text-gray-700"
               >
-                {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
+                ✕
               </button>
+              <h2 className="text-lg sm:text-xl font-bold text-center mb-6 text-[#1E293B]">
+                ช่องทางการชำระเงิน
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
+                <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                  {loadingQr ? (
+                    <div className="text-gray-500">กำลังโหลด QR Code...</div>
+                  ) : modalQrCodeUrl ? (
+                    <img
+                      src={modalQrCodeUrl}
+                      alt="QR Code"
+                      className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#CFE8FA] shadow-md object-contain mb-3"
+                    />
+                  ) : (
+                    <div className="text-gray-500">ยังไม่มี QR Code</div>
+                  )}
+                  <p className="text-sm text-gray-600 text-center mt-1">
+                    สแกน QR เพื่อโอนเข้าบัญชี
+                  </p>
+                </div>
+
+                <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[300px]">
+                  {(() => {
+                    const team = teams.find((t) => t.registrationId === currentRegistrationId);
+                    const paymentStatus = team?.members[0]?.payment;
+                    const isEditable = paymentStatus !== "ชำระเงินสำเร็จ" && paymentStatus !== "ยกเลิก";
+
+                    return uploadedSlip ? (
+                      <div className="relative group">
+                        <img
+                          src={uploadedSlip}
+                          alt="slip"
+                          className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#CFE8FA] shadow-md mb-2"
+                        />
+                        {isEditable && (
+                          <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
+                            <p className="text-white font-semibold">เปลี่ยนรูปภาพ</p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    ) : (
+                      <label className={`flex flex-col items-center justify-center text-gray-500 ${isEditable ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+                        <Upload className="w-8 h-8 mb-2" />
+                        <p className="text-sm text-center">
+                          {isEditable ? "อัปโหลดสลิปชำระเงิน" : "ไม่สามารถอัปโหลดได้"}
+                        </p>
+                        {isEditable && (
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUpload}
+                            className="hidden"
+                          />
+                        )}
+                      </label>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              <div className="text-center mt-6">
+                {(() => {
+                  const team = teams.find((t) => t.registrationId === currentRegistrationId);
+                  const paymentStatus = team?.members[0]?.payment;
+                  const isEditable = paymentStatus !== "ชำระเงินสำเร็จ" && paymentStatus !== "ยกเลิก";
+
+                  if (!isEditable) return null;
+
+                  return (
+                    <button
+                      onClick={confirmPayment}
+                      disabled={uploading || !uploadedFile}
+                      className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                        }`}
+                    >
+                      {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
+                    </button>
+                  );
+                })()}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
