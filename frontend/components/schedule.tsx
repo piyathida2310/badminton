@@ -66,33 +66,46 @@ export default function Schedule({
   }, [tournamentID]);
 
   //  บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
-  const handleSubmitCom = async () => {
-    try {
-      const payload = {
-        time: safeTime,
-        detail: safeDesc,
-        rank: Array.isArray(safeLevels) ? safeLevels : [safeLevels],
-        tournamentId: tournamentID,
-      };
+ const handleSubmitCom = async () => {
+  try {
+    const payload = {
+      time: safeTime,
+      detail: safeDesc,
+      rank: Array.isArray(safeLevels) ? safeLevels : [safeLevels],
+      tournamentId: tournamentID,
+    };
 
-      if (editingCompetID === null) {
-        // ➤ เพิ่มใหม่
-        await axios.post("/api/compet", payload);
-      } else {
-        // ➤ แก้ไข
-        await axios.put(`/api/compet/${editingCompetID}`, payload);
-      }
+    //  หาเวลาที่ซ้ำ (เฉพาะตอนเพิ่ม)
+    const duplicate = compet.find(
+      (c) =>
+        formatTime(c.time) === safeTime &&
+        c.tournamentId === tournamentID
+    );
 
-      await fetCompet();
-      setShowAddModal(false);
-
-      // reset
-      setEditIndex(null);
-      setEditingCompetID(null);
-    } catch (error) {
-      console.log(error);
+    if (editingCompetID !== null) {
+      // แก้ไขจากปุ่ม "แก้ไข"
+      await axios.put(`/api/compet/${editingCompetID}`, payload);
+    } else if (duplicate) {
+      // เวลาเหมือน → เขียนทับ
+      await axios.put(`/api/compet/${duplicate.id}`, payload);
+    } else {
+      // เพิ่มใหม่
+      await axios.post("/api/compet", payload);
     }
-  };
+
+    await fetCompet();
+    setShowAddModal(false);
+
+    // reset state
+    setEditIndex(null);
+    setEditingCompetID(null);
+    setNewRoundTime("");
+    setNewRoundDesc("");
+    setNewRoundLevels([]);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   return (
     <>

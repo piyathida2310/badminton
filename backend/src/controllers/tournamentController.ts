@@ -287,7 +287,7 @@ export const updateTournament = async (req: Request, res: Response) => {
       });
     }
 
-    // ❗ ยกเลิกแบบถาวร
+    // ยกเลิกแบบถาวร
     const update = await prisma.tournament.update({
       where: { id },
       data: { isCancel: true },
@@ -345,7 +345,7 @@ export const managegroup = async (req: Request, res: Response) => {
     const tournamentId = Number(req.params.id);
     const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม"
 
-    // 🎯 ดึงข้อมูล tournament พร้อมผู้ลงทะเบียน
+    //  ดึงข้อมูล tournament พร้อมผู้ลงทะเบียน
     const tournament = await prisma.tournament.findUnique({
       where: {
         id: tournamentId,
@@ -366,19 +366,19 @@ export const managegroup = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    // 🎯 เตรียมข้อมูลผู้เล่นให้เป็น Player[]
+    //  เตรียมข้อมูลผู้เล่นให้เป็น Player[]
     const players: Player[] = tournament.registrations.map((reg) => ({
       id: reg.userId,
       score: reg.score,
       comment: reg.comment,
     }));
 
-    // 🎯 เรียก AI เพื่อจัดกลุ่ม
+    //  เรียก AI เพื่อจัดกลุ่ม
     const result = await manageGroup(players, detail);
 
     if (!result) return res.status(400).json({ message: "Cannot Create Group" });
     return res.status(200).json({
-      message: "จัดกลุ่มสำเร็จ คนสวย 💗",
+      message: "จัดกลุ่มสำเร็จ ",
       groups: result,
     });
 
