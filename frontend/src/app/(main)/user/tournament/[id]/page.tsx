@@ -11,6 +11,8 @@ interface Tournament {
   date: string;
   image: string;
   canceled: boolean;
+  maxPlayers: number;
+  currentPlayers: number;
 }
 
 export default function TournamentDetailPage() {
@@ -58,6 +60,9 @@ export default function TournamentDetailPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!tournament) return <div className="min-h-screen flex items-center justify-center">Tournament not found</div>;
 
+  const isFull = (tournament.currentPlayers || 0) >= (tournament.maxPlayers || 0);
+  const isDisabled = isFull || tournament.canceled;
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#FFFDF6] via-[#F9F6EE] to-[#EDEAE3] px-6 py-10">
       <button
@@ -77,7 +82,12 @@ export default function TournamentDetailPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-800 mb-2">{tournament.title}</h1>
-        <p className="text-gray-600 mb-6">{formatThaiDate(tournament.date)}</p>
+        <div className="flex justify-between items-center mb-6">
+          <p className="text-gray-600">{formatThaiDate(tournament.date)}</p>
+          <p className="text-sm text-gray-500">
+            ผู้สมัคร: {tournament.currentPlayers}/{tournament.maxPlayers}
+          </p>
+        </div>
 
         <h2 className="text-lg font-semibold mb-3 text-pink-600">🏸 กติกาการแข่งขัน</h2>
         <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
@@ -87,10 +97,18 @@ export default function TournamentDetailPage() {
         </ul>
 
         <button
-          onClick={() => router.push(`/user/tournament/${id}/signup`)}
-          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-medium text-lg shadow hover:scale-105 transition-all"
+          onClick={() => !isDisabled && router.push(`/user/tournament/${id}/signup`)}
+          disabled={isDisabled}
+          className={`w-full text-white py-3 rounded-xl font-medium text-lg shadow transition-all ${isDisabled
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-105"
+            }`}
         >
-          สมัครเข้าร่วมการแข่งขัน
+          {tournament.canceled
+            ? "ยกเลิกการแข่งขัน"
+            : isFull
+              ? "เต็มจำนวน"
+              : "สมัครเข้าร่วมการแข่งขัน"}
         </button>
       </div>
     </main>

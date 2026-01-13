@@ -64,6 +64,39 @@ export const createRegistration = async (req: Request, res: Response) => {
             });
         }
 
+        const parsedTournamentId = Number(tournamentId);
+
+        if (Number.isNaN(parsedTournamentId)) {
+            return res.status(400).json({
+                message: "Invalid tournament ID",
+            });
+        }
+
+        const tournament = await prisma.tournament.findUnique({
+            where: { id: parsedTournamentId },
+        });
+
+        if (!tournament) {
+            return res.status(404).json({
+                message: "Tournament not found",
+            });
+        }
+
+        const registrationCount = await prisma.register.count({
+            where: {
+                tournamentId: parsedTournamentId,
+                status: {
+                    not: "FAILED",
+                },
+            },
+        });
+
+        if (registrationCount >= tournament.maxPlayers) {
+            return res.status(400).json({
+                message: "Registration is full",
+            });
+        }
+
         // Get video file if uploaded (optional)
         let videoUrl: string | null = null;
 

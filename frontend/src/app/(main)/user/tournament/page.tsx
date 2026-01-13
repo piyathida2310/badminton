@@ -12,6 +12,8 @@ interface Tournament {
   date: string;
   image: string;
   canceled: boolean;
+  currentPlayers: number;
+  maxPlayers: number;
 }
 
 export default function TournamentPage() {
@@ -107,16 +109,27 @@ export default function TournamentPage() {
                     วันที่ {formatThaiDate(t.date)}
                   </p>
 
-                  <button
-                    onClick={() => router.push(`/user/tournament/${t.id}`)}
-                    disabled={t.canceled}
-                    className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${t.canceled
-                        ? "bg-gray-400 cursor-not-allowed text-gray-200"
-                        : "bg-gradient-to-r from-green-500 to-emerald-500 hover:scale-105 hover:brightness-110 text-white"
-                      }`}
-                  >
-                    {t.canceled ? "ไม่สามารถเข้าร่วมได้" : "เข้าร่วมการแข่งขัน"}
-                  </button>
+                  {(() => {
+                    const isFull = (t.currentPlayers || 0) >= (t.maxPlayers || 0);
+                    const isDisabled = t.canceled || isFull;
+
+                    return (
+                      <button
+                        onClick={() => !isDisabled && router.push(`/user/tournament/${t.id}`)}
+                        disabled={isDisabled}
+                        className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${isDisabled
+                          ? "bg-gray-400 cursor-not-allowed text-gray-200"
+                          : "bg-gradient-to-r from-green-500 to-emerald-500 hover:scale-105 hover:brightness-110 text-white"
+                          }`}
+                      >
+                        {t.canceled
+                          ? "ไม่สามารถเข้าร่วมได้"
+                          : isFull
+                            ? "เต็มจำนวน"
+                            : "เข้าร่วมการแข่งขัน"}
+                      </button>
+                    );
+                  })()}
                 </div>
               </motion.div>
             ))}
@@ -128,8 +141,8 @@ export default function TournamentPage() {
               disabled={currentPage === 1}
               onClick={() => goToPage(Math.max(currentPage - 1, 1))}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
               ก่อนหน้า
@@ -140,8 +153,8 @@ export default function TournamentPage() {
                 key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${currentPage === i + 1
-                    ? "bg-pink-500"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+                  ? "bg-pink-500"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                   }`}
               >
                 {i + 1}
@@ -152,8 +165,8 @@ export default function TournamentPage() {
               disabled={currentPage === totalPages}
               onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === totalPages
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
               ถัดไป
