@@ -107,11 +107,27 @@ export const getTournament = async (req: Request, res: Response) => {
         rule: true,
         competition: {
           orderBy: {
-            time: "asc", // หรือ 'desc'
+            time: "asc",
+          },
+        },
+        _count: {
+          select: {
+            registrations: {
+              where: {
+                status: {
+                  not: "FAILED",
+                },
+              },
+            },
           },
         },
       },
     });
+
+    // Check if data is null before accessing properties to avoid runtime errors
+    if (!data) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     const iconsWithUrl = {
       id: data.id,
@@ -121,6 +137,7 @@ export const getTournament = async (req: Request, res: Response) => {
       rank: data.rank,
       shuttlePrice: data.shuttlePrice,
       maxPlayers: data.maxPlayers,
+      currentPlayers: data._count.registrations,
       image: `${process.env.APP_BASE_URL}/api/tournament/poster/${data.id}`,
       qrCodeImg: `${process.env.APP_BASE_URL}/api/tournament/qr/${data.id}`,
       date: data.startDate,
@@ -164,6 +181,7 @@ export const getTournaments = async (req: Request, res: Response) => {
     });
 
     //  ดึงข้อมูล page นั้น ๆ
+    //  ดึงข้อมูล page นั้น ๆ
     const data = await prisma.tournament.findMany({
       // where: { organizerId: Number(req.user.sub) },  //จะเห็นการแข่งขันี่ผู้จัดสร้างของทุกคน
       skip,
@@ -172,6 +190,17 @@ export const getTournaments = async (req: Request, res: Response) => {
       include: {
         competition: true,
         rule: true,
+        _count: {
+          select: {
+            registrations: {
+              where: {
+                status: {
+                  not: "FAILED",
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -183,6 +212,7 @@ export const getTournaments = async (req: Request, res: Response) => {
       rank: tournament.rank,
       shuttlePrice: tournament.shuttlePrice,
       maxPlayers: tournament.maxPlayers,
+      currentPlayers: tournament._count.registrations,
       image: `${process.env.APP_BASE_URL}/api/tournament/poster/${tournament.id}`,
       qrCodeImg: `${process.env.APP_BASE_URL}/api/tournament/qr/${tournament.id}`,
       date: tournament.startDate,

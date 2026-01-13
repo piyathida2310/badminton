@@ -10,6 +10,8 @@ interface Tournament {
   name: string;
   playType: string;
   rank: string[];
+  maxPlayers: number;
+  currentPlayers: number;
 }
 
 export default function RegisterPage() {
@@ -22,8 +24,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [tournamentLoading, setTournamentLoading] = useState(true);
+  const [isFull, setIsFull] = useState(false);
 
   // Form state
+  // ... (rest of the state remains same, but I can't selectively keep it in this tool without repeating. 
+  // Wait, I am replacing a chunk. I should just initialize state here.)
   const [formData, setFormData] = useState({
     teamName: "",
     managerName: "",
@@ -41,6 +46,14 @@ export default function RegisterPage() {
       try {
         const response = await axios.get(`/api/tournament/${id}`);
         setTournament(response.data.data);
+
+        // Check if full
+        if (response.data.data) {
+          const t = response.data.data;
+          if ((t.currentPlayers || 0) >= (t.maxPlayers || 0)) {
+            setIsFull(true);
+          }
+        }
 
         // Set default mode based on tournament playType
         if (response.data.data.playType === "SINGLE") {
@@ -161,6 +174,27 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (isFull) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6E2FF] via-[#FEE5F1] to-[#E2F1FF] p-6">
+        <div className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-xl p-8 text-center">
+          <h1 className="text-3xl font-extrabold text-red-500 mb-4">
+            ขออภัย การสมัครเต็มแล้ว
+          </h1>
+          <p className="text-gray-600 mb-8">
+            จำนวนผู้สมัครครบตามที่กำหนดแล้ว ไม่สามารถรับสมัครเพิ่มได้
+          </p>
+          <button
+            onClick={() => router.push("/user/tournament")}
+            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all"
+          >
+            กลับหน้ารายการแข่งขัน
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6E2FF] via-[#FEE5F1] to-[#E2F1FF] p-6">
