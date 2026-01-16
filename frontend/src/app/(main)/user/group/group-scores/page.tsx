@@ -22,7 +22,7 @@ export default function GroupStageScoresPage() {
 
   const theme = themeMap[groupName];
 
-   // ข้อมูลทุกกลุ่ม
+  // ข้อมูลทุกกลุ่ม
   const groupData: Record<string, { rank: any[][]; matches: any[][] }> = {
     "Group A": {
       rank: [
@@ -487,7 +487,7 @@ export default function GroupStageScoresPage() {
 
         <GroupTable
           title="อันดับคะแนนกลุ่ม"
-          headers={["Rank", "Team", "ชื่อทีม", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+          headers={["Rank", "Team", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
           rows={selected.rank}
         />
 

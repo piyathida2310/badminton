@@ -110,6 +110,14 @@ export const getTournament = async (req: Request, res: Response) => {
             time: "asc",
           },
         },
+        groups: {
+          include: {
+            registers: true
+          },
+          orderBy: {
+            name: "asc"
+          }
+        },
         _count: {
           select: {
             registrations: {
@@ -129,6 +137,25 @@ export const getTournament = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
+    const formattedGroups = data.groups.map(group => {
+      const teamNames = group.registers.map(reg => {
+        if (reg.teamName) return reg.teamName;
+        if (reg.player2Name) return [reg.player1Name, reg.player2Name];
+        return reg.player1Name;
+      });
+
+      const groupId = group.name.replace("Group ", "");
+
+      return {
+        id: group.id,
+        name: group.name,
+        color: getGroupColor(groupId),
+        header: getGroupHeaderColor(groupId),
+        teams: teamNames,
+        summary: ""
+      };
+    });
+
     const iconsWithUrl = {
       id: data.id,
       title: data.name,
@@ -146,6 +173,7 @@ export const getTournament = async (req: Request, res: Response) => {
       canceled: data.isCancel,
       competition: data.competition,
       rule: data.rule,
+      groups: formattedGroups
     };
 
     return res.status(200).json({
@@ -382,11 +410,19 @@ export const managegroup = async (req: Request, res: Response) => {
       },
       include: {
         registrations: {
+          where: {
+            status: {
+              not: "FAILED",
+            },
+          },
           select: {
             id: true,
             score: true,
             comment: true,
-            userId: true
+            userId: true,
+            teamName: true,
+            player1Name: true,
+            player2Name: true,
           },
         },
       },
@@ -396,20 +432,81 @@ export const managegroup = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    //  เตรียมข้อมูลผู้เล่นให้เป็น Player[]
+    if (tournament.registrations.length < tournament.maxPlayers) {
+      return res.status(400).json({
+        message: `Yet not full. Current: ${tournament.registrations.length}, Max: ${tournament.maxPlayers}. Cannot optimize groups.`
+      });
+    }
+
+    //  เตรียมข้อมูลผู้เล่นให้เป็น Player ต่อน AI
     const players: Player[] = tournament.registrations.map((reg) => ({
-      id: reg.userId,
+      id: reg.id,
       score: reg.score,
       comment: reg.comment,
     }));
 
     //  เรียก AI เพื่อจัดกลุ่ม
-    const result = await manageGroup(players, detail);
+    const aiResult = await manageGroup(players, detail, tournament.maxPlayers);
 
-    if (!result) return res.status(400).json({ message: "Cannot Create Group" });
+    if (!aiResult || !aiResult.groups) return res.status(400).json({ message: "Cannot Create Group" });
+
+    // Map info back to groups and PERSIST to DB
+    const enrichedGroups = await prisma.$transaction(async (tx) => {
+      // Clear existing groups for this tournament to re-organize
+      await tx.group.deleteMany({
+        where: { tournamentId: tournament.id }
+      });
+
+      const createdGroups = [];
+
+      for (const group of aiResult.groups) {
+        // Create Group in DB
+        const newGroup = await tx.group.create({
+          data: {
+            name: `Group ${group.groupId}`,
+            tournamentId: tournament.id,
+          }
+        });
+
+        const teamNames: any[] = [];
+
+        // Update registers with groupId
+        for (const playerId of group.players) {
+          const reg = tournament.registrations.find(r => r.id === playerId);
+
+          if (reg) {
+            await tx.register.update({
+              where: { id: reg.id },
+              data: { groupId: newGroup.id }
+            });
+
+            // Prepare team name for response
+            if (reg.teamName) teamNames.push(reg.teamName);
+            else if (reg.player2Name) teamNames.push([reg.player1Name, reg.player2Name]);
+            else teamNames.push(reg.player1Name);
+          } else {
+            teamNames.push(`Unknown (${playerId})`);
+          }
+        }
+
+        createdGroups.push({
+          id: newGroup.id,
+          name: newGroup.name,
+          color: getGroupColor(group.groupId),
+          header: getGroupHeaderColor(group.groupId),
+          teams: teamNames,
+          summary: group.summary,
+          players: group.players
+        });
+      }
+
+      return createdGroups;
+    });
+
     return res.status(200).json({
       message: "จัดกลุ่มสำเร็จ ",
-      groups: result,
+      groups: enrichedGroups,
+      criteria: aiResult.criteria
     });
 
   } catch (error) {
@@ -427,3 +524,32 @@ export const managegroup = async (req: Request, res: Response) => {
     }
   }
 };
+
+// Helper functions
+function getGroupColor(groupId: string) {
+  const colors: Record<string, string> = {
+    "A": "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
+    "B": "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
+    "C": "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
+    "D": "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
+    "E": "from-orange-100 to-orange-50 border-orange-400 shadow-orange-200/50",
+    "F": "from-purple-100 to-purple-50 border-purple-400 shadow-purple-200/50",
+    "G": "from-teal-100 to-teal-50 border-teal-400 shadow-teal-200/50",
+    "H": "from-red-100 to-red-50 border-red-400 shadow-red-200/50",
+  };
+  return colors[groupId] || "from-gray-100 to-gray-50 border-gray-400 shadow-gray-200/50";
+}
+
+function getGroupHeaderColor(groupId: string) {
+  const colors: Record<string, string> = {
+    "A": "bg-yellow-400/80 text-yellow-900",
+    "B": "bg-blue-400/80 text-blue-900",
+    "C": "bg-pink-400/80 text-pink-900",
+    "D": "bg-green-400/80 text-green-900",
+    "E": "bg-orange-400/80 text-orange-900",
+    "F": "bg-purple-400/80 text-purple-900",
+    "G": "bg-teal-400/80 text-teal-900",
+    "H": "bg-red-400/80 text-red-900",
+  };
+  return colors[groupId] || "bg-gray-400/80 text-gray-900";
+}

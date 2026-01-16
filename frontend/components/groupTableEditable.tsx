@@ -77,26 +77,26 @@ export function GroupTableEditable({
                     className={`border border-gray-200 px-2 sm:px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
                       }`}
                   >
-                   {headers[j] === "SET" ? (
-  editing ? (
-    <div className="flex flex-row flex-nowrap items-center justify-center gap-1">
-      <input
-        type="number"
-        value={v.split(":")[0]?.trim() || ""}
-        onChange={(e) => handleChange(i, 0, e.target.value)}
-        className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
-      />
-      <span>:</span>
-      <input
-        type="number"
-        value={v.split(":")[1]?.trim() || ""}
-        onChange={(e) => handleChange(i, 1, e.target.value)}
-        className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
-      />
-    </div>
-  ) : (
-    <span className="whitespace-nowrap">{v}</span>   // ⭐ ตรงนี้ช่วยไม่ให้มันตัดบรรทัด
-  )
+                    {headers[j] === "SET" ? (
+                      editing ? (
+                        <div className="flex flex-row flex-nowrap items-center justify-center gap-1">
+                          <input
+                            type="number"
+                            value={v.split(":")[0]?.trim() || ""}
+                            onChange={(e) => handleChange(i, 0, e.target.value)}
+                            className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                          />
+                          <span>:</span>
+                          <input
+                            type="number"
+                            value={v.split(":")[1]?.trim() || ""}
+                            onChange={(e) => handleChange(i, 1, e.target.value)}
+                            className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                          />
+                        </div>
+                      ) : (
+                        <span className="whitespace-nowrap">{v}</span>   // ⭐ ตรงนี้ช่วยไม่ให้มันตัดบรรทัด
+                      )
                     ) : headers[j] === "ลูกแบต" ? (
                       <input
                         type="number"
