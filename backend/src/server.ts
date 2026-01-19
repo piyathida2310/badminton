@@ -11,7 +11,7 @@ import errorHandler from './middleware/errorHandler';
 import { connectPrisma } from './services/prismaClient';
 import { swaggerSpec } from './config/swaggerConfig';
 import { appConfig } from './config/authConfig';
-import { checkBucket } from './config/minioManage';
+
 import rulesRouter from './routes/rulesRoutes'
 import tournamentRouter from './routes/tournamentRoutes'
 import competitionRouter from './routes/competitionRoutes'
@@ -22,7 +22,7 @@ import {ensureOpenAIConnection} from './config/openAI';
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
 });
-checkBucket();
+
 async function bootstrap(): Promise<void> {
   const app = express();
 

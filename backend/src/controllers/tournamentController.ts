@@ -3,16 +3,21 @@ import { tournamentSchema } from "../models/tournamentModels";
 import { ZodError } from "zod";
 import { prisma } from "../services/prismaClient";
 import crypto from "crypto";
-import minioClient from "../config/minioManage";
+import S3Client from "../config/minioManage";
+import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+
 import dotenv from "dotenv";
-import { manageGroup, Player } from "../services/openai"
+import { manageGroup, Player } from "../services/openai";
+
+import { Readable } from "stream";
+import { arrayBuffer } from "stream/consumers";
 dotenv.config();
 
 const BUCKET = process.env.MINIO_BUCKET!;
 
 export const createTournament = async (req: Request, res: Response) => {
   try {
-    // ตรวจสอบข้อมูล body ด้วย Zod
+    // 1. ตรวจสอบข้อมูล body ด้วย Zod
     if (typeof req.body.rank === "string") {
       try {
         req.body.rank = JSON.parse(req.body.rank);
@@ -23,7 +28,7 @@ export const createTournament = async (req: Request, res: Response) => {
 
     const validatedData = tournamentSchema.parse(req.body);
 
-    //  ดึงไฟล์ออกจาก req.files
+    // 2. ดึงไฟล์ออกจาก req.files
     const files = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
@@ -37,27 +42,35 @@ export const createTournament = async (req: Request, res: Response) => {
       });
     }
 
-    // อัปโหลดไฟล์ไป MinIO
+    // 3. เตรียมชื่อไฟล์
     const posterExt = posterFile.originalname.split(".").pop();
     const qrExt = qrFile.originalname.split(".").pop();
 
     const posterName = `${crypto.randomUUID()}.${posterExt}`;
     const qrName = `${crypto.randomUUID()}.${qrExt}`;
 
-    await minioClient.putObject(
-      BUCKET,
-      posterName,
-      posterFile.buffer,
-      posterFile.size,
-      {
-        "Content-Type": posterFile.mimetype,
-      }
+    // 4. อัปโหลดไฟล์ไป S3/MinIO (ใช้ s3Client ที่สร้างไว้ข้างต้น)
+    // สำหรับ Poster
+    await S3Client.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: posterName,
+        Body: posterFile.buffer, // ใช้ buffer จาก Multer ได้เลย
+        ContentType: posterFile.mimetype,
+      })
     );
-    await minioClient.putObject(BUCKET, qrName, qrFile.buffer, qrFile.size, {
-      "Content-Type": qrFile.mimetype,
-    });
 
-    // สร้างข้อมูลใน Prisma
+    // สำหรับ QR Code
+    await S3Client.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: qrName,
+        Body: qrFile.buffer,
+        ContentType: qrFile.mimetype,
+      })
+    );
+
+    // 5. สร้างข้อมูลใน Prisma
     const tournament = await prisma.tournament.create({
       data: {
         name: validatedData.name,
@@ -66,7 +79,7 @@ export const createTournament = async (req: Request, res: Response) => {
         rank: validatedData.rank,
         shuttlePrice: Number(validatedData.shuttlePrice),
         maxPlayers: validatedData.maxPlayers,
-        posterImg: posterName, //  เก็บชื่อไฟล์ที่อัปโหลดจริง
+        posterImg: posterName,
         qrCodeImg: qrName,
         startDate: validatedData.startDate,
         ruleId: validatedData.ruleId,
@@ -221,7 +234,7 @@ export const getTournaments = async (req: Request, res: Response) => {
       canceled: tournament.isCancel,
       competition: tournament.competition,
       rule: tournament.rule,
-      IsOwner: Number(req.user.sub) === tournament.organizerId
+      IsOwner: Number(req.user.sub) === tournament.organizerId,
     }));
 
     return res.status(200).json({
@@ -256,14 +269,39 @@ export const getPoster = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const poster = await prisma.tournament.findUnique({ where: { id } });
-    if (!poster) return res.status(400).json({ message: "Poster Not Found" });
-    const stream = await minioClient.getObject(BUCKET, poster.posterImg);
+
+    if (!poster) {
+      return res.status(400).json({ message: "Poster Not Found" });
+    }
+
+    // 1. สร้าง Command สำหรับดึงข้อมูลจาก S3
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: poster.posterImg,
+    });
+
+    // 2. ส่งคำสั่งผ่าน S3Client
+    const { Body, ContentType } = await S3Client.send(command);
+
+    if (!Body) {
+      return res.status(404).json({ message: "File body is empty" });
+    }
+
+    // 3. ตั้งค่า Header สำหรับการแสดงผล (inline คือแสดงบนเบราว์เซอร์)
     res.setHeader(
       "Content-Disposition",
       `inline; filename="${poster.posterImg}"`
     );
-    stream.pipe(res);
+
+    // ตั้งค่า Content-Type ตามไฟล์จริง (เช่น image/jpeg) เพื่อให้เบราว์เซอร์ render รูปได้
+    if (ContentType) {
+      res.setHeader("Content-Type", ContentType);
+    }
+
+    // 4. แปลง Body (ซึ่งเป็น SdkStream) ให้เป็น Readable และ pipe เข้า response
+    (Body as Readable).pipe(res);
   } catch (error) {
+    console.error("Get Poster Error:", error);
     if (error instanceof Error) {
       return res.status(400).json({
         message: "Something went wrong!",
@@ -281,10 +319,32 @@ export const getQr = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     const qr = await prisma.tournament.findUnique({ where: { id } });
+
     if (!qr) return res.status(400).json({ message: "QrPhoto Not Found" });
-    const stream = await minioClient.getObject(BUCKET, qr.qrCodeImg);
+
+    // 1. สร้าง Command สำหรับดึงข้อมูลจาก S3
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: qr.qrCodeImg,
+    });
+
+    // 2. ส่งคำสั่งผ่าน S3Client
+    const { Body, ContentType } = await S3Client.send(command);
+
+    if (!Body) {
+      return res.status(404).json({ message: "QR Code file is empty" });
+    }
+
+    // 3. ตั้งค่า Header สำหรับการส่งไฟล์
     res.setHeader("Content-Disposition", `inline; filename="${qr.qrCodeImg}"`);
-    stream.pipe(res);
+
+    // ตั้งค่า Content-Type เพื่อให้เบราว์เซอร์แสดงผลรูปภาพได้ทันที
+    if (ContentType) {
+      res.setHeader("Content-Type", ContentType);
+    }
+
+    // 4. แปลง SdkStream เป็น Readable และ pipe เข้า response
+    (Body as Readable).pipe(res);
   } catch (error) {
     if (error instanceof Error) {
       return res.status(400).json({
@@ -308,7 +368,10 @@ export const updateTournament = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    if (Number(req.user.sub) !== tournament.organizerId) return res.status(400).json({ message: "You can only cancel tournament your own." });
+    if (Number(req.user.sub) !== tournament.organizerId)
+      return res
+        .status(400)
+        .json({ message: "You can only cancel tournament your own." });
 
     // ❗ หากยกเลิกแล้ว ห้ามกดยกเลิกอีก
     if (tournament.isCancel) {
@@ -335,7 +398,6 @@ export const updateTournament = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getPaymentQr = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
@@ -346,15 +408,15 @@ export const getPaymentQr = async (req: Request, res: Response) => {
     }
 
     // Generate presigned URL (valid for 1 day)
-    const presignedUrl = await minioClient.presignedGetObject(
-      BUCKET,
-      tournament.qrCodeImg,
-      24 * 60 * 60
-    );
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: tournament.qrCodeImg,
+    });
+    const s3Item = await S3Client.send(command);
 
     return res.status(200).json({
       message: "Presigned URL generated successfully",
-      url: presignedUrl,
+      url: s3Item,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -373,7 +435,7 @@ export const getPaymentQr = async (req: Request, res: Response) => {
 export const managegroup = async (req: Request, res: Response) => {
   try {
     const tournamentId = Number(req.params.id);
-    const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม"
+    const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม";
 
     //  ดึงข้อมูล tournament พร้อมผู้ลงทะเบียน
     const tournament = await prisma.tournament.findUnique({
@@ -386,7 +448,7 @@ export const managegroup = async (req: Request, res: Response) => {
             id: true,
             score: true,
             comment: true,
-            userId: true
+            userId: true,
           },
         },
       },
@@ -406,12 +468,12 @@ export const managegroup = async (req: Request, res: Response) => {
     //  เรียก AI เพื่อจัดกลุ่ม
     const result = await manageGroup(players, detail);
 
-    if (!result) return res.status(400).json({ message: "Cannot Create Group" });
+    if (!result)
+      return res.status(400).json({ message: "Cannot Create Group" });
     return res.status(200).json({
       message: "จัดกลุ่มสำเร็จ ",
       groups: result,
     });
-
   } catch (error) {
     console.error(error);
 
