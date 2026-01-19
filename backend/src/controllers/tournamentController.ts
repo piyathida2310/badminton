@@ -452,6 +452,11 @@ export const managegroup = async (req: Request, res: Response) => {
 
     // Map info back to groups and PERSIST to DB
     const enrichedGroups = await prisma.$transaction(async (tx) => {
+      // 1. Delete existing matches for this tournament
+      await tx.match.deleteMany({
+        where: { tournamentId: tournament.id }
+      });
+
       // Clear existing groups for this tournament to re-organize
       await tx.group.deleteMany({
         where: { tournamentId: tournament.id }
@@ -469,6 +474,7 @@ export const managegroup = async (req: Request, res: Response) => {
         });
 
         const teamNames: any[] = [];
+        const groupPlayerIds: number[] = [];
 
         // Update registers with groupId
         for (const playerId of group.players) {
@@ -480,12 +486,29 @@ export const managegroup = async (req: Request, res: Response) => {
               data: { groupId: newGroup.id }
             });
 
+            groupPlayerIds.push(reg.id);
+
             // Prepare team name for response
             if (reg.teamName) teamNames.push(reg.teamName);
             else if (reg.player2Name) teamNames.push([reg.player1Name, reg.player2Name]);
             else teamNames.push(reg.player1Name);
           } else {
             teamNames.push(`Unknown (${playerId})`);
+          }
+        }
+
+        // Generate Matches (Round Robin) within the group
+        for (let i = 0; i < groupPlayerIds.length; i++) {
+          for (let j = i + 1; j < groupPlayerIds.length; j++) {
+            await tx.match.create({
+              data: {
+                tournamentId: tournament.id,
+                groupId: newGroup.id,
+                player1Id: groupPlayerIds[i],
+                player2Id: groupPlayerIds[j],
+                status: "PENDING",
+              }
+            });
           }
         }
 
