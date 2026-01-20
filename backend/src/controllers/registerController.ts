@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { prisma } from "../services/prismaClient";
 import crypto from "crypto";
-import minioClient from "../config/minioManage";
+// import minioClient from "../config/minioManage";
+import { GetObjectCommand,PutObjectCommand  } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import S3Client from "../config/minioManage";
+
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -22,161 +26,181 @@ const MATCH_TYPE_LABELS: Record<string, string> = {
 };
 
 const getSignedUrlOrNull = async (objectKey?: string | null) => {
-    if (!objectKey) return null;
-    try {
-        return await minioClient.presignedGetObject(BUCKET, objectKey, 60 * 60);
-    } catch (error) {
-        console.error(`Failed to generate signed url for ${objectKey}:`, error);
-        return null;
-    }
+  if (!objectKey) return null;
+
+  try {
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: objectKey,
+    });
+
+    // อายุ signed url (วินาที)
+    const signedUrl = await getSignedUrl(S3Client, command, {
+      expiresIn: 60 * 60, // 1 ชั่วโมง
+    });
+
+    return signedUrl;
+  } catch (error) {
+    console.error(`Failed to generate signed url for ${objectKey}:`, error);
+    return null;
+  }
 };
 
+
 export const createRegistration = async (req: Request, res: Response) => {
-    try {
-        const { tournamentId } = req.params;
-        const {
-            teamName,
-            managerName,
-            player1Name,
-            player1Phone,
-            player1Birthday,
-            player2Name,
-            player2Phone,
-            player2Birthday,
-            playType,
-            mode,
-        } = req.body;
+  try {
+    const { tournamentId } = req.params;
+    const {
+      teamName,
+      managerName,
+      player1Name,
+      player1Phone,
+      player1Birthday,
+      player2Name,
+      player2Phone,
+      player2Birthday,
+      playType,
+      mode,
+    } = req.body;
 
-        console.log("Registration request body:", req.body);
-        console.log("Files received:", req.files);
+    console.log("Registration request body:", req.body);
+    console.log("Files received:", req.files);
 
-        // Validate required fields
-        if (!teamName || !managerName || !player1Name || !player1Phone || !player1Birthday || !playType) {
-            return res.status(400).json({
-                message: "Missing required fields",
-            });
-        }
-
-        // Validate mode-specific requirements
-        if (mode === "double" && (!player2Name || !player2Phone || !player2Birthday)) {
-            return res.status(400).json({
-                message: "Player 2 information is required for double mode",
-            });
-        }
-
-        const parsedTournamentId = Number(tournamentId);
-
-        if (Number.isNaN(parsedTournamentId)) {
-            return res.status(400).json({
-                message: "Invalid tournament ID",
-            });
-        }
-
-        const tournament = await prisma.tournament.findUnique({
-            where: { id: parsedTournamentId },
-        });
-
-        if (!tournament) {
-            return res.status(404).json({
-                message: "Tournament not found",
-            });
-        }
-
-        const registrationCount = await prisma.register.count({
-            where: {
-                tournamentId: parsedTournamentId,
-                status: {
-                    not: "FAILED",
-                },
-            },
-        });
-
-        if (registrationCount >= tournament.maxPlayers) {
-            return res.status(400).json({
-                message: "Registration is full",
-            });
-        }
-
-        // Get video file if uploaded (optional)
-        let videoUrl: string | null = null;
-
-        // Check if files exist before accessing
-        if (req.files && typeof req.files === 'object') {
-            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-            const videoFile = files["video"]?.[0];
-
-            if (videoFile) {
-                try {
-                    console.log("Processing video file:", videoFile.originalname, videoFile.mimetype, videoFile.size);
-                    const videoExt = videoFile.originalname.split(".").pop() || "mp4";
-                    const videoName = `${crypto.randomUUID()}.${videoExt}`;
-
-                    await minioClient.putObject(
-                        BUCKET,
-                        videoName,
-                        videoFile.buffer,
-                        videoFile.size,
-                        {
-                            "Content-Type": videoFile.mimetype,
-                        }
-                    );
-
-                    videoUrl = videoName;
-                    console.log("Video uploaded successfully:", videoName);
-                } catch (videoError) {
-                    console.error("Video upload error:", videoError);
-                    // Don't fail the entire registration if video upload fails
-                    // Just log the error and continue without video
-                }
-            } else {
-                console.log("No video file in request");
-            }
-        } else {
-            console.log("No files uploaded (req.files is undefined)");
-        }
-
-        // Get userId from authenticated user
-        const userId = Number(req.user.sub);
-
-        // Prepare data for registration
-        const registrationData: any = {
-            userId,
-            tournamentId: Number(tournamentId),
-            teamName,
-            playType,
-            phoneNumber: player1Phone,
-            videoUrl,
-            status: "WAITING",
-            managerName,
-            player1Name,
-            player1Birthday: player1Birthday ? new Date(player1Birthday) : null,
-        };
-
-        // Add player 2 data if mode is double
-        if (mode === "double" && player2Name && player2Phone && player2Birthday) {
-            registrationData.player2Name = player2Name;
-            registrationData.player2Phone = player2Phone;
-            registrationData.player2Birthday = new Date(player2Birthday);
-        }
-
-        // Create registration
-        const registration = await prisma.register.create({
-            data: registrationData,
-        });
-
-        console.log("Registration created successfully:", registration.id);
-
-        return res.status(201).json({
-            message: "Registration created successfully",
-            data: registration,
-        });
-    } catch (error) {
-        console.error("Create Registration Error:", error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error instanceof Error ? error.message : error,
-        });
+    // Validate required fields
+    if (!teamName || !managerName || !player1Name || !player1Phone || !player1Birthday || !playType) {
+      return res.status(400).json({
+        message: "Missing required fields",
+      });
     }
+
+    // Validate mode-specific requirements
+    if (mode === "double" && (!player2Name || !player2Phone || !player2Birthday)) {
+      return res.status(400).json({
+        message: "Player 2 information is required for double mode",
+      });
+    }
+
+    const parsedTournamentId = Number(tournamentId);
+
+    if (Number.isNaN(parsedTournamentId)) {
+      return res.status(400).json({
+        message: "Invalid tournament ID",
+      });
+    }
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parsedTournamentId },
+    });
+
+    if (!tournament) {
+      return res.status(404).json({
+        message: "Tournament not found",
+      });
+    }
+
+    const registrationCount = await prisma.register.count({
+      where: {
+        tournamentId: parsedTournamentId,
+        status: {
+          not: "FAILED",
+        },
+      },
+    });
+
+    if (registrationCount >= tournament.maxPlayers) {
+      return res.status(400).json({
+        message: "Registration is full",
+      });
+    }
+
+    // Get video file if uploaded (optional)
+    let videoUrl: string | null = null;
+
+    // Check if files exist before accessing
+    if (req.files && typeof req.files === "object") {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const videoFile = files["video"]?.[0];
+
+      if (videoFile) {
+        try {
+          console.log("Processing video file:", videoFile.originalname, videoFile.mimetype, videoFile.size);
+
+          // กันเคส multer ไม่ได้ใช้ memoryStorage
+          if (!videoFile.buffer) {
+            return res.status(400).json({
+              message: "Video buffer not found. Please set multer to memoryStorage().",
+            });
+          }
+
+          const videoExt = videoFile.originalname.split(".").pop() || "mp4";
+          const videoName = `${crypto.randomUUID()}.${videoExt}`;
+
+          // ✅ เปลี่ยนจาก minioClient.putObject(...) -> S3Client PutObjectCommand
+          await S3Client.send(
+            new PutObjectCommand({
+              Bucket: BUCKET,
+              Key: videoName,
+              Body: videoFile.buffer,
+              ContentType: videoFile.mimetype,
+            })
+          );
+
+          videoUrl = videoName;
+          console.log("Video uploaded successfully (S3 key):", videoName);
+        } catch (videoError) {
+          console.error("Video upload error:", videoError);
+          // เดิมคุณเลือกไม่ fail ทั้งสมัครก็ได้ แต่แนะนำให้ fail ตอน dev จะจับสาเหตุง่ายกว่า
+          // ถ้าต้องการ “สมัครต่อได้แม้อัปโหลดวิดีโอพัง” ให้คงพฤติกรรมเดิม
+        }
+      } else {
+        console.log("No video file in request");
+      }
+    } else {
+      console.log("No files uploaded (req.files is undefined)");
+    }
+
+    // Get userId from authenticated user
+    const userId = Number((req as any).user?.sub);
+
+    // Prepare data for registration
+    const registrationData: any = {
+      userId,
+      tournamentId: Number(tournamentId),
+      teamName,
+      playType,
+      phoneNumber: player1Phone,
+      videoUrl,
+      status: "WAITING",
+      managerName,
+      player1Name,
+      player1Birthday: player1Birthday ? new Date(player1Birthday) : null,
+    };
+
+    // Add player 2 data if mode is double
+    if (mode === "double" && player2Name && player2Phone && player2Birthday) {
+      registrationData.player2Name = player2Name;
+      registrationData.player2Phone = player2Phone;
+      registrationData.player2Birthday = new Date(player2Birthday);
+    }
+
+    // Create registration
+    const registration = await prisma.register.create({
+      data: registrationData,
+    });
+
+    console.log("Registration created successfully:", registration.id);
+
+    return res.status(201).json({
+      message: "Registration created successfully",
+      data: registration,
+    });
+  } catch (error) {
+    console.error("Create Registration Error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 };
 
 export const getRegistrationsByTournament = async (req: Request, res: Response) => {
@@ -544,111 +568,118 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
 
 // Upload payment slip
 export const uploadPaymentSlip = async (req: Request, res: Response) => {
-    try {
-        const { registrationId } = req.params;
+  try {
+    const { registrationId } = req.params;
 
-        if (!registrationId) {
-            return res.status(400).json({
-                message: "Registration ID is required",
-            });
-        }
-
-        const parsedRegistrationId = Number(registrationId);
-        if (Number.isNaN(parsedRegistrationId)) {
-            return res.status(400).json({
-                message: "Invalid registration ID",
-            });
-        }
-
-        // Get registration
-        const registration = await prisma.register.findUnique({
-            where: { id: parsedRegistrationId },
-            include: { payment: true },
-        });
-
-        if (!registration) {
-            return res.status(404).json({
-                message: "Registration not found",
-            });
-        }
-
-        // Check if user owns this registration
-        const userId = Number(req.user.sub);
-        if (registration.userId !== userId) {
-            return res.status(403).json({
-                message: "Forbidden: you can only upload payment slip for your own registration",
-            });
-        }
-
-        // Get slip image from upload
-        let slipUrl: string | null = null;
-
-        if (req.files && typeof req.files === 'object') {
-            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-            const slipFile = files["slip"]?.[0];
-
-            if (slipFile) {
-                try {
-                    const slipExt = slipFile.originalname.split(".").pop() || "jpg";
-                    const slipName = `${crypto.randomUUID()}.${slipExt}`;
-
-                    await minioClient.putObject(
-                        BUCKET,
-                        slipName,
-                        slipFile.buffer,
-                        slipFile.size,
-                        {
-                            "Content-Type": slipFile.mimetype,
-                        }
-                    );
-
-                    slipUrl = slipName;
-                } catch (uploadError) {
-                    console.error("Slip upload error:", uploadError);
-                    return res.status(500).json({
-                        message: "Failed to upload payment slip",
-                    });
-                }
-            }
-        }
-
-        if (!slipUrl) {
-            return res.status(400).json({
-                message: "Payment slip image is required",
-            });
-        }
-
-        // Update or create payment record
-        let payment;
-        if (registration.payment) {
-            payment = await prisma.payment.update({
-                where: { registerId: parsedRegistrationId },
-                data: {
-                    slipImg: slipUrl,
-                    status: "PENDING",
-                },
-            });
-        } else {
-            payment = await prisma.payment.create({
-                data: {
-                    registerId: parsedRegistrationId,
-                    slipImg: slipUrl,
-                    status: "PENDING",
-                },
-            });
-        }
-
-        return res.status(200).json({
-            message: "Payment slip uploaded successfully",
-            data: payment,
-        });
-    } catch (error) {
-        console.error("Upload Payment Slip Error:", error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error instanceof Error ? error.message : error,
-        });
+    if (!registrationId) {
+      return res.status(400).json({
+        message: "Registration ID is required",
+      });
     }
+
+    const parsedRegistrationId = Number(registrationId);
+    if (Number.isNaN(parsedRegistrationId)) {
+      return res.status(400).json({
+        message: "Invalid registration ID",
+      });
+    }
+
+    // Get registration
+    const registration = await prisma.register.findUnique({
+      where: { id: parsedRegistrationId },
+      include: { payment: true },
+    });
+
+    if (!registration) {
+      return res.status(404).json({
+        message: "Registration not found",
+      });
+    }
+
+    // Check if user owns this registration
+    const userId = Number((req as any).user?.sub);
+    if (registration.userId !== userId) {
+      return res.status(403).json({
+        message: "Forbidden: you can only upload payment slip for your own registration",
+      });
+    }
+
+    // Get slip image from upload
+    let slipUrl: string | null = null;
+
+    if (req.files && typeof req.files === "object") {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const slipFile = files["slip"]?.[0];
+
+      if (slipFile) {
+        try {
+          // กันเคส multer ไม่ได้ใช้ memoryStorage
+          if (!slipFile.buffer) {
+            return res.status(400).json({
+              message: "Slip buffer not found. Please set multer to memoryStorage().",
+            });
+          }
+
+          const slipExt = slipFile.originalname.split(".").pop() || "jpg";
+          const slipName = `${crypto.randomUUID()}.${slipExt}`;
+
+          // ✅ เปลี่ยนจาก minioClient.putObject(...) -> S3Client PutObjectCommand
+          await S3Client.send(
+            new PutObjectCommand({
+              Bucket: BUCKET,
+              Key: slipName,
+              Body: slipFile.buffer,
+              ContentType: slipFile.mimetype,
+            })
+          );
+
+          slipUrl = slipName;
+        } catch (uploadError) {
+          console.error("Slip upload error:", uploadError);
+          return res.status(500).json({
+            message: "Failed to upload payment slip",
+          });
+        }
+      }
+    }
+
+    if (!slipUrl) {
+      return res.status(400).json({
+        message: "Payment slip image is required",
+      });
+    }
+
+    // Update or create payment record
+    let payment;
+    if (registration.payment) {
+      payment = await prisma.payment.update({
+        where: { registerId: parsedRegistrationId },
+        data: {
+          slipImg: slipUrl,
+          status: "PENDING",
+        },
+      });
+    } else {
+      payment = await prisma.payment.create({
+        data: {
+          registerId: parsedRegistrationId,
+          slipImg: slipUrl,
+          status: "PENDING",
+        },
+      });
+    }
+
+    return res.status(200).json({
+      message: "Payment slip uploaded successfully",
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Upload Payment Slip Error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 };
 
 // Get payment slip URL

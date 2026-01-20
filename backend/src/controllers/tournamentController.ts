@@ -5,7 +5,7 @@ import { prisma } from "../services/prismaClient";
 import crypto from "crypto";
 import S3Client from "../config/minioManage";
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 import { manageGroup, Player } from "../services/openai";
 
@@ -307,6 +307,10 @@ export const getPoster = async (req: Request, res: Response) => {
       Bucket: BUCKET,
       Key: poster.posterImg,
     });
+
+    const presignedUrl = await getSignedUrl(S3Client, command, { 
+  expiresIn: 24 * 60 * 60 
+});
 
     // 2. ส่งคำสั่งผ่าน S3Client
     const { Body, ContentType } = await S3Client.send(command);
