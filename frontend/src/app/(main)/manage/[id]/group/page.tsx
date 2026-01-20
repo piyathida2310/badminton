@@ -2,119 +2,60 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation"; 
+import { useRouter, useParams } from "next/navigation";
+
+import axios from "../../../../../lib/api";
 
 export default function TournamentGroupPage() {
   const router = useRouter();
   const [matchType, setMatchType] = useState<"single" | "double">("single");
-  const [selectedDate, setSelectedDate] = useState<string>("2025-01-02");
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const { id } = useParams();
 
   //  state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
   const [showGroups, setShowGroups] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [groups, setGroups] = useState<any[]>([]);
 
-  //  โหลดหน้าใหม่จะรีเซ็ตสถานะเสมอ (ล้าง localStorage)
+  // Fetch existing groups on load
   useEffect(() => {
-    localStorage.removeItem("showGroups");
-    setShowGroups(false);
-  }, []);
+    const fetchTournamentData = async () => {
+      try {
+        const res = await axios.get(`/api/tournament/${id}`);
+        const existingGroups = res.data.data.groups;
+        if (existingGroups && existingGroups.length > 0) {
+          setGroups(existingGroups);
+          setShowGroups(true);
+        }
+      } catch (error) {
+        console.error("Error fetching tournament data:", error);
+      }
+    };
 
-  //  Mock ข้อมูลทั้งหมด (ประเภทคู่)
-  const dataByTypeAndDate: Record<string, Record<string, any[]>> = {
-    single: {
-      "2025-01-02": [
-        {
-          name: "Group A",
-          color:
-            "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
-          header: "bg-yellow-400/80 text-yellow-900",
-          teams: [
-            "Smash Warriors",
-            "Shuttle Kings",
-            "Net Masters",
-            "Power Drive",
-          ],
-        },
-        {
-          name: "Group B",
-          color: "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
-          header: "bg-blue-400/80 text-blue-900",
-          teams: [
-            "Lightning Shots",
-            "Speed Feathers",
-            "Sky Smashers",
-            "Drop Shot Crew",
-          ],
-        },
-        {
-          name: "Group C",
-          color: "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
-          header: "bg-pink-400/80 text-pink-900",
-          teams: [
-            "Net Killers",
-            "Clear Fighters",
-            "Birdie Hunters",
-            "Spin Attack",
-          ],
-        },
-        {
-          name: "Group D",
-          color:
-            "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
-          header: "bg-green-400/80 text-green-900",
-          teams: [
-            "Thunder Racquets",
-            "Rapid Smash",
-            "Ace Strikers",
-            "Golden Shuttle",
-          ],
-        },
-      ],
-    },
-    //  ประเภทคู่ (double)
-    double: {
-      "2025-01-02": [
-        {
-          name: "Group A",
-          color:
-            "from-orange-100 to-orange-50 border-orange-400 shadow-orange-200/50",
-          header: "bg-orange-400/80 text-orange-900",
-          teams: [
-            ["Team Alpha 1", "Team Alpha 2"],
-            ["Team Bravo 1", "Team Bravo 2"],
-            ["Team Charlie 1", "Team Charlie 2"],
-            ["Team Delta 1", "Team Delta 2"],
-          ],
-        },
-        {
-          name: "Group B",
-          color:
-            "from-purple-100 to-purple-50 border-purple-400 shadow-purple-200/50",
-          header: "bg-purple-400/80 text-purple-900",
-          teams: [
-            ["Team Echo 1", "Team Echo 2"],
-            ["Team Foxtrot 1", "Team Foxtrot 2"],
-            ["Team Golf 1", "Team Golf 2"],
-            ["Team Hotel 1", "Team Hotel 2"],
-          ],
-        },
-      ],
-    },
-  };
-
-  const [groups, setGroups] = useState<any[]>(
-    dataByTypeAndDate[matchType][selectedDate]
-  );
-  useEffect(() => {
-    setGroups(dataByTypeAndDate[matchType][selectedDate] || []);
-  }, [selectedDate, matchType]);
+    fetchTournamentData();
+  }, [id]);
 
   const totalTeams = groups.reduce((sum, g) => sum + g.teams.length, 0);
 
   //  ฟังก์ชันเมื่อกด "จัดแข่ง"
-  const handleStartCompetition = () => {
-    setShowGroups(true);
-    localStorage.setItem("showGroups", "true");
+  const handleStartCompetition = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`/api/tournament/managegroup/${id}`, {
+        detail: "Balance skill levels" // Optional detail
+      });
+
+      if (res.data.groups) {
+        setGroups(res.data.groups);
+        setShowGroups(true);
+        localStorage.setItem("showGroups", "true");
+      }
+    } catch (error: any) {
+      console.error("Manage group error:", error);
+      alert(error.response?.data?.message || "Failed to organize groups");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,7 +73,6 @@ export default function TournamentGroupPage() {
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
           รายการแข่ง Rank BG ประเภท {matchType === "single" ? "เดี่ยว" : "คู่"}{" "}
-          {totalTeams} ทีม
         </h1>
         <p className="text-blue-700 font-semibold text-base sm:text-lg mt-2">
           วันที่{" "}
@@ -145,27 +85,6 @@ export default function TournamentGroupPage() {
 
         {/* ปุ่มโหมด + วันที่ */}
         <div className="mt-5 flex flex-wrap justify-center gap-3 sm:gap-5">
-          <button
-            onClick={() => setMatchType("single")}
-            className={`px-5 py-2 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 ${
-              matchType === "single"
-                ? "bg-blue-600 text-white shadow-md"
-                : "bg-white text-blue-700 border border-blue-300"
-            }`}
-          >
-            ประเภทเดี่ยว
-          </button>
-          <button
-            onClick={() => setMatchType("double")}
-            className={`px-5 py-2 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 ${
-              matchType === "double"
-                ? "bg-amber-500 text-white shadow-md"
-                : "bg-white text-amber-600 border border-amber-300"
-            }`}
-          >
-            ประเภทคู่
-          </button>
-
           <input
             type="date"
             value={selectedDate}
@@ -181,9 +100,11 @@ export default function TournamentGroupPage() {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleStartCompetition}
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={loading}
+              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-blue-500 to-indigo-500"
+                }`}
             >
-              จัดแข่ง
+              {loading ? "กำลังจัดกลุ่ม..." : "จัดแข่ง"}
             </motion.button>
           </div>
         )}
@@ -240,16 +161,7 @@ export default function TournamentGroupPage() {
         </p>
       )}
 
-      {/* ปุ่ม ถัดไป */}
-      {showGroups && (
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          className="mt-12 sm:mt-14 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white font-bold px-8 sm:px-10 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
-        >
-          ถัดไป
-        </motion.button>
-      )}
+
     </div>
   );
 }

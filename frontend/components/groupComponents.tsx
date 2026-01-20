@@ -52,7 +52,11 @@ export function GroupTable({
         <thead className="bg-gray-100/70 text-gray-800 font-semibold">
           <tr>
             {headers.map((h, i) => (
-              <th key={i} className="border border-gray-200 px-3 py-2 text-center">
+              <th
+                key={i}
+                className="border border-gray-200 px-3 py-2 text-center"
+                colSpan={h === "Team" ? 2 : 1}
+              >
                 {h}
               </th>
             ))}
@@ -62,20 +66,17 @@ export function GroupTable({
           {rows.map((r, i) => (
             <tr
               key={i}
-              className={`text-center ${
-                i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
-              } hover:bg-gray-100/60 transition`}
+              className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
+                } hover:bg-gray-100/60 transition`}
             >
               {r.map((v, j) => (
                 <td
                   key={j}
-                  className={`border border-gray-200 px-3 py-2 text-center ${
-                    j === 0 ? "font-semibold text-gray-900" : ""
-                  } ${
-                    headers[j] === "SET"
+                  className={`border border-gray-200 px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
+                    } ${headers[j] === "SET"
                       ? "whitespace-nowrap font-mono min-w-[80px]"
                       : ""
-                  }`}
+                    }`}
                 >
                   {v}
                 </td>

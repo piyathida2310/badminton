@@ -515,7 +515,7 @@ export default function GroupStageScoresPage() {
 
         <GroupTable
           title="อันดับคะแนนกลุ่ม"
-          headers={["Rank", "Team", "ชื่อทีม", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+          headers={["Rank", "Team", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
           rows={selected.rank}
         />
 
