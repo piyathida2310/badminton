@@ -433,36 +433,37 @@ export const updateTournament = async (req: Request, res: Response) => {
 export const getPaymentQr = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const tournament = await prisma.tournament.findUnique({ where: { id } });
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ message: "Invalid tournament id" });
+    }
 
-    if (!tournament || !tournament.qrCodeImg) {
+    const tournament = await prisma.tournament.findUnique({ where: { id } });
+    if (!tournament?.qrCodeImg) {
       return res.status(404).json({ message: "QR Code not found" });
     }
 
-    // Generate presigned URL (valid for 1 day)
     const command = new GetObjectCommand({
       Bucket: BUCKET,
       Key: tournament.qrCodeImg,
     });
-    const s3Item = await S3Client.send(command);
+
+    // ✅ นี่แหละ URL จริง
+    const presignedUrl = await getSignedUrl(S3Client, command, {
+      expiresIn: 24 * 60 * 60,
+    });
 
     return res.status(200).json({
       message: "Presigned URL generated successfully",
-      url: s3Item,
+      url: presignedUrl,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      return res.status(400).json({
-        message: "Something went wrong!",
-        errors: error.message,
-      });
-    } else {
-      return res.status(500).json({
-        message: "Internal server error",
-      });
-    }
+    return res.status(500).json({
+      message: "Internal server error",
+      errors: error instanceof Error ? error.message : error,
+    });
   }
 };
+
 
 export const managegroup = async (req: Request, res: Response) => {
   try {
