@@ -308,9 +308,9 @@ export const getPoster = async (req: Request, res: Response) => {
       Key: poster.posterImg,
     });
 
-    const presignedUrl = await getSignedUrl(S3Client, command, { 
-  expiresIn: 24 * 60 * 60 
-});
+    const presignedUrl = await getSignedUrl(S3Client, command, {
+      expiresIn: 24 * 60 * 60
+    });
 
     // 2. ส่งคำสั่งผ่าน S3Client
     const { Body, ContentType } = await S3Client.send(command);
@@ -512,7 +512,66 @@ export const managegroup = async (req: Request, res: Response) => {
     //  เรียก AI เพื่อจัดกลุ่ม
     const aiResult = await manageGroup(players, detail, tournament.maxPlayers);
 
-    if (!result) return res.status(400).json({ message: "Cannot Create Group" });
+    if (!aiResult || !aiResult.groups) return res.status(400).json({ message: "Cannot Create Group" });
+
+    // Clear existing groups/assignments for this tournament to avoid duplicates/conflicts
+    // First, unlink registrations from any groups
+    await prisma.register.updateMany({
+      where: { tournamentId },
+      data: { groupId: null }
+    });
+    // Then delete the groups
+    await prisma.group.deleteMany({
+      where: { tournamentId }
+    });
+
+    // Save new groups to database
+    for (const groupData of aiResult.groups) {
+      const groupName = `Group ${groupData.groupId}`;
+      const newGroup = await prisma.group.create({
+        data: {
+          name: groupName,
+          tournamentId: tournamentId
+        }
+      });
+
+      // Update registers with new groupId
+      await prisma.register.updateMany({
+        where: {
+          id: { in: groupData.players }
+        },
+        data: {
+          groupId: newGroup.id
+        }
+      });
+    }
+
+    // Fetch the newly created groups to return to frontend (formatted)
+    const updatedGroups = await prisma.group.findMany({
+      where: { tournamentId },
+      include: { registers: true },
+      orderBy: { name: 'asc' }
+    });
+
+    const enrichedGroups = updatedGroups.map(group => {
+      const teamNames = group.registers.map(reg => {
+        if (reg.teamName) return reg.teamName;
+        if (reg.player2Name) return [reg.player1Name, reg.player2Name];
+        return reg.player1Name;
+      });
+
+      const groupId = group.name.replace("Group ", "");
+
+      return {
+        id: group.id,
+        name: group.name,
+        color: getGroupColor(groupId),
+        header: getGroupHeaderColor(groupId),
+        teams: teamNames,
+        summary: aiResult.groups.find((g: any) => g.groupId === groupId)?.summary || ""
+      };
+    });
+
     return res.status(200).json({
       message: "จัดกลุ่มสำเร็จ ",
       groups: enrichedGroups,
