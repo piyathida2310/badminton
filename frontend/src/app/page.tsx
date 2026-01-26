@@ -15,12 +15,17 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("accessToken");
-    if (token) {
-      router.replace("/manage");
+    const userRole = localStorage.getItem("userRole");
+
+    if (token && userRole) {
+      // Redirect ตาม role ที่ถูกต้อง
+      if (userRole === "PLAYER") {
+        router.replace("/user/tournament");
+      } else if (userRole === "ORGANIZER") {
+        router.replace("/manage");
+      }
       return;
     }
-
-
   }, [router]);
 
   return (
