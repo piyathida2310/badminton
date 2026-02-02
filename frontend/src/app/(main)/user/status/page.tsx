@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Upload } from "lucide-react";
 import api from "@/lib/api";
+import Swal from "sweetalert2";
 
 // Helper to map backend status to frontend display text
 const mapStatus = (status: string) => {
@@ -35,9 +36,7 @@ const mapRank = (rank: string | undefined | null) => {
   if (!rank) return "";
   const r = rank.trim().toUpperCase();
 
-  if (["BG", "NB", "N", "S", "P-", "P+"].includes(r)) {
-    return r;
-  }
+  if (["BG", "NB", "N", "S", "P-", "P+"].includes(r)) return r;
 
   switch (r) {
     case "P_MINUS":
@@ -51,6 +50,35 @@ const mapRank = (rank: string | undefined | null) => {
   }
 };
 
+// -------------------- SweetAlert2 helpers --------------------
+const toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 2200,
+  timerProgressBar: true,
+});
+
+const alertInfo = (title: string, text?: string) =>
+  Swal.fire({ icon: "info", title, text });
+
+const alertSuccess = (title: string, text?: string) =>
+  Swal.fire({ icon: "success", title, text });
+
+const alertError = (title: string, text?: string) =>
+  Swal.fire({ icon: "error", title, text });
+
+const alertConfirm = (title: string, text?: string) =>
+  Swal.fire({
+    icon: "question",
+    title,
+    text,
+    showCancelButton: true,
+    confirmButtonText: "ยืนยัน",
+    cancelButtonText: "ยกเลิก",
+    reverseButtons: true, // ✅ ยืนยันอยู่ก่อน (ซ้าย)
+    focusConfirm: true,
+  });
 
 export default function StatusPage() {
   const [showPayment, setShowPayment] = useState(false);
@@ -77,14 +105,12 @@ export default function StatusPage() {
         const registrations = response.data.data;
 
         const formattedTeams = registrations.map((reg: any) => {
-
           const isDouble = reg.tournament.playType === "DOUBLE";
-          const members = [
+          const members: any[] = [
             {
               id: reg.id,
               name: reg.player1Name,
               rank: mapRank(reg.playType?.trim()?.toUpperCase()),
-
               type: isDouble ? "คู่" : "เดี่ยว",
               register: mapStatus(reg.status),
               payment: reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
@@ -130,6 +156,7 @@ export default function StatusPage() {
         setTeams(formattedTeams);
       } catch (error) {
         console.error("Failed to fetch registrations:", error);
+        await alertError("โหลดข้อมูลไม่สำเร็จ", "กรุณารีเฟรชแล้วลองใหม่");
       } finally {
         setLoading(false);
       }
@@ -146,7 +173,8 @@ export default function StatusPage() {
         // Fetch QR Code
         if (team.tournamentId) {
           setLoadingQr(true);
-          api.get(`/api/payment/qr/${team.tournamentId}`)
+          api
+            .get(`/api/payment/qr/${team.tournamentId}`)
             .then((res) => {
               setModalQrCodeUrl(res.data.url);
             })
@@ -161,7 +189,8 @@ export default function StatusPage() {
 
         // Fetch existing slip if available
         if (team.slipUrl) {
-          api.get(`/api/payment/slip/${team.registrationId}`)
+          api
+            .get(`/api/payment/slip/${team.registrationId}`)
             .then((res) => {
               setUploadedSlip(res.data.url);
             })
@@ -179,7 +208,7 @@ export default function StatusPage() {
     }
   }, [showPayment, currentRegistrationId, teams]);
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadedFile(file);
@@ -188,41 +217,44 @@ export default function StatusPage() {
         setUploadedSlip(ev.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // ✅ toast แจ้งว่าเลือกรูปแล้ว
+      toast.fire({ icon: "success", title: "เลือกรูปสลิปแล้ว" });
     }
   };
 
   const confirmPayment = async () => {
     if (!uploadedFile || !currentRegistrationId) {
-      alert("กรุณาอัปโหลดสลิปการชำระเงิน");
+      await alertInfo("กรุณาอัปโหลดสลิป", "ก่อนกดเสร็จสิ้น");
       return;
     }
+
+    // ✅ Confirm ก่อนส่งสลิป
+    const result = await alertConfirm("ยืนยันการส่งสลิป", "ต้องการอัปโหลดสลิปการชำระเงินใช่หรือไม่");
+    if (!result.isConfirmed) return;
 
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("slip", uploadedFile);
 
-      await api.post(
-        `/api/registration/${currentRegistrationId}/payment/slip`,
-        formData,
-        {
-          headers: {
-            "Content-Type": undefined,
-          } as any,
-        }
-      );
+      await api.post(`/api/registration/${currentRegistrationId}/payment/slip`, formData, {
+        headers: {
+          "Content-Type": undefined,
+        } as any,
+      });
 
       // Update local state to show pending payment
       setTeams((prev) =>
         prev.map((team) =>
           team.registrationId === currentRegistrationId
             ? {
-              ...team,
-              members: team.members.map((m: any) => ({
-                ...m,
-                payment: "รอยืนยัน",
-              })),
-            }
+                ...team,
+                members: team.members.map((m: any) => ({
+                  ...m,
+                  payment: "รอยืนยัน",
+                })),
+              }
             : team
         )
       );
@@ -231,10 +263,11 @@ export default function StatusPage() {
       setUploadedSlip(null);
       setUploadedFile(null);
       setCurrentRegistrationId(null);
-      alert("อัปโหลดสลิปการชำระเงินสำเร็จ รอการตรวจสอบจากผู้จัด");
+
+      await alertSuccess("อัปโหลดสลิปสำเร็จ", "รอการตรวจสอบจากผู้จัด");
     } catch (error) {
       console.error("Failed to upload payment slip:", error);
-      alert("ไม่สามารถอัปโหลดสลิปได้ กรุณาลองใหม่อีกครั้ง");
+      await alertError("อัปโหลดไม่สำเร็จ", "กรุณาลองใหม่อีกครั้ง");
     } finally {
       setUploading(false);
     }
@@ -283,14 +316,14 @@ export default function StatusPage() {
           <label className="font-medium text-[#334155]">ประเภทมือ</label>
           <select
             value={filter.rank}
-            onChange={(e) =>
-              setFilter((prev) => ({ ...prev, rank: e.target.value }))
-            }
+            onChange={(e) => setFilter((prev) => ({ ...prev, rank: e.target.value }))}
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
           >
             <option value="">ทั้งหมด</option>
             {rankOptions.map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r} value={r}>
+                {r}
+              </option>
             ))}
           </select>
         </div>
@@ -299,14 +332,14 @@ export default function StatusPage() {
           <label className="font-medium text-[#334155]">ประเภท</label>
           <select
             value={filter.type}
-            onChange={(e) =>
-              setFilter((prev) => ({ ...prev, type: e.target.value }))
-            }
+            onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
           >
             <option value="">ทั้งหมด</option>
             {["คู่", "เดี่ยว"].map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
@@ -315,9 +348,7 @@ export default function StatusPage() {
       {/* 🔹 ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
         {!hasData ? (
-          <div className="text-center text-gray-500 py-10">
-            ไม่พบข้อมูลสำหรับตัวเลือกนี้
-          </div>
+          <div className="text-center text-gray-500 py-10">ไม่พบข้อมูลสำหรับตัวเลือกนี้</div>
         ) : (
           filteredTeams.map(
             (team) =>
@@ -364,16 +395,17 @@ export default function StatusPage() {
                                 const finalStatus = statuses.includes("รอยืนยัน")
                                   ? "รอยืนยัน"
                                   : statuses.includes("สมัครผ่าน")
-                                    ? "สมัครผ่าน"
-                                    : "ยกเลิก";
+                                  ? "สมัครผ่าน"
+                                  : "ยกเลิก";
                                 return (
                                   <span
-                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === "สมัครผ่าน"
-                                      ? "bg-green-200 text-green-800"
-                                      : finalStatus === "รอยืนยัน"
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                                      finalStatus === "สมัครผ่าน"
+                                        ? "bg-green-200 text-green-800"
+                                        : finalStatus === "รอยืนยัน"
                                         ? "bg-amber-200 text-amber-800"
                                         : "bg-red-200 text-red-800"
-                                      }`}
+                                    }`}
                                   >
                                     {finalStatus}
                                   </span>
@@ -403,16 +435,17 @@ export default function StatusPage() {
                                 const finalPay = payments.includes("รอยืนยัน")
                                   ? "รอยืนยัน"
                                   : payments.includes("ชำระเงินสำเร็จ")
-                                    ? "ชำระเงินสำเร็จ"
-                                    : "—";
+                                  ? "ชำระเงินสำเร็จ"
+                                  : "—";
                                 return (
                                   <span
-                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalPay === "รอยืนยัน"
-                                      ? "bg-yellow-200 text-yellow-800"
-                                      : finalPay === "ชำระเงินสำเร็จ"
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                                      finalPay === "รอยืนยัน"
+                                        ? "bg-yellow-200 text-yellow-800"
+                                        : finalPay === "ชำระเงินสำเร็จ"
                                         ? "bg-emerald-200 text-emerald-800"
                                         : "text-gray-400"
-                                      }`}
+                                    }`}
                                   >
                                     {finalPay}
                                   </span>
@@ -429,12 +462,13 @@ export default function StatusPage() {
                               <td className="p-2 border">{m.type}</td>
                               <td className="p-2 border">
                                 <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.register === "สมัครผ่าน"
-                                    ? "bg-green-200 text-green-800"
-                                    : m.register === "รอยืนยัน"
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                                    m.register === "สมัครผ่าน"
+                                      ? "bg-green-200 text-green-800"
+                                      : m.register === "รอยืนยัน"
                                       ? "bg-amber-200 text-amber-800"
                                       : "bg-red-200 text-red-800"
-                                    }`}
+                                  }`}
                                 >
                                   {m.register}
                                 </span>
@@ -456,12 +490,13 @@ export default function StatusPage() {
                               </td>
                               <td className="p-2 border">
                                 <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.payment === "รอยืนยัน"
-                                    ? "bg-yellow-200 text-yellow-800"
-                                    : m.payment === "ชำระเงินสำเร็จ"
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                                    m.payment === "รอยืนยัน"
+                                      ? "bg-yellow-200 text-yellow-800"
+                                      : m.payment === "ชำระเงินสำเร็จ"
                                       ? "bg-emerald-200 text-emerald-800"
                                       : "text-gray-400"
-                                    }`}
+                                  }`}
                                 >
                                   {m.payment}
                                 </span>
@@ -476,114 +511,103 @@ export default function StatusPage() {
               )
           )
         )}
-      </div >
+      </div>
 
       {/* 💳 Modal ชำระเงิน */}
-      {
-        showPayment && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full relative border-2 border-sky-200">
-              <button
-                onClick={() => {
-                  setShowPayment(false);
-                  setUploadedSlip(null);
-                  setUploadedFile(null);
-                }}
-                className="absolute top-3 right-4 text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-              <h2 className="text-lg sm:text-xl font-bold text-center mb-6 text-[#1E293B]">
-                ช่องทางการชำระเงิน
-              </h2>
+      {showPayment && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full relative border-2 border-sky-200">
+            <button
+              onClick={() => {
+                setShowPayment(false);
+                setUploadedSlip(null);
+                setUploadedFile(null);
+              }}
+              className="absolute top-3 right-4 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
-                <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                  {loadingQr ? (
-                    <div className="text-gray-500">กำลังโหลด QR Code...</div>
-                  ) : modalQrCodeUrl ? (
-                    <img
-                      src={modalQrCodeUrl}
-                      alt="QR Code"
-                      className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#CFE8FA] shadow-md object-contain mb-3"
-                    />
-                  ) : (
-                    <div className="text-gray-500">ยังไม่มี QR Code</div>
-                  )}
-                  <p className="text-sm text-gray-600 text-center mt-1">
-                    สแกน QR เพื่อโอนเข้าบัญชี
-                  </p>
-                </div>
+            <h2 className="text-lg sm:text-xl font-bold text-center mb-6 text-[#1E293B]">
+              ช่องทางการชำระเงิน
+            </h2>
 
-                <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[300px]">
-                  {(() => {
-                    const team = teams.find((t) => t.registrationId === currentRegistrationId);
-                    const paymentStatus = team?.members[0]?.payment;
-                    const isEditable = paymentStatus !== "ชำระเงินสำเร็จ" && paymentStatus !== "ยกเลิก";
-
-                    return uploadedSlip ? (
-                      <div className="relative group">
-                        <img
-                          src={uploadedSlip}
-                          alt="slip"
-                          className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#CFE8FA] shadow-md mb-2"
-                        />
-                        {isEditable && (
-                          <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
-                            <p className="text-white font-semibold">เปลี่ยนรูปภาพ</p>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleUpload}
-                              className="hidden"
-                            />
-                          </label>
-                        )}
-                      </div>
-                    ) : (
-                      <label className={`flex flex-col items-center justify-center text-gray-500 ${isEditable ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
-                        <Upload className="w-8 h-8 mb-2" />
-                        <p className="text-sm text-center">
-                          {isEditable ? "อัปโหลดสลิปชำระเงิน" : "ไม่สามารถอัปโหลดได้"}
-                        </p>
-                        {isEditable && (
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleUpload}
-                            className="hidden"
-                          />
-                        )}
-                      </label>
-                    );
-                  })()}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
+              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                {loadingQr ? (
+                  <div className="text-gray-500">กำลังโหลด QR Code...</div>
+                ) : modalQrCodeUrl ? (
+                  <img
+                    src={modalQrCodeUrl}
+                    alt="QR Code"
+                    className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#CFE8FA] shadow-md object-contain mb-3"
+                  />
+                ) : (
+                  <div className="text-gray-500">ยังไม่มี QR Code</div>
+                )}
+                <p className="text-sm text-gray-600 text-center mt-1">สแกน QR เพื่อโอนเข้าบัญชี</p>
               </div>
 
-              <div className="text-center mt-6">
+              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[300px]">
                 {(() => {
                   const team = teams.find((t) => t.registrationId === currentRegistrationId);
                   const paymentStatus = team?.members[0]?.payment;
                   const isEditable = paymentStatus !== "ชำระเงินสำเร็จ" && paymentStatus !== "ยกเลิก";
 
-                  if (!isEditable) return null;
-
-                  return (
-                    <button
-                      onClick={confirmPayment}
-                      disabled={uploading || !uploadedFile}
-                      className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
-                        }`}
+                  return uploadedSlip ? (
+                    <div className="relative group">
+                      <img
+                        src={uploadedSlip}
+                        alt="slip"
+                        className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#CFE8FA] shadow-md mb-2"
+                      />
+                      {isEditable && (
+                        <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
+                          <p className="text-white font-semibold">เปลี่ยนรูปภาพ</p>
+                          <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  ) : (
+                    <label
+                      className={`flex flex-col items-center justify-center text-gray-500 ${
+                        isEditable ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                      }`}
                     >
-                      {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
-                    </button>
+                      <Upload className="w-8 h-8 mb-2" />
+                      <p className="text-sm text-center">{isEditable ? "อัปโหลดสลิปชำระเงิน" : "ไม่สามารถอัปโหลดได้"}</p>
+                      {isEditable && (
+                        <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                      )}
+                    </label>
                   );
                 })()}
               </div>
             </div>
+
+            <div className="text-center mt-6">
+              {(() => {
+                const team = teams.find((t) => t.registrationId === currentRegistrationId);
+                const paymentStatus = team?.members[0]?.payment;
+                const isEditable = paymentStatus !== "ชำระเงินสำเร็จ" && paymentStatus !== "ยกเลิก";
+                if (!isEditable) return null;
+
+                return (
+                  <button
+                    onClick={confirmPayment}
+                    disabled={uploading || !uploadedFile}
+                    className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${
+                      uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                    }`}
+                  >
+                    {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
+                  </button>
+                );
+              })()}
+            </div>
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   );
 }
