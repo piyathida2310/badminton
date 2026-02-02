@@ -33,9 +33,11 @@ export default function RegisterPage() {
     player1Name: "",
     player1Phone: "",
     player1Birthday: "",
+    player1Gender: "",
     player2Name: "",
     player2Phone: "",
     player2Birthday: "",
+    player2Gender: "",
   });
 
   // Fetch tournament data
@@ -92,6 +94,7 @@ export default function RegisterPage() {
       formData.player1Name &&
       formData.player1Phone &&
       formData.player1Birthday &&
+      formData.player1Gender &&
       selectedRank &&
       tournament;
 
@@ -102,7 +105,8 @@ export default function RegisterPage() {
         baseValid &&
         formData.player2Name &&
         formData.player2Phone &&
-        formData.player2Birthday
+        formData.player2Birthday &&
+        formData.player2Gender
       );
     }
 
@@ -124,20 +128,18 @@ export default function RegisterPage() {
     }
 
     // ✅ 2) ยืนยันก่อนส่ง
-  const confirm = await Swal.fire({
-  icon: "question",
-  title: "ยืนยันการลงทะเบียน",
-  text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
-  showCancelButton: true,
-  confirmButtonText: "ยืนยัน",
-  cancelButtonText: "ยกเลิก",
-  reverseButtons: true,
-  focusConfirm: true,
+    const confirm = await Swal.fire({
+      icon: "question",
+      title: "ยืนยันการลงทะเบียน",
+      text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
+      showCancelButton: true,
+      confirmButtonText: "ยืนยัน",
+      cancelButtonText: "ยกเลิก",
 
-  customClass: {
-    actions: "flex-row-reverse", // บังคับสลับลำดับปุ่ม
-  },
-});
+      reverseButtons: true,      // ✅ ยืนยันอยู่ซ้าย (มาก่อน)
+      focusConfirm: true,        // ✅ โฟกัสที่ยืนยัน (แนะนำ)
+      // focusCancel: true,       // ❌ เอาออก
+    });
 
 
     if (!confirm.isConfirmed) return;
@@ -162,6 +164,7 @@ export default function RegisterPage() {
       formDataToSend.append("player1Name", formData.player1Name);
       formDataToSend.append("player1Phone", formData.player1Phone);
       formDataToSend.append("player1Birthday", formData.player1Birthday);
+      formDataToSend.append("player1Gender", formData.player1Gender);
 
       // (ของเดิมคุณใส่ playType = selectedRank แปลกนิดหน่อย แต่พี่คงไว้ตามเดิม)
       formDataToSend.append("playType", selectedRank!);
@@ -174,6 +177,7 @@ export default function RegisterPage() {
         formDataToSend.append("player2Name", formData.player2Name);
         formDataToSend.append("player2Phone", formData.player2Phone);
         formDataToSend.append("player2Birthday", formData.player2Birthday);
+        formDataToSend.append("player2Gender", formData.player2Gender);
       }
 
       if (video) {
@@ -277,7 +281,7 @@ export default function RegisterPage() {
                     mode ===
                     (tournament.playType === "SINGLE" ? "single" : "double")
                   }
-                  onChange={() => {}}
+                  onChange={() => { }}
                   className="accent-pink-500 w-4 h-4"
                   disabled
                 />
@@ -367,6 +371,32 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+
+              <div>
+                <label className="block mb-1 font-medium">เพศ</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, player1Gender: "Male" })}
+                    className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player1Gender === "Male"
+                      ? "bg-blue-100 border-blue-400 text-blue-700 shadow-sm ring-2 ring-blue-200"
+                      : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+                      }`}
+                  >
+                    ชาย
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, player1Gender: "Female" })}
+                    className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player1Gender === "Female"
+                      ? "bg-pink-100 border-pink-400 text-pink-700 shadow-sm ring-2 ring-pink-200"
+                      : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
+                      }`}
+                  >
+                    หญิง
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -419,6 +449,32 @@ export default function RegisterPage() {
                     required
                   />
                 </div>
+
+                <div>
+                  <label className="block mb-1 font-medium">เพศ</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, player2Gender: "Male" })}
+                      className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player2Gender === "Male"
+                        ? "bg-blue-100 border-blue-400 text-blue-700 shadow-sm ring-2 ring-blue-200"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+                        }`}
+                    >
+                      ชาย
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, player2Gender: "Female" })}
+                      className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player2Gender === "Female"
+                        ? "bg-pink-100 border-pink-400 text-pink-700 shadow-sm ring-2 ring-pink-200"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
+                        }`}
+                    >
+                      หญิง
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -436,11 +492,10 @@ export default function RegisterPage() {
                   key={rank}
                   type="button"
                   onClick={() => setSelectedRank(rank)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${
-                    selectedRank === rank
-                      ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                      : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
-                  }`}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
+                    ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
+                    : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                    }`}
                 >
                   {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
                 </button>
@@ -478,9 +533,8 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={!isFormValid() || loading}
-            className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${
-              (!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
-            }`}
+            className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${(!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
+              }`}
           >
             {loading ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
           </button>
