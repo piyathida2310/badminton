@@ -8,21 +8,33 @@ import axios from "../../../../../lib/api";
 
 export default function TournamentGroupPage() {
   const router = useRouter();
-  const [matchType, setMatchType] = useState<"single" | "double">("single");
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const { id } = useParams();
 
-  //  state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
+  const [matchType, setMatchType] = useState<"single" | "double">("single");
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+
+  // ✅ เก็บ title ของ tournament
+  const [tournamentTitle, setTournamentTitle] = useState<string>("");
+
+  // state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
   const [showGroups, setShowGroups] = useState(false);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<any[]>([]);
 
-  // Fetch existing groups on load
+  // Fetch existing groups on load + ดึง title
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
         const res = await axios.get(`/api/tournament/${id}`);
-        const existingGroups = res.data.data.groups;
+        const tournament = res.data.data;
+
+        // ✅ set title
+        setTournamentTitle(tournament?.title || "");
+
+        // ✅ set groups ถ้ามีอยู่แล้ว
+        const existingGroups = tournament?.groups;
         if (existingGroups && existingGroups.length > 0) {
           setGroups(existingGroups);
           setShowGroups(true);
@@ -32,17 +44,17 @@ export default function TournamentGroupPage() {
       }
     };
 
-    fetchTournamentData();
+    if (id) fetchTournamentData();
   }, [id]);
 
-  const totalTeams = groups.reduce((sum, g) => sum + g.teams.length, 0);
+  const totalTeams = groups.reduce((sum, g) => sum + (g?.teams?.length || 0), 0);
 
-  //  ฟังก์ชันเมื่อกด "จัดแข่ง"
+  // ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = async () => {
     setLoading(true);
     try {
       const res = await axios.post(`/api/tournament/managegroup/${id}`, {
-        detail: "Balance skill levels" // Optional detail
+        detail: "Balance skill levels", // Optional detail
       });
 
       if (res.data.groups) {
@@ -72,8 +84,11 @@ export default function TournamentGroupPage() {
         className="text-center mb-10 z-10"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
-          รายการแข่ง Rank BG ประเภท {matchType === "single" ? "เดี่ยว" : "คู่"}{" "}
+          รายการแข่ง {tournamentTitle || "-"} ประเภท{" "}
+          {matchType === "single" ? "เดี่ยว" : "คู่"}
         </h1>
+
+        {/* ✅ ยังแสดงวันที่เหมือนเดิม (แต่ลบ dropdown ปฏิทินออกแล้ว) */}
         <p className="text-blue-700 font-semibold text-base sm:text-lg mt-2">
           วันที่{" "}
           {new Date(selectedDate).toLocaleDateString("th-TH", {
@@ -83,15 +98,7 @@ export default function TournamentGroupPage() {
           })}
         </p>
 
-        {/* ปุ่มโหมด + วันที่ */}
-        <div className="mt-5 flex flex-wrap justify-center gap-3 sm:gap-5">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 rounded-full border border-gray-300 text-gray-700 font-medium text-sm sm:text-base shadow-sm focus:ring-2 focus:ring-blue-300 transition-all duration-300 bg-white"
-          />
-        </div>
+        {/* ❌ ลบ input type="date" ออกแล้ว (ตามที่ต้องการ) */}
 
         {/* ปุ่มจัดแข่ง */}
         {!showGroups && (
@@ -101,8 +108,11 @@ export default function TournamentGroupPage() {
               whileTap={{ scale: 0.95 }}
               onClick={handleStartCompetition}
               disabled={loading}
-              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-blue-500 to-indigo-500"
-                }`}
+              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-500"
+              }`}
             >
               {loading ? "กำลังจัดกลุ่ม..." : "จัดแข่ง"}
             </motion.button>
@@ -124,7 +134,9 @@ export default function TournamentGroupPage() {
               whileHover={{ scale: 1.04 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
               onClick={() =>
-                router.push(`/manage/${id}/group/group-stage-scores?group=${group.name}`)
+                router.push(
+                  `/manage/${id}/group/group-stage-scores?group=${group.name}`
+                )
               }
               className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${group.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
             >
@@ -133,6 +145,7 @@ export default function TournamentGroupPage() {
               >
                 {group.name}
               </div>
+
               <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center">
                 {group.teams.map((team: any, index: number) => (
                   <li
@@ -160,8 +173,6 @@ export default function TournamentGroupPage() {
           ยังไม่มีการสร้าง Group
         </p>
       )}
-
-
     </div>
   );
 }
