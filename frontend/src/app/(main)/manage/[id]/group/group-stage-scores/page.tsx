@@ -9,6 +9,7 @@ import {
 } from "../../../../../../../components/groupComponents";
 import { GroupTableEditable } from "../../../../../../../components/groupTableEditable";
 import api from "../../../../../../lib/api";
+import Swal from "sweetalert2"; // ✅ เพิ่มแค่นี้เพื่อใช้แจ้งเตือน
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
@@ -93,10 +94,22 @@ export default function GroupStageScoresPage() {
 
       await Promise.all(promises);
       await fetchData(); // Refresh data to update rankings
-      alert("บันทึกเรียบร้อย");
+
+      // ✅ เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
+      Swal.fire({
+        icon: "success",
+        title: "บันทึกเรียบร้อย",
+        confirmButtonText: "ตกลง",
+      });
     } catch (e) {
       console.error("Save error:", e);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+
+      // ✅ เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนผิดพลาด)
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาดในการบันทึก",
+        confirmButtonText: "ตกลง",
+      });
     }
   };
 
