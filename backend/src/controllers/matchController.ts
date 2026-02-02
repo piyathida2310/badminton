@@ -257,50 +257,45 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 
         // Re-order matches to ensure valid Round Robin (no team plays twice in same round)
         const totalTeams = group.registers.length;
-        // Ensure at least 1 match per round to avoid division by zero or infinite loops
-        const matchesPerRound = Math.max(1, totalTeams === 3 ? 1 : Math.floor(totalTeams / 2));
+        const matchesPerRound = totalTeams === 3 ? 1 : Math.floor(totalTeams / 2); // 3 teams->1 match/round (bye), 4->2, 5->2, etc.
 
         let pendingMatches = [...group.matches];
-        let organizedMatches: typeof group.matches = [];
+        const organizedMatches = [];
 
-        try {
-            while (pendingMatches.length > 0) {
-                const currentRoundMatches: typeof group.matches = [];
-                const teamsInRound = new Set<number>();
+        while (pendingMatches.length > 0) {
+            const currentRoundMatches: typeof group.matches = [];
+            const teamsInRound = new Set<number>();
 
-                // Try to fill this round
-                for (let i = 0; i < pendingMatches.length; i++) {
-                    if (currentRoundMatches.length >= matchesPerRound) break;
+            // Try to fill this round
+            for (let i = 0; i < pendingMatches.length; i++) {
+                // If round is full, stop adding
+                if (currentRoundMatches.length >= matchesPerRound) break;
 
-                    const m = pendingMatches[i];
-                    const p1 = m.player1Id;
-                    const p2 = m.player2Id;
+                const m = pendingMatches[i];
+                const p1 = m.player1Id;
+                const p2 = m.player2Id;
 
-                    if (p1 && teamsInRound.has(p1)) continue;
-                    if (p2 && teamsInRound.has(p2)) continue;
+                // Check if players already playing in this round
+                if (p1 && teamsInRound.has(p1)) continue;
+                if (p2 && teamsInRound.has(p2)) continue;
 
-                    currentRoundMatches.push(m);
-                    if (p1) teamsInRound.add(p1);
-                    if (p2) teamsInRound.add(p2);
-                }
-
-                // Fallback: If no match fits, take the first one
-                if (currentRoundMatches.length === 0 && pendingMatches.length > 0) {
-                    currentRoundMatches.push(pendingMatches[0]);
-                }
-
-                pendingMatches = pendingMatches.filter(pm => !currentRoundMatches.includes(pm));
-                organizedMatches.push(...currentRoundMatches);
+                // Add to round
+                currentRoundMatches.push(m);
+                if (p1) teamsInRound.add(p1);
+                if (p2) teamsInRound.add(p2);
             }
-        } catch (e) {
-            console.error("Error organizing matches:", e);
-            // Fallback to original order on error
-            organizedMatches = group.matches;
-        }
 
-        // Safety check: specific fallback if matches were lost
-        if (organizedMatches.length !== group.matches.length) {
-            organizedMatches = group.matches;
+            // If we couldn't find ANY match for a round but pending exists, 
+            // force add the first one to avoid infinite loop (fallback)
+            if (currentRoundMatches.length === 0 && pendingMatches.length > 0) {
+                currentRoundMatches.push(pendingMatches[0]);
+            }
+
+            // Remove found matches from pending
+            pendingMatches = pendingMatches.filter(pm => !currentRoundMatches.includes(pm));
+
+            // Add to final list
+            organizedMatches.push(...currentRoundMatches);
         }
 
         // 3. Format Matches
