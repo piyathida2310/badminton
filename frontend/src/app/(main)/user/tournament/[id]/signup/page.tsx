@@ -129,17 +129,19 @@ export default function RegisterPage() {
 
     // ✅ 2) ยืนยันก่อนส่ง
     const confirm = await Swal.fire({
-      icon: "question",
-      title: "ยืนยันการลงทะเบียน",
-      text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
-      showCancelButton: true,
-      confirmButtonText: "ยืนยัน",
-      cancelButtonText: "ยกเลิก",
+  icon: "question",
+  title: "ยืนยันการลงทะเบียน",
+  text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
+  showCancelButton: true,
+  confirmButtonText: "ยืนยัน",
+  cancelButtonText: "ยกเลิก",
+  reverseButtons: true,
+  focusConfirm: true,
 
-      reverseButtons: true,      // ✅ ยืนยันอยู่ซ้าย (มาก่อน)
-      focusConfirm: true,        // ✅ โฟกัสที่ยืนยัน (แนะนำ)
-      // focusCancel: true,       // ❌ เอาออก
-    });
+  customClass: {
+    actions: "flex-row-reverse", // บังคับสลับลำดับปุ่ม
+  },
+});
 
 
     if (!confirm.isConfirmed) return;
