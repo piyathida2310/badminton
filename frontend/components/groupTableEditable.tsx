@@ -5,15 +5,24 @@ export function GroupTableEditable({
   title,
   headers,
   rows,
+  onSave,
 }: {
   title: string;
   headers: string[];
   rows: any[][];
+  onSave?: (data: any[][]) => void;
 }) {
+  console.log("GroupTableEditable rows prop changed:", rows);
   const [data, setData] = useState(rows);
   const [editing, setEditing] = useState(false);
 
+  // Sync data whenever rows prop changes (important for initial fetch)
+  React.useEffect(() => {
+    setData(rows);
+  }, [rows]);
+
   const handleChange = (rowIndex: number, setIndex: number, value: string) => {
+    if (value !== "" && parseInt(value) < 0) return;
     const newData = [...data];
     const [left, right] = newData[rowIndex][headers.indexOf("SET")]
       .split(":")
@@ -27,6 +36,9 @@ export function GroupTableEditable({
   };
 
   const handleSimpleChange = (rowIndex: number, colIndex: number, value: string) => {
+    // Prevent negative numbers for "ลูกแบต" or any numeric field
+    if (headers[colIndex] === "ลูกแบต" && value !== "" && parseInt(value) < 0) return;
+
     const newData = [...data];
     newData[rowIndex][colIndex] = value;
     setData(newData);
@@ -37,16 +49,39 @@ export function GroupTableEditable({
       {/* หัวข้อ + ปุ่ม */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-center sm:text-left">
         <h3 className="font-bold text-lg text-gray-800">{title}</h3>
-        <button
-          onClick={() => setEditing(!editing)}
-          className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200
-          ${editing
-              ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
-              : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
-            }`}
-        >
-          {editing ? "บันทึก" : "กรอกคะแนน"}
-        </button>
+        <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
+          {headers.includes("เวลา") && (
+            <button
+              onClick={() => onSave && onSave(data)}
+              className="px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200 bg-gradient-to-r from-yellow-200 to-amber-200 text-yellow-900 hover:opacity-90"
+            >
+              บันทึกเวลา
+            </button>
+          )}
+          {headers.includes("ลูกแบต") && (
+            <button
+              onClick={() => onSave && onSave(data)}
+              className="px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200 bg-gradient-to-r from-emerald-200 to-green-200 text-emerald-900 hover:opacity-90"
+            >
+              บันทึกลูกแบต
+            </button>
+          )}
+          <button
+            onClick={() => {
+              if (editing && onSave) {
+                onSave(data);
+              }
+              setEditing(!editing);
+            }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200
+            ${editing
+                ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
+                : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
+              }`}
+          >
+            {editing ? "บันทึกคะแนน" : "กรอกคะแนน"}
+          </button>
+        </div>
       </div>
 
       {/* ตาราง */}
@@ -82,6 +117,7 @@ export function GroupTableEditable({
                         <div className="flex flex-row flex-nowrap items-center justify-center gap-1">
                           <input
                             type="number"
+                            min={0}
                             value={v.split(":")[0]?.trim() || ""}
                             onChange={(e) => handleChange(i, 0, e.target.value)}
                             className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
@@ -89,6 +125,7 @@ export function GroupTableEditable({
                           <span>:</span>
                           <input
                             type="number"
+                            min={0}
                             value={v.split(":")[1]?.trim() || ""}
                             onChange={(e) => handleChange(i, 1, e.target.value)}
                             className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
@@ -97,12 +134,14 @@ export function GroupTableEditable({
                       ) : (
                         <span className="whitespace-nowrap">{v}</span>   // ⭐ ตรงนี้ช่วยไม่ให้มันตัดบรรทัด
                       )
-                    ) : headers[j] === "ลูกแบต" ? (
+                    ) : headers[j] === "ลูกแบต" || headers[j] === "เวลา" ? (
                       <input
-                        type="number"
+                        type={headers[j] === "เวลา" ? "time" : "number"}
+                        min={headers[j] !== "เวลา" ? 0 : undefined}
                         value={v}
                         onChange={(e) => handleSimpleChange(i, j, e.target.value)}
-                        className="w-16 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300 bg-white"
+                        className={`text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300 bg-white ${headers[j] === "เวลา" ? "w-20" : "w-16"
+                          }`}
                       />
                     ) : (
                       v
