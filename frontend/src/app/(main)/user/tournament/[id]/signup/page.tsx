@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { UploadCloud } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "../../../../../../lib/api";
+import Swal from "sweetalert2";
 
 interface Tournament {
   id: number;
@@ -26,9 +27,6 @@ export default function RegisterPage() {
   const [tournamentLoading, setTournamentLoading] = useState(true);
   const [isFull, setIsFull] = useState(false);
 
-  // Form state
-  // ... (rest of the state remains same, but I can't selectively keep it in this tool without repeating. 
-  // Wait, I am replacing a chunk. I should just initialize state here.)
   const [formData, setFormData] = useState({
     teamName: "",
     managerName: "",
@@ -45,39 +43,35 @@ export default function RegisterPage() {
     const fetchTournament = async () => {
       try {
         const response = await axios.get(`/api/tournament/${id}`);
-        setTournament(response.data.data);
+        const t = response.data.data as Tournament;
+        setTournament(t);
 
-        // Check if full
-        if (response.data.data) {
-          const t = response.data.data;
-          if ((t.currentPlayers || 0) >= (t.maxPlayers || 0)) {
-            setIsFull(true);
-          }
+        if ((t.currentPlayers || 0) >= (t.maxPlayers || 0)) {
+          setIsFull(true);
         }
 
-        // Set default mode based on tournament playType
-        if (response.data.data.playType === "SINGLE") {
-          setMode("single");
-        } else if (response.data.data.playType === "DOUBLE") {
-          setMode("double");
-        }
+        if (t.playType === "SINGLE") setMode("single");
+        if (t.playType === "DOUBLE") setMode("double");
       } catch (error) {
         console.error("Failed to fetch tournament:", error);
+        Swal.fire({
+          icon: "error",
+          title: "โหลดข้อมูลไม่สำเร็จ",
+          text: "ไม่สามารถโหลดข้อมูลการแข่งขันได้ กรุณาลองใหม่อีกครั้ง",
+          confirmButtonText: "ตกลง",
+        });
       } finally {
         setTournamentLoading(false);
       }
     };
 
-    if (id) {
-      fetchTournament();
-    }
+    if (id) fetchTournament();
   }, [id]);
 
-  // handle file upload - accept all video formats
+  // handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log("Selected video:", file.name, file.type, file.size);
       setVideo(file);
     }
   };
@@ -99,9 +93,8 @@ export default function RegisterPage() {
       formData.player1Phone &&
       formData.player1Birthday &&
       selectedRank &&
-      tournament; // Ensure tournament data is loaded
+      tournament;
 
-    // Check if tournament requires double mode
     const requiresDouble = tournament && tournament.playType === "DOUBLE";
 
     if (requiresDouble) {
@@ -119,24 +112,60 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ 1) กรอกไม่ครบ → Swal
     if (!isFormValid()) {
-      alert("❌ กรุณากรอกข้อมูลให้ครบถ้วน");
+      await Swal.fire({
+        icon: "warning",
+        title: "กรอกข้อมูลไม่ครบ",
+        text: "❌ กรุณากรอกข้อมูลให้ครบถ้วนก่อนลงทะเบียน",
+        confirmButtonText: "ตกลง",
+      });
       return;
     }
 
+    // ✅ 2) ยืนยันก่อนส่ง
+   const confirm = await Swal.fire({
+  icon: "question",
+  title: "ยืนยันการลงทะเบียน",
+  text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
+  showCancelButton: true,
+  confirmButtonText: "ยืนยัน",
+  cancelButtonText: "ยกเลิก",
+
+  reverseButtons: true,      // ✅ ยืนยันอยู่ซ้าย (มาก่อน)
+  focusConfirm: true,        // ✅ โฟกัสที่ยืนยัน (แนะนำ)
+  // focusCancel: true,       // ❌ เอาออก
+});
+
+    if (!confirm.isConfirmed) return;
+
     setLoading(true);
+
+    // ✅ 3) ระหว่างส่ง → Loading Swal
+    Swal.fire({
+      title: "กำลังลงทะเบียน...",
+      text: "กรุณารอสักครู่",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
       const formDataToSend = new FormData();
-
-      // Add all form fields
       formDataToSend.append("teamName", formData.teamName);
       formDataToSend.append("managerName", formData.managerName);
       formDataToSend.append("player1Name", formData.player1Name);
       formDataToSend.append("player1Phone", formData.player1Phone);
       formDataToSend.append("player1Birthday", formData.player1Birthday);
+
+      // (ของเดิมคุณใส่ playType = selectedRank แปลกนิดหน่อย แต่พี่คงไว้ตามเดิม)
       formDataToSend.append("playType", selectedRank!);
-      formDataToSend.append("mode", tournament?.playType === "SINGLE" ? "single" : "double");
+      formDataToSend.append(
+        "mode",
+        tournament?.playType === "SINGLE" ? "single" : "double"
+      );
 
       if (tournament?.playType === "DOUBLE") {
         formDataToSend.append("player2Name", formData.player2Name);
@@ -144,32 +173,53 @@ export default function RegisterPage() {
         formDataToSend.append("player2Birthday", formData.player2Birthday);
       }
 
-      // Add video file if present
       if (video) {
-        console.log("Uploading video:", video.name, video.type, video.size);
         formDataToSend.append("video", video, video.name);
       }
 
-      // Override the default Content-Type to allow browser to set multipart/form-data with boundary
       const response = await axios.post(
         `/api/tournament/${id}/register`,
         formDataToSend,
         {
           headers: {
-            'Content-Type': undefined,
+            "Content-Type": undefined,
           },
         }
       );
 
       if (response.status === 201) {
-        alert("✅ สมัครสำเร็จแล้ว!");
-        // Redirect to match-rules page with tournament id
+        Swal.close();
+
+        await Swal.fire({
+          icon: "success",
+          title: "สมัครสำเร็จ",
+          text: "สมัครเรียบร้อยแล้ว กำลังพาไปหน้ากติกาการแข่งขัน",
+          confirmButtonText: "ไปต่อ",
+        });
+
         router.push(`/user/match-rules?id=${id}`);
+      } else {
+        Swal.close();
+        await Swal.fire({
+          icon: "error",
+          title: "สมัครไม่สำเร็จ",
+          text: "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+          confirmButtonText: "ตกลง",
+        });
       }
     } catch (error: any) {
-      console.error("Registration error:", error);
-      const errorMessage = error.response?.data?.message || "เกิดข้อผิดพลาดในการสมัคร กรุณาลองใหม่อีกครั้ง";
-      alert(`❌ ${errorMessage}`);
+      Swal.close();
+
+      const errorMessage =
+        error.response?.data?.message ||
+        "เกิดข้อผิดพลาดในการสมัคร กรุณาลองใหม่อีกครั้ง";
+
+      await Swal.fire({
+        icon: "error",
+        title: "สมัครไม่สำเร็จ",
+        text: `❌ ${errorMessage}`,
+        confirmButtonText: "ตกลง",
+      });
     } finally {
       setLoading(false);
     }
@@ -220,8 +270,11 @@ export default function RegisterPage() {
                 <input
                   type="radio"
                   name="mode"
-                  checked={mode === (tournament.playType === "SINGLE" ? "single" : "double")}
-                  onChange={() => { }}
+                  checked={
+                    mode ===
+                    (tournament.playType === "SINGLE" ? "single" : "double")
+                  }
+                  onChange={() => {}}
                   className="accent-pink-500 w-4 h-4"
                   disabled
                 />
@@ -314,7 +367,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* ผู้เล้นคนที่ 2 */}
+          {/* ผู้เล่นคนที่ 2 */}
           {tournament?.playType === "DOUBLE" && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -380,10 +433,11 @@ export default function RegisterPage() {
                   key={rank}
                   type="button"
                   onClick={() => setSelectedRank(rank)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
-                    ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                    : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
-                    }`}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${
+                    selectedRank === rank
+                      ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
+                      : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                  }`}
                 >
                   {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
                 </button>
@@ -396,16 +450,14 @@ export default function RegisterPage() {
 
         {/* Upload */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">วิดีโอการเล่น </h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">วิดีโอการเล่น</h2>
           <label className="flex flex-col items-center justify-center text-center border-2 border-dashed border-pink-300 rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
             <UploadCloud className="w-10 h-10 text-pink-400 mb-3" />
             {video ? (
               <p className="font-semibold text-pink-600">{video.name}</p>
             ) : (
               <>
-                <p className="font-semibold text-pink-700">
-                  อัปโหลดวิดีโอการเล่น
-                </p>
+                <p className="font-semibold text-pink-700">อัปโหลดวิดีโอการเล่น</p>
                 <p className="text-xs text-gray-500 mt-1">รองรับไฟล์วิดีโอทุกประเภท</p>
               </>
             )}
@@ -423,8 +475,9 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={!isFormValid() || loading}
-            className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${(!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
-              }`}
+            className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${
+              (!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
+            }`}
           >
             {loading ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
           </button>
