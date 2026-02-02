@@ -307,11 +307,13 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             let roundName = `R${roundNum}`;
 
             let shuttle = "";
+            let setScores = "";
             try {
                 const dbRound = m.round || "";
                 if (dbRound.includes("|")) {
                     const parts = dbRound.split("|");
                     shuttle = parts[1] || "";
+                    setScores = parts[2] || "";
                 } else if (dbRound.startsWith("{")) {
                     const parsed = JSON.parse(dbRound);
                     shuttle = parsed.shuttle || "";
@@ -342,7 +344,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             const s2 = m.score2;
 
             const [p1, p2] = getPoints(s1, s2);
-            const setStr = (s1 !== null && s2 !== null) ? `${s1} : ${s2}` : " : ";
+            // Index 6 (Set Column): Use detailed setScores if available, else standard S1:S2
+            const setStr = setScores ? setScores : ((s1 !== null && s2 !== null) ? `${s1} : ${s2}` : " : ");
 
             return [
                 time,          // 0
@@ -373,7 +376,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 export const updateMatchScore = async (req: Request, res: Response) => {
     try {
         const { matchId } = req.params;
-        const { score1, score2, shuttle, time, roundName } = req.body;
+        const { score1, score2, shuttle, time, roundName, sets } = req.body;
 
         // Fetch existing to preserve round name if we use JSON trick
         const match = await prisma.match.findUnique({
@@ -383,25 +386,28 @@ export const updateMatchScore = async (req: Request, res: Response) => {
         if (!match) return res.status(404).json({ message: "Match not found" });
 
         let newRound = match.round;
-        if (shuttle !== undefined) {
+        // We update round string if shuttle OR sets OR roundName provided
+        if (shuttle !== undefined || sets !== undefined || roundName) {
             let rName = match.round || "";
+            let currentShuttle = "";
+            let currentSets = "";
 
-            // Clean up existing format to get the base Round Name
+            // Parse existing
             if (rName.startsWith("{")) {
-                try {
-                    const p = JSON.parse(rName);
-                    rName = p.name || "";
-                } catch (e) { }
+                try { const p = JSON.parse(rName); rName = p.name || ""; currentShuttle = p.shuttle || ""; } catch (e) { }
             } else if (rName.includes("|")) {
-                rName = rName.split("|")[0];
+                const parts = rName.split("|");
+                rName = parts[0];
+                currentShuttle = parts[1] || "";
+                currentSets = parts[2] || "";
             }
 
-            // Use provided roundName from frontend if available
-            if (roundName) {
-                rName = roundName;
-            }
+            // Overwrite with new values if provided
+            if (roundName) rName = roundName;
+            if (shuttle !== undefined) currentShuttle = shuttle;
+            if (sets !== undefined) currentSets = sets;
 
-            newRound = `${rName}|${shuttle}`;
+            newRound = `${rName}|${currentShuttle}|${currentSets}`;
         }
 
         let newScheduledTime = match.scheduledTime;

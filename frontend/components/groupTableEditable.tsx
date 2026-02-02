@@ -21,18 +21,38 @@ export function GroupTableEditable({
     setData(rows);
   }, [rows]);
 
-  const handleChange = (rowIndex: number, setIndex: number, value: string) => {
+  const handleSetChange = (rowIndex: number, setIdx: number, side: number, value: string) => {
     if (value !== "" && parseInt(value) < 0) return;
+
     const newData = [...data];
-    const [left, right] = newData[rowIndex][headers.indexOf("SET")]
-      .split(":")
-      .map((v: string) => v.trim());
-    const updated =
-      setIndex === 0
-        ? `${value || ""} : ${right}`
-        : `${left} : ${value || ""}`;
-    newData[rowIndex][headers.indexOf("SET")] = updated;
+    const colIdx = headers.indexOf("SET");
+    let valStr = newData[rowIndex][colIdx];
+
+    // Normalize to array
+    let sets = valStr.includes(",") ? valStr.split(",") : [valStr];
+    if (sets.length < 2) sets.push(" : "); // Ensure structure
+
+    // Get target set
+    const currentSet = sets[setIdx] || " : ";
+    const parts = currentSet.split(":");
+    const left = parts[0] ? parts[0].trim() : "";
+    const right = parts[1] ? parts[1].trim() : "";
+
+    // Update
+    const newSet = side === 0
+      ? `${value} : ${right}`
+      : `${left} : ${value}`;
+
+    sets[setIdx] = newSet;
+
+    // Join back
+    newData[rowIndex][colIdx] = sets.join(",");
     setData(newData);
+  };
+
+  // Deprecated single-set handler, kept just in case but handleSetChange replaces it
+  const handleChange = (rowIndex: number, setIndex: number, value: string) => {
+    handleSetChange(rowIndex, 0, setIndex, value);
   };
 
   const handleSimpleChange = (rowIndex: number, colIndex: number, value: string) => {
@@ -114,25 +134,47 @@ export function GroupTableEditable({
                   >
                     {headers[j] === "SET" ? (
                       editing ? (
-                        <div className="flex flex-row flex-nowrap items-center justify-center gap-1">
-                          <input
-                            type="number"
-                            min={0}
-                            value={v.split(":")[0]?.trim() || ""}
-                            onChange={(e) => handleChange(i, 0, e.target.value)}
-                            className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
-                          />
-                          <span>:</span>
-                          <input
-                            type="number"
-                            min={0}
-                            value={v.split(":")[1]?.trim() || ""}
-                            onChange={(e) => handleChange(i, 1, e.target.value)}
-                            className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
-                          />
-                        </div>
+                        (() => {
+                          const sets = v.includes(",") ? v.split(",") : [v];
+                          if (sets.length < 2) sets.push(" : ");
+
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {sets.map((setStr: string, setIdx: number) => (
+                                <div key={setIdx} className="flex flex-row flex-nowrap items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={setStr.split(":")[0]?.trim() || ""}
+                                    onChange={(e) => handleSetChange(i, setIdx, 0, e.target.value)}
+                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                                  />
+                                  <span>:</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={setStr.split(":")[1]?.trim() || ""}
+                                    onChange={(e) => handleSetChange(i, setIdx, 1, e.target.value)}
+                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()
                       ) : (
-                        <span className="whitespace-nowrap">{v}</span>   // ⭐ ตรงนี้ช่วยไม่ให้มันตัดบรรทัด
+                        (() => {
+                          const sets = v.includes(",") ? v.split(",") : [v];
+                          return (
+                            <div className="flex flex-col gap-1 items-center justify-center">
+                              {sets.map((s: string, idx: number) => (
+                                <div key={idx} className="whitespace-nowrap h-8 flex items-center">
+                                  {s}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()
                       )
                     ) : headers[j] === "ลูกแบต" || headers[j] === "เวลา" ? (
                       <input

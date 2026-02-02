@@ -56,28 +56,38 @@ export default function GroupStageScoresPage() {
         const matchId = row[2];
         if (!matchId) return;
 
-        const setScore = row[6] as string; // "18 : 21"
+        const setScore = row[6] as string; // "10 : 21,17 : 21" or " : , : "
         const shuttle = row[10];
 
-        const timeStr = row[0] as string; // "09:30"
+        const timeStr = row[0] as string;
 
-        // Parse scores
-        const parts = setScore.split(":").map((s) => s.trim());
-        let s1 = parts[0] && parts[0] !== "" ? parseInt(parts[0]) : undefined;
-        let s2 = parts[1] && parts[1] !== "" ? parseInt(parts[1]) : undefined;
+        // Parse & Sum scores from all sets
+        let totalS1 = 0;
+        let totalS2 = 0;
+        let hasValidScore = false;
 
-        // Ensure valid numbers if provided
-        if (s1 !== undefined && isNaN(s1)) s1 = undefined;
-        if (s2 !== undefined && isNaN(s2)) s2 = undefined;
+        const setStrings = setScore.split(",");
+        setStrings.forEach(s => {
+          const parts = s.split(":").map(v => v.trim());
+          const val1 = parseInt(parts[0]);
+          const val2 = parseInt(parts[1]);
 
-        const roundNameStr = row[1] as string; // "R1"
+          if (!isNaN(val1)) { totalS1 += val1; hasValidScore = true; }
+          if (!isNaN(val2)) { totalS2 += val2; hasValidScore = true; }
+        });
+
+        let s1 = hasValidScore ? totalS1 : undefined;
+        let s2 = hasValidScore ? totalS2 : undefined;
+
+        const roundNameStr = row[1] as string;
 
         await api.put(`/api/matches/${matchId}`, {
           score1: s1,
           score2: s2,
           shuttle: shuttle,
           time: timeStr,
-          roundName: roundNameStr
+          roundName: roundNameStr,
+          sets: setScore // Send the raw sets string
         });
       });
 
