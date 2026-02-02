@@ -53,9 +53,13 @@ export default function TournamentGroupPage() {
   const handleStartCompetition = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(`/api/tournament/managegroup/${id}`, {
-        detail: "Balance skill levels", // Optional detail
-      });
+      const res = await axios.post(
+        `/api/tournament/managegroup/${id}`,
+        {
+          detail: "Balance skill levels", // Optional detail
+        },
+        { timeout: 120000 } // Extended timeout for AI + Match Generation
+      );
 
       if (res.data.groups) {
         setGroups(res.data.groups);
@@ -108,11 +112,10 @@ export default function TournamentGroupPage() {
               whileTap={{ scale: 0.95 }}
               onClick={handleStartCompetition}
               disabled={loading}
-              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${
-                loading
+              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-500 to-indigo-500"
-              }`}
+                }`}
             >
               {loading ? "กำลังจัดกลุ่ม..." : "จัดแข่ง"}
             </motion.button>

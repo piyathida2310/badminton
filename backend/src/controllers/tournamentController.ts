@@ -469,6 +469,14 @@ export const managegroup = async (req: Request, res: Response) => {
       data: { groupId: null },
     });
 
+    // Clean up existing matches linked to groups (to avoid FK errors when deleting groups)
+    await prisma.match.deleteMany({
+      where: {
+        tournamentId,
+        groupId: { not: null }
+      },
+    });
+
     await prisma.group.deleteMany({
       where: { tournamentId },
     });
@@ -486,6 +494,26 @@ export const managegroup = async (req: Request, res: Response) => {
         where: { id: { in: groupData.players } },
         data: { groupId: newGroup.id },
       });
+
+      // Generate Round Robin Matches for this Group
+      const groupPlayers = groupData.players; // [id1, id2, id3...]
+      // Sort to ensure consistent ordering if needed? Not strictly necessary but efficient.
+
+      for (let i = 0; i < groupPlayers.length; i++) {
+        for (let j = i + 1; j < groupPlayers.length; j++) {
+          await prisma.match.create({
+            data: {
+              tournamentId: tournamentId,
+              groupId: newGroup.id,
+              player1Id: groupPlayers[i],
+              player2Id: groupPlayers[j],
+              status: 'PENDING',
+              // Optional: Set scheduledTime default to tournament start date?
+              scheduledTime: tournament.startDate
+            }
+          });
+        }
+      }
     }
 
     const updatedGroups = await prisma.group.findMany({
