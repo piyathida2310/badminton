@@ -230,6 +230,8 @@ model Match {
   tournamentId  Int
   groupId       Int?
   
+  handType      HandType?
+  
   // Bracket Info
   stage         MatchStage  @default(GROUP)
   roundSequence Int?        // 1=RoundOne, 2=RoundTwo...
