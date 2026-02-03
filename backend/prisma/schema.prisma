@@ -51,6 +51,27 @@ enum MatchStatus {
   CANCELLED
 }
 
+// New Enums for Bracket & Gender
+enum MatchStage {
+  GROUP
+  UPPER
+  LOWER
+  // Optional: FINAL could be used for grand final across brackets if needed
+  GRAND_FINAL
+  THIRD_PLACE
+}
+
+enum MatchSlot {
+  P1
+  P2
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 // -------------------- MODELS --------------------
 
 // ---------- USER ----------
@@ -62,6 +83,7 @@ model User {
   email       String    @unique
   password    String
   age         Int?
+  gender      Gender?   // Optional: User's primary gender
   role        Role      @default(PLAYER)
   playType    PlayType?
   profileImg  String?
@@ -150,15 +172,17 @@ model Register {
 
   // ข้อมูลผู้เล่นคนที่ 1
   player1Name     String?
+  player1Gender   Gender? // New Field
   player1Birthday DateTime?
 
   // ข้อมูลผู้เล่นคนที่ 2 (สำหรับแบบคู่)
   player2Name     String?
+  player2Gender   Gender? // New Field
   player2Phone    String?
   player2Birthday DateTime?
 
   // Foreign key สำหรับ Group
-  groupId Int? // <-- เพิ่มบรรทัดนี้
+  groupId Int? 
   group   Group? @relation(fields: [groupId], references: [id])
 
   // Relations
@@ -205,14 +229,29 @@ model Match {
   id            Int         @id @default(autoincrement())
   tournamentId  Int
   groupId       Int?
+  
+  // Bracket Info
+  stage         MatchStage  @default(GROUP)
+  roundSequence Int?        // 1=RoundOne, 2=RoundTwo...
+  matchSequence Int?        // Vertical Order: 1, 2, 3...
+  
   player1Id     Int?
   player2Id     Int?
   winnerId      Int?
-  round         String?
+  
+  round         String?     // Can still be used for detailed round name or text
   score1        Int?
   score2        Int?
   status        MatchStatus @default(PENDING)
   scheduledTime DateTime?
+
+  // Pathing for Bracket (Winner Automation)
+  winnerNextMatchId    Int?
+  winnerNextMatchSlot  MatchSlot?
+  
+  // Optional: For loser bracket if needed later
+  loserNextMatchId     Int?
+  loserNextMatchSlot   MatchSlot?
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   group      Group?     @relation(fields: [groupId], references: [id])
@@ -220,6 +259,13 @@ model Match {
   player1 Register? @relation("Player1", fields: [player1Id], references: [id])
   player2 Register? @relation("Player2", fields: [player2Id], references: [id])
   winner  Register? @relation("Winner", fields: [winnerId], references: [id])
+  
+  // Relations for Linked Matches
+  previousWinnerMatch  Match?  @relation("WinnerPath", fields: [winnerNextMatchId], references: [id])
+  nextWinnerMatches    Match[] @relation("WinnerPath")
+  
+  previousLoserMatch   Match?  @relation("LoserPath", fields: [loserNextMatchId], references: [id])
+  nextLoserMatches     Match[] @relation("LoserPath")
 
   @@index([tournamentId])
   @@index([groupId])

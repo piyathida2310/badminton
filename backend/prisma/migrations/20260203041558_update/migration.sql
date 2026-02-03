@@ -19,6 +19,15 @@ CREATE TYPE "EvaluationStatus" AS ENUM ('WAITING', 'PASSED', 'FAILED');
 -- CreateEnum
 CREATE TYPE "MatchStatus" AS ENUM ('PENDING', 'RUNNING', 'FINISHED', 'CANCELLED');
 
+-- CreateEnum
+CREATE TYPE "MatchStage" AS ENUM ('GROUP', 'UPPER', 'LOWER', 'GRAND_FINAL', 'THIRD_PLACE');
+
+-- CreateEnum
+CREATE TYPE "MatchSlot" AS ENUM ('P1', 'P2');
+
+-- CreateEnum
+CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
+
 -- CreateTable
 CREATE TABLE "User" (
     "user_id" SERIAL NOT NULL,
@@ -28,6 +37,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "age" INTEGER,
+    "gender" "Gender",
     "role" "Role" NOT NULL DEFAULT 'PLAYER',
     "playType" "PlayType",
     "profileImg" TEXT,
@@ -100,8 +110,10 @@ CREATE TABLE "Register" (
     "comment" TEXT,
     "managerName" TEXT,
     "player1Name" TEXT,
+    "player1Gender" "Gender",
     "player1Birthday" TIMESTAMP(3),
     "player2Name" TEXT,
+    "player2Gender" "Gender",
     "player2Phone" TEXT,
     "player2Birthday" TIMESTAMP(3),
     "groupId" INTEGER,
@@ -136,6 +148,9 @@ CREATE TABLE "Match" (
     "id" SERIAL NOT NULL,
     "tournamentId" INTEGER NOT NULL,
     "groupId" INTEGER,
+    "stage" "MatchStage" NOT NULL DEFAULT 'GROUP',
+    "roundSequence" INTEGER,
+    "matchSequence" INTEGER,
     "player1Id" INTEGER,
     "player2Id" INTEGER,
     "winnerId" INTEGER,
@@ -144,6 +159,10 @@ CREATE TABLE "Match" (
     "score2" INTEGER,
     "status" "MatchStatus" NOT NULL DEFAULT 'PENDING',
     "scheduledTime" TIMESTAMP(3),
+    "winnerNextMatchId" INTEGER,
+    "winnerNextMatchSlot" "MatchSlot",
+    "loserNextMatchId" INTEGER,
+    "loserNextMatchSlot" "MatchSlot",
 
     CONSTRAINT "Match_pkey" PRIMARY KEY ("id")
 );
@@ -233,6 +252,12 @@ ALTER TABLE "Match" ADD CONSTRAINT "Match_player2Id_fkey" FOREIGN KEY ("player2I
 
 -- AddForeignKey
 ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerNextMatchId_fkey" FOREIGN KEY ("winnerNextMatchId") REFERENCES "Match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Match" ADD CONSTRAINT "Match_loserNextMatchId_fkey" FOREIGN KEY ("loserNextMatchId") REFERENCES "Match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Summary" ADD CONSTRAINT "Summary_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
