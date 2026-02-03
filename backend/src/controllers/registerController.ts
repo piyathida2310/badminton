@@ -83,9 +83,11 @@ export const createRegistration = async (req: Request, res: Response) => {
       managerName,
       player1Name,
       player1Phone,
+      player1Gender,
       player1Birthday,
       player2Name,
       player2Phone,
+      player2Gender,
       player2Birthday,
       playType,
       mode,
@@ -163,12 +165,14 @@ export const createRegistration = async (req: Request, res: Response) => {
       status: "WAITING",
       managerName,
       player1Name,
+      player1Gender: player1Gender ? (player1Gender as string).toUpperCase() : null,
       player1Birthday: player1Birthday ? new Date(player1Birthday) : null,
     };
 
     if (mode === "double" && player2Name && player2Phone && player2Birthday) {
       registrationData.player2Name = player2Name;
       registrationData.player2Phone = player2Phone;
+      registrationData.player2Gender = player2Gender ? (player2Gender as string).toUpperCase() : null;
       registrationData.player2Birthday = new Date(player2Birthday);
     }
 
@@ -339,10 +343,10 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
             },
             isDouble
               ? {
-                  name: registration.player2Name,
-                  phoneNumber: registration.player2Phone,
-                  birthday: registration.player2Birthday,
-                }
+                name: registration.player2Name,
+                phoneNumber: registration.player2Phone,
+                birthday: registration.player2Birthday,
+              }
               : undefined,
           ].filter(Boolean),
           rank: registration.playType,
@@ -356,11 +360,11 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
           },
           payment: registration.payment
             ? {
-                status: registration.payment.status,
-                // ✅ เอา signed เป็น slipUrl หลัก
-                slipUrl: slipSignedUrl ?? registration.payment.slipImg ?? null,
-                slipPublicUrl: registration.payment.slipImg ?? null,
-              }
+              status: registration.payment.status,
+              // ✅ เอา signed เป็น slipUrl หลัก
+              slipUrl: slipSignedUrl ?? registration.payment.slipImg ?? null,
+              slipPublicUrl: registration.payment.slipImg ?? null,
+            }
             : null,
           media: {
             // ✅ เอา signed เป็น videoUrl หลัก
