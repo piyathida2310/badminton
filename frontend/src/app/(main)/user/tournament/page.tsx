@@ -14,6 +14,8 @@ interface Tournament {
   canceled: boolean;
   currentPlayers: number;
   maxPlayers: number;
+  rank: string[];
+  registrationStats: Record<string, number>;
 }
 
 export default function TournamentPage() {
@@ -27,11 +29,17 @@ export default function TournamentPage() {
   const limit = 6;
   const [totalPages, setTotalPages] = useState(1);
 
-  //  โหลดข้อมูลจาก backend แบบมี pagination
+  //  โหลกข้อมูลจาก backend แบบมี pagination
   const fetchTournament = async (page = 1) => {
     try {
       const res = await axios.get(`/api/tournament?page=${page}&limit=${limit}`);
-      setTournaments(res.data.data || []);
+      const data = res.data.data || [];
+      // Ensure rank is parsed if coming as string (safety check)
+      const parsedData = data.map((t: any) => ({
+        ...t,
+        rank: typeof t.rank === "string" ? JSON.parse(t.rank) : t.rank
+      }));
+      setTournaments(parsedData);
       setTotalPages(res.data.pagination?.totalPages || 1);
     } catch (error) {
       console.error("Failed to fetch tournaments", error);
@@ -73,77 +81,87 @@ export default function TournamentPage() {
       ) : (
         <>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {tournaments.map((t) => (
-              <motion.div
-                key={t.id}
-                whileHover={{ y: -5, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
-              >
-                <div
-                  className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
-                  onClick={() => {
-                    localStorage.setItem("selectedTournamentName", t.title);
-                    localStorage.setItem("selectedTournamentId", t.id.toString());
-                    router.push(`/user/match-rules?id=${t.id}`);
-                  }}
+            {tournaments.map((t) => {
+              // ✅ Calculate if All Ranks are Full
+              const ranks = t.rank && Array.isArray(t.rank) ? t.rank : [];
+              const isAllFull = ranks.length > 0
+                ? ranks.every(r => (t.registrationStats?.[r] || 0) >= (t.maxPlayers || 0))
+                : (t.currentPlayers || 0) >= (t.maxPlayers || 0);
+
+              return (
+                <motion.div
+                  key={t.id}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                  className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
                 >
-                  <Photo
-                    src={t.image}
-                    alt={t.title}
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-
-                  {t.canceled && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
-                      ยกเลิก
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 text-center">
-                  <h2
+                  <div
+                    className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
                     onClick={() => {
                       localStorage.setItem("selectedTournamentName", t.title);
                       localStorage.setItem("selectedTournamentId", t.id.toString());
                       router.push(`/user/match-rules?id=${t.id}`);
                     }}
-                    className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
                   >
-                    {t.title}
-                  </h2>
+                    <Photo
+                      src={t.image}
+                      alt={t.title}
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
 
-                  <p className="text-gray-500 mb-3 text-sm">
-                    วันที่ {formatThaiDate(t.date)}
-                  </p>
+                    {t.canceled && (
+                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
+                        ยกเลิก
+                      </div>
+                    )}
+                  </div>
 
-                  {(() => {
-                    const isDisabled = t.canceled;
+                  <div className="p-4 text-center">
+                    <h2
+                      onClick={() => {
+                        localStorage.setItem("selectedTournamentName", t.title);
+                        localStorage.setItem("selectedTournamentId", t.id.toString());
+                        router.push(`/user/match-rules?id=${t.id}`);
+                      }}
+                      className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
+                    >
+                      {t.title}
+                    </h2>
 
-                    return (
-                      <button
-                        onClick={() => {
-                          if (!isDisabled) {
-                            localStorage.setItem("selectedTournamentName", t.title);
-                            localStorage.setItem("selectedTournamentId", t.id.toString());
-                            router.push(`/user/tournament/${t.id}`);
-                          }
-                        }}
-                        disabled={isDisabled}
-                        className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${isDisabled
-                          ? "bg-gray-400 cursor-not-allowed text-gray-200"
-                          : "bg-gradient-to-r from-green-500 to-emerald-500 hover:scale-105 hover:brightness-110 text-white"
-                          }`}
-                      >
-                        {t.canceled
-                          ? "ไม่สามารถเข้าร่วมได้"
-                          : "เข้าร่วมการแข่งขัน"}
-                      </button>
-                    );
-                  })()}
-                </div>
-              </motion.div>
-            ))}
+                    <p className="text-gray-500 mb-3 text-sm">
+                      วันที่ {formatThaiDate(t.date)}
+                    </p>
+
+                    {(() => {
+                      const isDisabled = t.canceled || isAllFull;
+
+                      return (
+                        <button
+                          onClick={() => {
+                            if (!isDisabled) {
+                              localStorage.setItem("selectedTournamentName", t.title);
+                              localStorage.setItem("selectedTournamentId", t.id.toString());
+                              router.push(`/user/tournament/${t.id}`);
+                            }
+                          }}
+                          disabled={isDisabled}
+                          className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${isDisabled
+                            ? "bg-gray-400 cursor-not-allowed text-gray-200"
+                            : "bg-gradient-to-r from-green-500 to-emerald-500 hover:scale-105 hover:brightness-110 text-white"
+                            }`}
+                        >
+                          {t.canceled
+                            ? "ไม่สามารถเข้าร่วมได้"
+                            : isAllFull
+                              ? "เต็มจำนวนทุกรุ่น"
+                              : "เข้าร่วมการแข่งขัน"}
+                        </button>
+                      );
+                    })()}
+                  </div>
+                </motion.div>
+              )
+            })}
           </div>
 
           {/* Pagination */}

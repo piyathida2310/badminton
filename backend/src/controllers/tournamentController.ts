@@ -263,10 +263,23 @@ export const getTournaments = async (req: Request, res: Response) => {
     // ✅ ทำเป็น async เพราะต้อง sign url ให้แต่ละรายการ
     const iconsWithUrl = await Promise.all(
       data.map(async (tournament) => {
-        const [posterUrl, qrUrl] = await Promise.all([
+        const [posterUrl, qrUrl, registrationStats] = await Promise.all([
           signGetObjectUrl(tournament.posterImg),
           signGetObjectUrl(tournament.qrCodeImg),
+          prisma.register.groupBy({
+            by: ["playType"],
+            where: {
+              tournamentId: tournament.id,
+              status: { not: "FAILED" },
+            },
+            _count: { id: true },
+          }),
         ]);
+
+        const statsByHand = registrationStats.reduce((acc, curr) => {
+          acc[curr.playType] = curr._count.id;
+          return acc;
+        }, {} as Record<string, number>);
 
         return {
           id: tournament.id,
@@ -277,6 +290,7 @@ export const getTournaments = async (req: Request, res: Response) => {
           shuttlePrice: tournament.shuttlePrice,
           maxPlayers: tournament.maxPlayers,
           currentPlayers: tournament._count.registrations,
+          registrationStats: statsByHand,
 
           // ✅ เปลี่ยนเป็น presigned URL
           image: posterUrl,
