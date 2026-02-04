@@ -24,7 +24,10 @@ export default function GroupStageScoresPage() {
     "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
   };
 
-  const theme = themeMap[groupName] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
+  // ✅ Extract Theme Key (รองรับชื่อเช่น "BG Group A")
+  const match = groupName.match(/Group [A-D]/);
+  const themeKey = match ? match[0] : "Group A";
+  const theme = themeMap[themeKey] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
 
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<{ rank: any[][]; matches: any[][] }>({
