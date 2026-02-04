@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { usePathname,useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -17,7 +17,7 @@ import {
   LogOut,
   Swords,
   BookOpen,
-  Medal, 
+  Medal,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 
@@ -63,14 +63,13 @@ export default function Navbar() {
                 <User size={18} className="text-white" />
               )}
               <span className="font-medium tracking-wide">
-                {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
+                {user?.firstName && user?.lastName
+                  ? `${user.firstName} ${user.lastName}`
                   : user?.firstName || user?.username || "ผู้ใช้"}
               </span>
               <svg
-                className={`w-4 h-4 transition-transform ${
-                  isDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -138,7 +137,32 @@ type SidebarProps = {
 };
 
 function Sidebar({ isOpen, onClose, user }: SidebarProps) {
-      const { id } = useParams();
+  const { id } = useParams();
+  const [tournamentName, setTournamentName] = useState<string>("");
+
+  useEffect(() => {
+    if (id) {
+      const fetchTournament = async () => {
+        try {
+          const token = localStorage.getItem("accessToken");
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/tournament/${id}`, {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.data && data.data.title) {
+              setTournamentName(data.data.title);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch tournament name", error);
+        }
+      };
+      fetchTournament();
+    }
+  }, [id]);
 
   return (
     <>
@@ -171,6 +195,23 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           </button>
         </div>
 
+        {/* Tournament Name Display (Mobile) */}
+        {tournamentName && (
+          <div className="mb-4 mx-2 relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-amber-300 rounded-lg blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+            <div className="relative px-3 py-2 bg-white/80 backdrop-blur-md rounded-lg border border-white/50 shadow-sm text-center">
+              <div className="flex justify-center items-center mb-0.5">
+                <span className="bg-gradient-to-r from-pink-600 to-amber-600 bg-clip-text text-transparent text-[9px] font-extrabold uppercase tracking-widest">
+                  CURRENT TOURNAMENT
+                </span>
+              </div>
+              <h3 className="text-xs font-bold text-gray-800 break-words leading-tight drop-shadow-sm">
+                {tournamentName}
+              </h3>
+            </div>
+          </div>
+        )}
+
         {/* User Info Mobile */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/30 backdrop-blur-sm shadow-sm cursor-pointer">
           {user?.imageUrl ? (
@@ -186,8 +227,8 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           )}
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">
-              {user?.firstName && user?.lastName 
-                ? `${user.firstName} ${user.lastName}` 
+              {user?.firstName && user?.lastName
+                ? `${user.firstName} ${user.lastName}`
                 : user?.firstName || user?.username || "ผู้ใช้"}
             </span>
             <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
@@ -202,11 +243,11 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label="กติกา" onClick={onClose} />
           <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" onClick={onClose} />
           <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label="สายการแข่งขัน" onClick={onClose} />
-          
+
           <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label="สถานะผู้แข่ง" onClick={onClose} />
           <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label="Court Running " onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} /> 
-          <SidebarLink href={`/manage/${id}/profile"`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว;;;;" onClick={onClose} />
+          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" onClick={onClose} />
+          <SidebarLink href={`/manage/profile`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
         </nav>
       </motion.aside>
 
@@ -214,16 +255,35 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
         <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">MENU</h2>
 
+        {/* Tournament Name Display (Desktop) */}
+        {tournamentName && (
+          <div className="mb-6 relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-amber-400 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+            <div className="relative px-4 py-3 bg-white/90 backdrop-blur-xl rounded-xl border border-white/60 shadow-lg text-center transform transition-all hover:scale-[1.02]">
+              <div className="flex justify-center items-center gap-2 mb-1 opacity-80">
+                <Trophy size={12} className="text-amber-500" />
+                <span className="text-[9px] font-extrabold text-pink-500 tracking-[0.2em] uppercase">
+                  TOURNAMENT
+                </span>
+                <Trophy size={12} className="text-amber-500" />
+              </div>
+              <h3 className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-700 to-amber-700 break-words leading-snug">
+                {tournamentName}
+              </h3>
+            </div>
+          </div>
+        )}
+
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
           <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />
           <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label="กติกา" />
           <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label="จัดกลุ่มการแข่งขัน" />
           <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label="สายการแข่งขัน" />
-          
+
           <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label="สถานะผู้แข่ง" />
-          <SidebarLink href={`/manage/${id}/match-history`}  icon={<Clock size={18} />} label="Court Running " />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" /> 
-          <SidebarLink href={`/manage/profile`}  icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
+          <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label="Court Running " />
+          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label="ผลการแข่งขัน" />
+          <SidebarLink href={`/manage/profile`} icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
         </nav>
       </aside>
     </>
@@ -250,10 +310,9 @@ function SidebarLink({
         href={href}
         onClick={onClick}
         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
-          ${
-            isActive
-              ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
-              : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+          ${isActive
+            ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
+            : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
           }`}
       >
         <motion.span
