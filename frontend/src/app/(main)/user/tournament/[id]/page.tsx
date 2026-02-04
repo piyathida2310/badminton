@@ -100,15 +100,17 @@ export default function TournamentDetailPage() {
           <p className="text-gray-600">{formatThaiDate(tournament.date)}</p>
           <div className="text-sm text-gray-500 font-medium">
             <span className="mr-2">ผู้สมัคร:</span>
-            {tournament.rank && Array.isArray(tournament.rank) ? (
-              tournament.rank.map((r, i) => {
+            {ranks.length > 0 ? (
+              ranks.map((r, i) => {
                 const count = tournament.registrationStats?.[r] || 0;
                 const max = tournament.maxPlayers;
                 const isFull = count >= max;
+                // ✅ แปลงชื่อให้สวยงาม (P_PLUS -> P+, P_MINUS -> P-)
+                const label = r === "P_PLUS" ? "P+" : r === "P_MINUS" ? "P-" : r;
                 return (
                   <span key={r} className={`mr-3 ${isFull ? "text-red-500 font-bold" : ""}`}>
-                    {r}: {count}/{max}
-                    {i < (tournament.rank?.length || 0) - 1 ? "," : ""}
+                    {label}: {count}/{max}
+                    {i < ranks.length - 1 ? "," : ""}
                   </span>
                 );
               })
