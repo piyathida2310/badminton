@@ -93,14 +93,24 @@ export function GroupTableEditable({
         <table className="min-w-full text-xs sm:text-sm text-gray-700 border-collapse">
           <thead className="bg-gray-100/70 text-gray-800 font-semibold">
             <tr>
-              {headers.map((h, i) => (
-                <th
-                  key={i}
-                  className="border border-gray-200 px-2 sm:px-3 py-2 text-center whitespace-nowrap"
-                >
-                  {h}
-                </th>
-              ))}
+              {headers.map((h, i) => {
+                if (h === "__MERGE__") return null;
+
+                let span = 1;
+                while (headers[i + span] === "__MERGE__") {
+                  span++;
+                }
+
+                return (
+                  <th
+                    key={i}
+                    colSpan={span}
+                    className="border border-gray-200 px-2 sm:px-3 py-2 text-center whitespace-nowrap"
+                  >
+                    {h}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>

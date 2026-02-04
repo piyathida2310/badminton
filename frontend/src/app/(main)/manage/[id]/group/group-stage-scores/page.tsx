@@ -24,7 +24,10 @@ export default function GroupStageScoresPage() {
     "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
   };
 
-  const theme = themeMap[groupName] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
+  // ✅ Extract Theme Key (รองรับชื่อเช่น "BG Group A")
+  const match = groupName.match(/Group [A-D]/);
+  const themeKey = match ? match[0] : "Group A";
+  const theme = themeMap[themeKey] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
 
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<{ rank: any[][]; matches: any[][] }>({
@@ -57,8 +60,8 @@ export default function GroupStageScoresPage() {
         const matchId = row[2];
         if (!matchId) return;
 
-        const setScore = row[6] as string; // "10 : 21,17 : 21" or " : , : "
-        const shuttle = row[10];
+        const setScore = row[7] as string; // Index 7 is Set String
+        const shuttle = row[12];           // Index 12 is Shuttle
 
         const timeStr = row[0] as string;
 
@@ -128,13 +131,13 @@ export default function GroupStageScoresPage() {
 
         <GroupTable
           title="อันดับคะแนนกลุ่ม"
-          headers={["Rank", "Team", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+          headers={["Rank", "Team", "__MERGE__", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
           rows={selected.rank}
         />
 
         <GroupTableEditable
           title="ตารางการแข่งขันแต่ละรอบ"
-          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น", "ลูกแบต"]}
+          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "__MERGE__", "ผู้เล่น", "P", "SET", "P", "ทีม", "__MERGE__", "ผู้เล่น", "ลูกแบต"]}
           rows={selected.matches}
           onSave={handleSave}
         />

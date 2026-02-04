@@ -51,15 +51,21 @@ export function GroupTable({
       <table className="w-full text-sm text-gray-700 border-collapse">
         <thead className="bg-gray-100/70 text-gray-800 font-semibold">
           <tr>
-            {headers.map((h, i) => (
-              <th
-                key={i}
-                className="border border-gray-200 px-3 py-2 text-center"
-                colSpan={h === "Team" ? 2 : 1}
-              >
-                {h}
-              </th>
-            ))}
+            {headers.map((h, i) => {
+              if (h === "__MERGE__") return null;
+              let span = 1;
+              while (headers[i + span] === "__MERGE__") span++;
+
+              return (
+                <th
+                  key={i}
+                  colSpan={span}
+                  className="border border-gray-200 px-3 py-2 text-center"
+                >
+                  {h}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
