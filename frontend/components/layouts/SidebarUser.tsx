@@ -32,6 +32,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
   const [role, setRole] = useState("user");
   const [tournamentName, setTournamentName] = useState<string>("");
+  const [tournamentId, setTournamentId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem("userRole");
@@ -39,32 +40,43 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
     if (pathname === "/user/tournament") {
       setTournamentName("");
+      setTournamentId(null);
       localStorage.removeItem("selectedTournamentName");
+      localStorage.removeItem("selectedTournamentId");
     } else {
       const tName = localStorage.getItem("selectedTournamentName");
-      if (tName) {
-        setTournamentName(tName);
-      }
+      const tId = localStorage.getItem("selectedTournamentId");
+      if (tName) setTournamentName(tName);
+      if (tId) setTournamentId(tId);
     }
   }, [pathname]);
 
+  const getLink = (path: string) => {
+    return tournamentId ? `${path}?id=${tournamentId}` : path;
+  };
 
-
-  const links = [
+  const allLinks = [
     // ✅ รายการแข่งขัน (อันเดียวคงที่)
     {
       href: role === "manage" ? "/manage" : "/user/tournament",
       icon: <Trophy size={18} />,
       label: "รายการแข่งขัน",
     },
-    { href: `/user/${role === "manage" ? "manage-rules" : "match-rules"}`, icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: `/user/group`, icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: `/user/bracket`, icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: `/user/${role === "manage" ? "players-status" : "status"}`, icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
-    { href: `/user/${role === "manage" ? "match-history" : "court-running"}`, icon: <Clock size={18} />, label: "Court Running" },
-    { href: `/user/${role === "manage" ? "results-competition" : "results"}`, icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
+    { href: role === "manage" ? "/user/manage-rules" : getLink("/user/match-rules"), icon: <BookOpen size={18} />, label: "กติกา" },
+    { href: getLink("/user/group"), icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
+    { href: getLink("/user/bracket"), icon: <Swords size={18} />, label: "สายการแข่งขัน" },
+    { href: role === "manage" ? "/user/players-status" : getLink("/user/status"), icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
+    { href: role === "manage" ? "/user/match-history" : getLink("/user/court-running"), icon: <Clock size={18} />, label: "Court Running" },
+    { href: role === "manage" ? "/user/results-competition" : getLink("/user/results"), icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
     { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
   ];
+
+  const displayedLinks = allLinks.filter(link => {
+    // Always show Tournament List and Profile
+    if (link.label === "รายการแข่งขัน" || link.label === "ข้อมูลส่วนตัว") return true;
+    // Show others only if tournamentId exists
+    return !!tournamentId;
+  });
 
   return (
     <>
@@ -151,7 +163,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
 
         {/*  ลิงก์ใน Sidebar (มือถือ) */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          {links.map((link) => (
+          {displayedLinks.map((link) => (
             <motion.div
               key={link.href}
               whileHover={{ x: 6 }}
@@ -214,7 +226,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
         )}
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
-          {links.map((link) => (
+          {displayedLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}

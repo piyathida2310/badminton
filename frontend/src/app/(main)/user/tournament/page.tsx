@@ -84,6 +84,7 @@ export default function TournamentPage() {
                   className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
                   onClick={() => {
                     localStorage.setItem("selectedTournamentName", t.title);
+                    localStorage.setItem("selectedTournamentId", t.id.toString());
                     router.push(`/user/match-rules?id=${t.id}`);
                   }}
                 >
@@ -104,6 +105,7 @@ export default function TournamentPage() {
                   <h2
                     onClick={() => {
                       localStorage.setItem("selectedTournamentName", t.title);
+                      localStorage.setItem("selectedTournamentId", t.id.toString());
                       router.push(`/user/match-rules?id=${t.id}`);
                     }}
                     className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
@@ -123,6 +125,7 @@ export default function TournamentPage() {
                         onClick={() => {
                           if (!isDisabled) {
                             localStorage.setItem("selectedTournamentName", t.title);
+                            localStorage.setItem("selectedTournamentId", t.id.toString());
                             router.push(`/user/tournament/${t.id}`);
                           }
                         }}
