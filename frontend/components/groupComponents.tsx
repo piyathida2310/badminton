@@ -96,7 +96,8 @@ export function GroupTable({
 }
 
 //  ข้อมูลคำอธิบายสายบน/สายล่าง
-export function GroupInfo() {
+//  ข้อมูลคำอธิบายสายบน/สายล่าง
+export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
   return (
     <div className="text-center mb-8">
       <p className="font-semibold text-red-500 text-base mb-1">สายบน</p>

@@ -139,7 +139,6 @@ export default function TournamentGroupPage() {
             year: "numeric",
             month: "long",
             day: "numeric",
-            weekday: "long"
           })}
         </p>
 

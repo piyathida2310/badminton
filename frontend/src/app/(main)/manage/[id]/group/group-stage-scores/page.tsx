@@ -57,7 +57,7 @@ export default function GroupStageScoresPage() {
   const handleSave = async (updatedMatches: any[][]) => {
     try {
       const promises = updatedMatches.map(async (row) => {
-        const matchId = row[2];
+        const matchId = row[13];
         if (!matchId) return;
 
         const setScore = row[7] as string; // Index 7 is Set String
@@ -127,7 +127,7 @@ export default function GroupStageScoresPage() {
         <BackButton target={`/manage/${id}/group`} />
 
         <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
-        <GroupInfo />
+        <GroupInfo totalTeams={selected.rank.length} />
 
         <GroupTable
           title="อันดับคะแนนกลุ่ม"
