@@ -116,11 +116,11 @@ export function GroupTableEditable({
           <tbody>
             {data.map((r, i) => (
               <tr
-                key={i}
+                key={r[13] || i}
                 className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
                   } hover:bg-gray-100/60 transition`}
               >
-                {r.map((v, j) => (
+                {r.slice(0, headers.length).map((v, j) => (
                   <td
                     key={j}
                     className={`border border-gray-200 px-2 sm:px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""

@@ -162,10 +162,25 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         const totalTeams = group.registers.length;
         const matchesPerRound = totalTeams === 3 ? 1 : Math.floor(totalTeams / 2); // 3 teams->1 match/round (bye), 4->2, 5->2, etc.
 
-        let pendingMatches = [...group.matches];
+        const validPlayerIds = new Set(teamStats.keys());
+        // Filter matches to ensure only players currently in this group are shown
+        // This removes orphans where a player might have been moved to another group but the match remains
+        let pendingMatches = group.matches.filter(m =>
+            m.player1Id && validPlayerIds.has(m.player1Id) &&
+            m.player2Id && validPlayerIds.has(m.player2Id)
+        );
         const organizedMatches = [];
 
+        // Track Round Number dynamically
+        let roundCounter = 0;
+        const matchRoundMap = new Map<number, string>();
+
+        // Calculate Max Rounds for Single Round Robin to force cycle if matches exceed standard
+        // 3 Teams -> 3 Rounds, 4 Teams -> 3 Rounds
+        const maxRounds = totalTeams > 0 ? (totalTeams % 2 === 0 ? totalTeams - 1 : totalTeams) : 1;
+
         while (pendingMatches.length > 0) {
+            roundCounter++;
             const currentRoundMatches: typeof group.matches = [];
             const teamsInRound = new Set<number>();
 
@@ -194,6 +209,12 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 currentRoundMatches.push(pendingMatches[0]);
             }
 
+            // Assign Round Name to matches in this batch (Cycle if > maxRounds)
+            const displayRoundNum = ((roundCounter - 1) % maxRounds) + 1;
+            currentRoundMatches.forEach(m => {
+                matchRoundMap.set(m.id, `R${displayRoundNum}`);
+            });
+
             // Remove found matches from pending
             pendingMatches = pendingMatches.filter(pm => !currentRoundMatches.includes(pm));
 
@@ -202,12 +223,29 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         }
 
         // 3. Format Matches
+        // Fetch active groups first to ignore matches from deleted groups (orphan matches)
+        const activeGroups = await prisma.group.findMany({
+            where: { tournamentId: tId },
+            select: { id: true }
+        });
+        const activeGroupIds = activeGroups.map(g => g.id);
+
+        // Fetch all match IDs from ACTIVE groups to determine global match sequence
+        const allTournamentMatches = await prisma.match.findMany({
+            where: {
+                tournamentId: tId,
+                groupId: { in: activeGroupIds }
+            },
+            select: { id: true },
+            orderBy: [{ scheduledTime: 'asc' }, { id: 'asc' }]
+        });
+        const allMatchIds = allTournamentMatches.map(m => m.id);
+
         const matchData = organizedMatches.map((m, index) => {
             const time = m.scheduledTime ? new Date(m.scheduledTime).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : "";
 
-            // Calculate Round Label: R1, R2, R3...
-            const roundNum = Math.floor(index / matchesPerRound) + 1;
-            let roundName = `R${roundNum}`;
+            // Use dynamically assigned Round Name
+            const roundName = matchRoundMap.get(m.id) || "-";
 
             let shuttle = "";
             let setScores = "";
@@ -224,6 +262,9 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             } catch (e) { }
 
             const matchId = m.id.toString();
+            // Global Match Number (Sequence in Tournament)
+            const globalMatchNumber = allMatchIds.indexOf(m.id) + 1;
+            const matchDisplay = globalMatchNumber > 0 ? globalMatchNumber.toString() : "-";
 
             // Helper to get Code/Name
             const getTeamData = (pid: number | null, fallbackName: string | null, fallbackP1: string | null) => {
@@ -253,7 +294,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             return [
                 time,          // 0
                 roundName,     // 1
-                matchId,       // 2
+                matchDisplay, // 2: Seq Number (Global)
                 t1Data.code,   // 3 (Code)
                 t1Data.name,   // 4 (Name)
                 t1Players,     // 5
@@ -263,7 +304,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t2Data.code,   // 9 (Code)
                 t2Data.name,   // 10 (Name)
                 t2Players,     // 11
-                shuttle        // 12
+                shuttle,       // 12
+                matchId        // 13: Real Match ID (Hidden)
             ];
         });
 

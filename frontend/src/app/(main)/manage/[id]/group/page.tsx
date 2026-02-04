@@ -75,6 +75,12 @@ export default function TournamentGroupPage() {
 
   const totalTeams = groups.reduce((sum, g) => sum + (g?.teams?.length || 0), 0);
 
+  // Check if groups exist for the selected hand type
+  const hasCurrentTypeGroups = groups.some(g =>
+    (g.handType === selectedHandType) ||
+    (g.name && g.name.includes(selectedHandType))
+  );
+
   // ✅ เก็บรายละเอียดเพิ่มเติมสำหรับ AI
   const [detailInput, setDetailInput] = useState("");
 
@@ -139,95 +145,96 @@ export default function TournamentGroupPage() {
             year: "numeric",
             month: "long",
             day: "numeric",
-            weekday: "long"
           })}
         </p>
 
         {/* ✅ Control Panel Card Layout */}
-        {!showGroups && (
-          <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 sm:p-8 w-full max-w-2xl transform transition-all hover:scale-[1.01]">
-            <div className="space-y-5">
-              {/* Row 1: Hand Type Selector */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <label className="text-sm font-semibold text-gray-600 min-w-[100px]">ประเภทมือ:</label>
-                <div className="relative w-full sm:w-auto flex-1">
-                  <select
-                    value={selectedHandType}
-                    onChange={(e) => setSelectedHandType(e.target.value)}
-                    className="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm transition-all"
-                  >
-                    {availableRanks.length > 0 ? (
-                      availableRanks.map((type) => (
-                        <option key={type} value={type}>
-                          {type === "P_PLUS" ? "P+" : type === "P_MINUS" ? "P-" : type}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">ไม่พบรุ่นการแข่งขัน</option>
-                    )}
-                  </select>
-                </div>
-                {/* Stats Badge */}
-                {tournamentStats && (
-                  <span className={`text-xs px-3 py-1 rounded-full font-bold ${isEnoughPlayers ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                    }`}>
-                    {tournamentStats.registrationStats?.[selectedHandType] || 0} / {tournamentStats.maxPlayers} ทีม
-                  </span>
-                )}
-              </div>
-
-              {/* Row 2: Detail Input (AI Prompt) */}
-              <div className="flex flex-col gap-2 text-left">
-                <label className="text-sm font-semibold text-gray-600">
-                  รายละเอียดเพิ่มเติม (Prompt):
-                </label>
-                <textarea
-                  value={detailInput}
-                  onChange={(e) => setDetailInput(e.target.value)}
-                  placeholder="พิมพ์คำสั่งเพิ่มเติมให้ AI ที่นี่..."
-                  className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-none transition-all"
-                />
-              </div>
-
-              {/* Row 3: Action Button */}
-              <div className="flex flex-col items-center pt-2">
-                <motion.button
-                  whileHover={isEnoughPlayers ? { scale: 1.02 } : {}}
-                  whileTap={isEnoughPlayers ? { scale: 0.98 } : {}}
-                  onClick={handleStartCompetition}
-                  disabled={loading || !isEnoughPlayers}
-                  className={`w-full sm:w-auto min-w-[200px] text-white font-bold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading || !isEnoughPlayers
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/30"
-                    }`}
+        <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 sm:p-8 w-full max-w-2xl transform transition-all hover:scale-[1.01]">
+          <div className="space-y-5">
+            {/* Row 1: Hand Type Selector */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <label className="text-sm font-semibold text-gray-600 min-w-[100px]">ประเภทมือ:</label>
+              <div className="relative w-full sm:w-auto flex-1">
+                <select
+                  value={selectedHandType}
+                  onChange={(e) => setSelectedHandType(e.target.value)}
+                  className="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm transition-all"
                 >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      กำลังประมวลผล (AI)...
-                    </>
+                  {availableRanks.length > 0 ? (
+                    availableRanks.map((type) => (
+                      <option key={type} value={type}>
+                        {type === "P_PLUS" ? "P+" : type === "P_MINUS" ? "P-" : type}
+                      </option>
+                    ))
                   ) : (
-                    "เริ่มจัดกลุ่มแข่งขัน"
+                    <option value="">ไม่พบรุ่นการแข่งขัน</option>
                   )}
-                </motion.button>
-
-                {!isEnoughPlayers && tournamentStats && (
-                  <p className="text-xs text-red-500 font-medium mt-2 bg-red-50 px-3 py-1 rounded-md border border-red-100">
-                    จำนวนผู้สมัครยังถึงเกณฑ์ไม่สามารถจัดได้
-                  </p>
-                )}
+                </select>
               </div>
+              {/* Stats Badge */}
+              {tournamentStats && (
+                <span className={`text-xs px-3 py-1 rounded-full font-bold ${isEnoughPlayers ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                  }`}>
+                  {tournamentStats.registrationStats?.[selectedHandType] || 0} / {tournamentStats.maxPlayers} ทีม
+                </span>
+              )}
             </div>
+
+            {!hasCurrentTypeGroups && (
+              <>
+                {/* Row 2: Detail Input (AI Prompt) */}
+                <div className="flex flex-col gap-2 text-left">
+                  <label className="text-sm font-semibold text-gray-600">
+                    รายละเอียดเพิ่มเติม (Prompt):
+                  </label>
+                  <textarea
+                    value={detailInput}
+                    onChange={(e) => setDetailInput(e.target.value)}
+                    placeholder="พิมพ์คำสั่งเพิ่มเติมให้ AI ที่นี่..."
+                    className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-none transition-all"
+                  />
+                </div>
+
+                {/* Row 3: Action Button */}
+                <div className="flex flex-col items-center pt-2">
+                  <motion.button
+                    whileHover={isEnoughPlayers ? { scale: 1.02 } : {}}
+                    whileTap={isEnoughPlayers ? { scale: 0.98 } : {}}
+                    onClick={handleStartCompetition}
+                    disabled={loading || !isEnoughPlayers}
+                    className={`w-full sm:w-auto min-w-[200px] text-white font-bold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading || !isEnoughPlayers
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/30"
+                      }`}
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        กำลังประมวลผล (AI)...
+                      </>
+                    ) : (
+                      "เริ่มจัดกลุ่มแข่งขัน"
+                    )}
+                  </motion.button>
+
+                  {!isEnoughPlayers && tournamentStats && (
+                    <p className="text-xs text-red-500 font-medium mt-2 bg-red-50 px-3 py-1 rounded-md border border-red-100">
+                      จำนวนผู้สมัครยังถึงเกณฑ์ไม่สามารถจัดได้
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </div>
 
       </motion.div>
 
       {/* แสดง Group */}
-      {showGroups ? (
+      {hasCurrentTypeGroups ? (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
