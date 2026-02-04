@@ -82,7 +82,10 @@ export default function TournamentPage() {
               >
                 <div
                   className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedImage(t.image)}
+                  onClick={() => {
+                    localStorage.setItem("selectedTournamentName", t.title);
+                    router.push(`/user/match-rules?id=${t.id}`);
+                  }}
                 >
                   <Photo
                     src={t.image}
@@ -99,7 +102,10 @@ export default function TournamentPage() {
 
                 <div className="p-4 text-center">
                   <h2
-                    onClick={() => router.push(`/user/tournament/${t.id}`)}
+                    onClick={() => {
+                      localStorage.setItem("selectedTournamentName", t.title);
+                      router.push(`/user/match-rules?id=${t.id}`);
+                    }}
                     className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
                   >
                     {t.title}
@@ -114,7 +120,12 @@ export default function TournamentPage() {
 
                     return (
                       <button
-                        onClick={() => !isDisabled && router.push(`/user/tournament/${t.id}`)}
+                        onClick={() => {
+                          if (!isDisabled) {
+                            localStorage.setItem("selectedTournamentName", t.title);
+                            router.push(`/user/tournament/${t.id}`);
+                          }
+                        }}
                         disabled={isDisabled}
                         className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${isDisabled
                           ? "bg-gray-400 cursor-not-allowed text-gray-200"
