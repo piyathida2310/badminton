@@ -18,6 +18,8 @@ export default function TournamentGroupPage() {
 
   // ✅ เก็บ title ของ tournament
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
+  // ✅ เก็บข้อมูล Stats เพื่อเช็คจำนวนคนก่อนจัด
+  const [tournamentStats, setTournamentStats] = useState<any>(null);
 
   // state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
   const [showGroups, setShowGroups] = useState(false);
@@ -33,6 +35,7 @@ export default function TournamentGroupPage() {
 
         // ✅ set title
         setTournamentTitle(tournament?.title || "");
+        setTournamentStats(tournament);
 
         // ✅ set groups ถ้ามีอยู่แล้ว
         const existingGroups = tournament?.groups;
@@ -52,12 +55,15 @@ export default function TournamentGroupPage() {
 
   // ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = async () => {
+    if (!selectedHandType) return alert("กรุณาเลือกประเภทมือ");
+
     setLoading(true);
     try {
       const res = await axios.post(
         `/api/tournament/managegroup/${id}`,
         {
           detail: "Balance skill levels", // Optional detail
+          playType: selectedHandType // ✅ ส่งประเภทมือที่เลือกไปให้ Backend
         },
         { timeout: 120000 } // Extended timeout for AI + Match Generation
       );
@@ -66,6 +72,10 @@ export default function TournamentGroupPage() {
         setGroups(res.data.groups);
         setShowGroups(true);
         localStorage.setItem("showGroups", "true");
+        // Reload page to refresh groups display correctly? Or just setGroups is enough (if backend returns ALL groups).
+        // Let's assume fetch logic or setGroups handles it. 
+        // Better trigger fetch again?
+        window.location.reload();
       }
     } catch (error: any) {
       console.error("Manage group error:", error);
@@ -74,6 +84,15 @@ export default function TournamentGroupPage() {
       setLoading(false);
     }
   };
+
+  // Logic เช็คจำนวนคนสมัครว่าพอจัดแข่งไหม (ต้องเกินครึ่ง)
+  const isEnoughPlayers = (() => {
+    if (!tournamentStats) return false;
+    const count = tournamentStats.registrationStats?.[selectedHandType] || 0;
+    const max = tournamentStats.maxPlayers || 0;
+    // ถ้าไม่มีคนสมัครเลย หรือ สมัครมาน้อยกว่าครึ่ง -> ไม่พอ
+    return max > 0 && count >= (max / 2);
+  })();
 
   return (
     <div className="h-full flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
@@ -100,6 +119,7 @@ export default function TournamentGroupPage() {
             year: "numeric",
             month: "long",
             day: "numeric",
+            weekday: "long"
           })}
         </p>
 
@@ -115,18 +135,23 @@ export default function TournamentGroupPage() {
           {/* ปุ่มจัดแข่ง (อยู่ตรงกลางเสมอ) */}
           <div className="flex justify-center order-2 sm:order-1">
             {!showGroups && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleStartCompetition}
-                disabled={loading}
-                className={`text-white font-bold px-8 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ${loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-500"
-                  }`}
-              >
-                {loading ? "กำลังจัด..." : "จัดแข่ง"}
-              </motion.button>
+              <div className="flex flex-col items-center gap-1">
+                <motion.button
+                  whileHover={isEnoughPlayers ? { scale: 1.05 } : {}}
+                  whileTap={isEnoughPlayers ? { scale: 0.95 } : {}}
+                  onClick={handleStartCompetition}
+                  disabled={loading || !isEnoughPlayers}
+                  className={`text-white font-bold px-8 py-2 rounded-full shadow-md transition-all duration-300 ${loading || !isEnoughPlayers
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-500 to-indigo-500 hover:shadow-lg"
+                    }`}
+                >
+                  {loading ? "กำลังจัด..." : "จัดแข่ง"}
+                </motion.button>
+                {!isEnoughPlayers && tournamentStats && (
+                  <span className="text-xs text-red-500 font-medium">คนสมัครไม่ถึงเกณฑ์</span>
+                )}
+              </div>
             )}
           </div>
 

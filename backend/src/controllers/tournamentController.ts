@@ -444,6 +444,11 @@ export const managegroup = async (req: Request, res: Response) => {
   try {
     const tournamentId = Number(req.params.id);
     const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม";
+    const playType = req.body.playType; // ✅ รับค่า playType
+
+    if (!playType) {
+      return res.status(400).json({ message: "Require playType (Hand Type) to manage group." });
+    }
 
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
@@ -456,6 +461,9 @@ export const managegroup = async (req: Request, res: Response) => {
             comment: true,
             userId: true,
             playType: true,
+            player1Name: true, // Needed for response enrichment
+            player2Name: true,
+            teamName: true,
           },
         },
       },
@@ -465,43 +473,86 @@ export const managegroup = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    if (tournament.registrations.length < tournament.maxPlayers) {
+    // 1. Filter specific playType
+    const targetRegistrations = tournament.registrations.filter(r => r.playType === playType);
+
+    // 2. Validate Count (< 50% of maxPlayers)
+    if (targetRegistrations.length < (tournament.maxPlayers / 2)) {
       return res.status(400).json({
-        message: `Yet not full. Current: ${tournament.registrations.length}, Max: ${tournament.maxPlayers}. Cannot optimize groups.`,
+        message: `Not enough players for ${playType}. Current: ${targetRegistrations.length}, Required > ${tournament.maxPlayers / 2}.`,
       });
     }
 
-    const players: Player[] = tournament.registrations.map((reg) => ({
+    // 3. Prepare AI players
+    const players: Player[] = targetRegistrations.map((reg) => ({
       id: reg.id,
       score: reg.score,
       comment: reg.comment,
     }));
 
+    // 4. Run AI
     const aiResult = await manageGroup(players, detail, tournament.maxPlayers);
 
     if (!aiResult || !aiResult.groups) {
       return res.status(400).json({ message: "Cannot Create Group" });
     }
 
-    await prisma.register.updateMany({
-      where: { tournamentId },
-      data: { groupId: null },
-    });
-
-    // Clean up existing matches linked to groups (to avoid FK errors when deleting groups)
-    await prisma.match.deleteMany({
+    // 5. Cleanup OLD Groups for this PlayType ONLY
+    const groupsToDelete = await prisma.group.findMany({
       where: {
         tournamentId,
-        groupId: { not: null }
+        registers: {
+          some: { playType } // Groups containing players of this hand type
+        }
       },
+      select: { id: true }
     });
 
-    await prisma.group.deleteMany({
-      where: { tournamentId },
-    });
+    const groupIdsToDelete = groupsToDelete.map(g => g.id);
 
+    if (groupIdsToDelete.length > 0) {
+      // Unlink players
+      await prisma.register.updateMany({
+        where: { groupId: { in: groupIdsToDelete } },
+        data: { groupId: null },
+      });
+
+      // Delete Matches
+      await prisma.match.deleteMany({
+        where: { groupId: { in: groupIdsToDelete } },
+      });
+
+      // Delete Groups
+      await prisma.group.deleteMany({
+        where: { id: { in: groupIdsToDelete } },
+      });
+    }
+
+    // 6. Create NEW Groups
     for (const groupData of aiResult.groups) {
-      const groupName = `Group ${groupData.groupId}`;
+      // Generate Unique Name? Or just "Group A", "Group B"?
+      // If we mix groups, we might have duplicate names if we restart A, B for each handType?
+      // Ideally names should be unique or prefixed?
+      // User shows "Group A", "Group B".
+      // If we have BG Group A and S Group A?
+      // Let's rely on the frontend filtering by HandType.
+      // But database unique constraints?
+      // Schema: `model Group { name String ... }`. unique?
+      // Let's check schema. Usually name is just string.
+      // But if we want to distinguish, maybe keep it simple.
+      // Wait, if I create "Group A" again, does it clash?
+      // If uniqueness is scoped to tournament?
+      // Prislma Schema check needed? Assuming not unique per tournament for now or we might prefix?
+      // Actually, cleaner to append HandType to name? e.g. "BG - Group A".
+      // But user UI shows just "Group A".
+      // Let's try appending hand type to ensure uniqueness if needed, or just let AI name loop.
+      // AI returns "A", "B".
+      // Let's prefix internally or name it "Group A (BG)"?
+      // Or just "Group A" if they are distinct entities.
+      // Better: Name it `${playType} Group ${groupData.groupId}` (e.g. "BG Group A") to avoid confusion.
+
+      const groupName = `${playType} Group ${groupData.groupId}`;
+
       const newGroup = await prisma.group.create({
         data: {
           name: groupName,
@@ -514,25 +565,18 @@ export const managegroup = async (req: Request, res: Response) => {
         data: { groupId: newGroup.id },
       });
 
-      // Generate Round Robin Matches for this Group
-      const groupPlayers = groupData.players; // [id1, id2, id3...]
-
-      // ✅ Find playType (handType) for this group
-      const firstPlayerId = groupPlayers[0];
-      const firstPlayerReg = tournament.registrations.find(r => r.id === firstPlayerId);
-      const groupHandType = firstPlayerReg?.playType || null;
-
+      // Generate Round Robin Matches
+      const groupPlayers = groupData.players;
       for (let i = 0; i < groupPlayers.length; i++) {
         for (let j = i + 1; j < groupPlayers.length; j++) {
           await prisma.match.create({
             data: {
-              tournamentId: tournamentId,
+              tournamentId,
               groupId: newGroup.id,
               player1Id: groupPlayers[i],
               player2Id: groupPlayers[j],
-              handType: groupHandType, // ✅ Save handType
+              handType: playType, // ✅ Save handType
               status: 'PENDING',
-              // Optional: Set scheduledTime default to tournament start date?
               scheduledTime: tournament.startDate
             }
           });
@@ -540,6 +584,7 @@ export const managegroup = async (req: Request, res: Response) => {
       }
     }
 
+    // 7. Success - Fetch ALL groups to return
     const updatedGroups = await prisma.group.findMany({
       where: { tournamentId },
       include: { registers: true },
@@ -547,30 +592,32 @@ export const managegroup = async (req: Request, res: Response) => {
     });
 
     const enrichedGroups = updatedGroups.map((group) => {
+      // Logic for display name? if we named it "BG Group A", we might want frontend to strip prefix or show full.
+      // Frontend filters by handType anyway.
       const teamNames = group.registers.map((reg) => {
         if (reg.teamName) return reg.teamName;
         if (reg.player2Name) return [reg.player1Name, reg.player2Name];
         return reg.player1Name;
       });
 
-      const groupId = group.name.replace("Group ", "");
+      // simplistic header/color logic based on last char?
+      // group.name is "BG Group A".
+      const groupLetter = group.name.split(" ").pop() || "A";
 
       return {
         id: group.id,
         name: group.name,
-        handType: group.registers[0]?.playType || null, // ✅ Add handType return
-        color: getGroupColor(groupId),
-        header: getGroupHeaderColor(groupId),
+        handType: group.registers[0]?.playType || null,
+        color: getGroupColor(groupLetter),
+        header: getGroupHeaderColor(groupLetter),
         teams: teamNames,
-        summary:
-          aiResult.groups.find((g: any) => g.groupId === groupId)?.summary || "",
+        summary: aiResult.groups.find((g: any) => `${playType} Group ${g.groupId}` === group.name)?.summary || "",
       };
     });
 
     return res.status(200).json({
-      message: "จัดกลุ่มสำเร็จ ",
+      message: `Groups organized for ${playType} successfully`,
       groups: enrichedGroups,
-      criteria: aiResult.criteria,
     });
   } catch (error) {
     console.error(error);
