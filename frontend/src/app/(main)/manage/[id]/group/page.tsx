@@ -14,6 +14,7 @@ export default function TournamentGroupPage() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
+  const [selectedHandType, setSelectedHandType] = useState("BG");
 
   // ✅ เก็บ title ของ tournament
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
@@ -104,23 +105,50 @@ export default function TournamentGroupPage() {
 
         {/* ❌ ลบ input type="date" ออกแล้ว (ตามที่ต้องการ) */}
 
-        {/* ปุ่มจัดแข่ง */}
-        {!showGroups && (
-          <div className="mt-6">
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleStartCompetition}
-              disabled={loading}
-              className={`text-white font-bold px-8 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${loading
+        {/* Container สำหรับ Dropdown และ ปุ่มจัดแข่ง (จัดให้อยู่คู่กัน) */}
+        {/* Container จัด Layout: ปุ่มกลาง / Dropdown ขวา */}
+        <div className="mt-6 w-full max-w-5xl grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+
+          {/* ช่องซ้ายว่าง (เพื่อให้ปุ่มอยู่กลางเป๊ะเมื่อเทียบกับหน้าจอ) */}
+          <div className="hidden sm:block"></div>
+
+          {/* ปุ่มจัดแข่ง (อยู่ตรงกลางเสมอ) */}
+          <div className="flex justify-center order-2 sm:order-1">
+            {!showGroups && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleStartCompetition}
+                disabled={loading}
+                className={`text-white font-bold px-8 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ${loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-500 to-indigo-500"
-                }`}
-            >
-              {loading ? "กำลังจัดกลุ่ม..." : "จัดแข่ง"}
-            </motion.button>
+                  }`}
+              >
+                {loading ? "กำลังจัด..." : "จัดแข่ง"}
+              </motion.button>
+            )}
           </div>
-        )}
+
+          {/* Dropdown เลือกประเภทมือ (ชิดขวา) */}
+          <div className="flex justify-center sm:justify-end order-1 sm:order-2">
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-gray-200">
+              <span className="text-sm font-semibold text-gray-700">ประเภท:</span>
+              <select
+                value={selectedHandType}
+                onChange={(e) => setSelectedHandType(e.target.value)}
+                className="bg-transparent text-gray-700 font-medium focus:outline-none cursor-pointer"
+              >
+                {["N", "S", "P-", "P+", "BG", "NB"].map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+        </div>
       </motion.div>
 
       {/* แสดง Group */}
@@ -131,7 +159,7 @@ export default function TournamentGroupPage() {
           transition={{ duration: 1 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-10 max-w-6xl w-full justify-items-center z-10"
         >
-          {groups.map((group) => (
+          {groups.filter(group => !group.handType || group.handType === selectedHandType).map((group) => (
             <motion.div
               key={group.name}
               whileHover={{ scale: 1.04 }}

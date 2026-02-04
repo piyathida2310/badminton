@@ -110,8 +110,7 @@ export default function TournamentPage() {
                   </p>
 
                   {(() => {
-                    const isFull = (t.currentPlayers || 0) >= (t.maxPlayers || 0);
-                    const isDisabled = t.canceled || isFull;
+                    const isDisabled = t.canceled;
 
                     return (
                       <button
@@ -124,9 +123,7 @@ export default function TournamentPage() {
                       >
                         {t.canceled
                           ? "ไม่สามารถเข้าร่วมได้"
-                          : isFull
-                            ? "เต็มจำนวน"
-                            : "เข้าร่วมการแข่งขัน"}
+                          : "เข้าร่วมการแข่งขัน"}
                       </button>
                     );
                   })()}

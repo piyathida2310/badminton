@@ -115,11 +115,15 @@ export const createRegistration = async (req: Request, res: Response) => {
     }
 
     const registrationCount = await prisma.register.count({
-      where: { tournamentId: parsedTournamentId, status: { not: "FAILED" } },
+      where: {
+        tournamentId: parsedTournamentId,
+        status: { not: "FAILED" },
+        playType: playType // ✅ Count specific playType (category) only
+      },
     });
 
     if (registrationCount >= tournament.maxPlayers) {
-      return res.status(400).json({ message: "Registration is full" });
+      return res.status(400).json({ message: `Registration is full for category ${playType}` });
     }
 
     // ✅ videoUrl ใน DB จะเก็บเป็น URL ถาวร

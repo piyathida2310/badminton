@@ -150,6 +150,23 @@ export const getTournament = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
+    // ✅ Get stats by playType
+    const registrationStats = await prisma.register.groupBy({
+      by: ["playType"],
+      where: {
+        tournamentId: Number(_id),
+        status: { not: "FAILED" },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const statsByHand = registrationStats.reduce((acc, curr) => {
+      acc[curr.playType] = curr._count.id;
+      return acc;
+    }, {} as Record<string, number>);
+
     // ✅ สร้าง presigned URL จาก key (DB) แล้วส่งให้ FE ใช้ได้ทันที
     const [posterUrl, qrUrl] = await Promise.all([
       signGetObjectUrl(data.posterImg),
@@ -184,6 +201,7 @@ export const getTournament = async (req: Request, res: Response) => {
       shuttlePrice: data.shuttlePrice,
       maxPlayers: data.maxPlayers,
       currentPlayers: data._count.registrations,
+      registrationStats: statsByHand, // ✅ Add stats breakdown
 
       // ✅ เปลี่ยนเป็น presigned URL
       image: posterUrl,
@@ -437,6 +455,7 @@ export const managegroup = async (req: Request, res: Response) => {
             score: true,
             comment: true,
             userId: true,
+            playType: true,
           },
         },
       },
@@ -497,7 +516,11 @@ export const managegroup = async (req: Request, res: Response) => {
 
       // Generate Round Robin Matches for this Group
       const groupPlayers = groupData.players; // [id1, id2, id3...]
-      // Sort to ensure consistent ordering if needed? Not strictly necessary but efficient.
+
+      // ✅ Find playType (handType) for this group
+      const firstPlayerId = groupPlayers[0];
+      const firstPlayerReg = tournament.registrations.find(r => r.id === firstPlayerId);
+      const groupHandType = firstPlayerReg?.playType || null;
 
       for (let i = 0; i < groupPlayers.length; i++) {
         for (let j = i + 1; j < groupPlayers.length; j++) {
@@ -507,6 +530,7 @@ export const managegroup = async (req: Request, res: Response) => {
               groupId: newGroup.id,
               player1Id: groupPlayers[i],
               player2Id: groupPlayers[j],
+              handType: groupHandType, // ✅ Save handType
               status: 'PENDING',
               // Optional: Set scheduledTime default to tournament start date?
               scheduledTime: tournament.startDate
@@ -534,6 +558,7 @@ export const managegroup = async (req: Request, res: Response) => {
       return {
         id: group.id,
         name: group.name,
+        handType: group.registers[0]?.playType || null, // ✅ Add handType return
         color: getGroupColor(groupId),
         header: getGroupHeaderColor(groupId),
         teams: teamNames,
