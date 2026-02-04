@@ -3,11 +3,39 @@ import { Request, Response } from "express";
 import { prisma } from "../services/prismaClient";
 
 // Helper to calculate points
-function getPoints(score1: number | null, score2: number | null): [number, number] {
+function getPoints(score1: number | null, score2: number | null, setScores: string = ""): [number, number] {
+    // Priority: Calculate based on Set Wins
+    if (setScores) {
+        // Normalize separators: replace newline, comma with pipe, keeping space if it separates sets? 
+        // Better: extract all "num-num" or "num:num" patterns
+        // Regex to find pairs like "21-19" or "21:19"
+        const matches = setScores.match(/(\d+)[:\-](\d+)/g);
+
+        if (matches && matches.length > 0) {
+            let p1Sets = 0;
+            let p2Sets = 0;
+
+            matches.forEach(m => {
+                const parts = m.split(/[:\-]/);
+                const s1 = parseInt(parts[0]);
+                const s2 = parseInt(parts[1]);
+                if (s1 > s2) p1Sets++;
+                else if (s2 > s1) p2Sets++;
+            });
+
+            if (p1Sets > p2Sets) return [2, 0];
+            if (p2Sets > p1Sets) return [0, 2];
+            return [1, 1]; // Draw in Sets
+        }
+    }
+
+    // Fallback: Total Score comparison (if entered)
     if (score1 === null || score2 === null) return [0, 0];
     if (score1 > score2) return [2, 0];
     if (score2 > score1) return [0, 2];
-    return [1, 1];
+    if (score1 === score2 && score1 > 0) return [1, 1];
+
+    return [0, 0];
 }
 
 export const getGroupDetails = async (req: Request, res: Response) => {
@@ -106,7 +134,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 const s1 = match.score1 || 0;
                 const s2 = match.score2 || 0;
 
-                const [pts1, pts2] = getPoints(s1, s2);
+                const [pts1, pts2] = getPoints(s1, s2, match.round || "");
 
                 if (p1 && teamStats.has(p1)) {
                     const stats = teamStats.get(p1)!;
@@ -156,7 +184,15 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             return a[1].localeCompare(b[1]);
         });
 
-        // Note: Removed the overwriting of row[0] to preserve Team Code display.
+        // Assign Rank Number to the first column (Column 0) after sorting
+        // User wants "BGA1", "BGA2" etc. as rank indicators, preserving the group/hand prefix
+        rankData.forEach((row, index) => {
+            const teamCode = row[1] as string;
+            // Extract prefix (letters) from team code
+            const prefixMatch = teamCode.match(/^([A-Za-z]+)/);
+            const prefix = prefixMatch ? prefixMatch[1] : "";
+            row[0] = `${prefix}${index + 1}`; // BGA1, BGA2...
+        });
 
         // Re-order matches to ensure valid Round Robin (no team plays twice in same round)
         const totalTeams = group.registers.length;
@@ -287,7 +323,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             const s1 = m.score1;
             const s2 = m.score2;
 
-            const [p1, p2] = getPoints(s1, s2);
+            const [p1, p2] = getPoints(s1, s2, m.round || "");
             // Index 7 (New Set Column Index): Use detailed setScores if available, else standard S1:S2
             const setStr = setScores ? setScores : ((s1 !== null && s2 !== null) ? `${s1} : ${s2}` : " : ");
 
