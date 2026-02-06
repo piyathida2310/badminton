@@ -173,7 +173,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
                 href={link.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
-                ${pathname === link.href
+                ${pathname === link.href.split('?')[0]
                     ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
                     : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
                   }`}
@@ -231,7 +231,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
               key={link.href}
               href={link.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
-              ${pathname === link.href
+              ${pathname === link.href.split('?')[0]
                   ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
                   : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
                 }`}
