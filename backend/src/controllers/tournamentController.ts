@@ -7,7 +7,7 @@ import S3Client from "../config/minioManage";
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
-import { manageGroup, Player } from "../services/openai";
+import { rankPlayers, Player } from "../services/openai";
 
 dotenv.config();
 
@@ -505,13 +505,69 @@ export const managegroup = async (req: Request, res: Response) => {
     }));
 
     // 4. Run AI
-    const aiResult = await manageGroup(players, detail, tournament.maxPlayers);
+    // 4. Run AI to get Ranking only (List of IDs)
+    const rankedIds = await rankPlayers(players, detail);
 
-    if (!aiResult || !aiResult.groups) {
-      return res.status(400).json({ message: "Cannot Create Group" });
+    // 4.1 FAILSAFE: ตรวจสอบว่า ID ครบไหม ถ้าไม่ครบให้เติมต่อท้าย
+    const inputIds = new Set(players.map((p) => p.id));
+    const returnedIds = new Set(rankedIds);
+
+    // หา ID ที่หายไปจาก AI (Hallucination fix)
+    const missingIds = players
+      .filter((p) => !returnedIds.has(p.id))
+      .map((p) => p.id);
+
+    // เอา missing ไปต่อท้าย + กรองเฉพาะ ID ที่มีอยู่จริง (กันมั่ว)
+    const finalRankedIds = [...rankedIds, ...missingIds].filter((id) =>
+      inputIds.has(id)
+    );
+
+    // 5. คำนวณจำนวนกลุ่ม (Logic เดิมจาก AI Prompt ย้ายมาไว้ที่นี่)
+    let numGroups = 4;
+    // ถ้าเกิน 24 คน ให้แบ่ง 8 กลุ่ม (32 คน / 4 = 8 กลุ่ม)
+    if (tournament.maxPlayers > 24) {
+      numGroups = 8;
+    } else {
+      // Default: กลุ่มละ 4 คน (หรือตามความเหมาะสม)
+      numGroups = Math.max(1, Math.floor(tournament.maxPlayers / 4));
     }
 
-    // 5. Cleanup OLD Groups for this PlayType ONLY
+    // สร้าง Structure รอไว้
+    // Group name: A, B, C, D...
+    const groupsMap: { name: string; players: number[] }[] = Array.from(
+      { length: numGroups },
+      (_, i) => ({
+        name: String.fromCharCode(65 + i), // 'A', 'B', 'C'...
+        players: [],
+      })
+    );
+
+    // 6. Snake Draft Distribution
+    // 0 -> G0
+    // 1 -> G1
+    // ...
+    // n -> Gn (Top)
+    // n+1 -> Gn (Snake back)
+    finalRankedIds.forEach((playerId, index) => {
+      const round = Math.floor(index / numGroups);
+      const isEvenRound = round % 2 === 0;
+
+      let groupIndex;
+      if (isEvenRound) {
+        // ขาไป: 0, 1, 2, ...
+        groupIndex = index % numGroups;
+      } else {
+        // ขากลับ: 3, 2, 1, ...
+        groupIndex = numGroups - 1 - (index % numGroups);
+      }
+
+      // ใส่ผู้เล่นลงกลุ่ม
+      if (groupsMap[groupIndex]) {
+        groupsMap[groupIndex].players.push(playerId);
+      }
+    });
+
+    // 7. Cleanup OLD Groups for this PlayType ONLY
     const groupsToDelete = await prisma.group.findMany({
       where: {
         tournamentId,
@@ -542,30 +598,10 @@ export const managegroup = async (req: Request, res: Response) => {
       });
     }
 
-    // 6. Create NEW Groups
-    for (const groupData of aiResult.groups) {
-      // Generate Unique Name? Or just "Group A", "Group B"?
-      // If we mix groups, we might have duplicate names if we restart A, B for each handType?
-      // Ideally names should be unique or prefixed?
-      // User shows "Group A", "Group B".
-      // If we have BG Group A and S Group A?
-      // Let's rely on the frontend filtering by HandType.
-      // But database unique constraints?
-      // Schema: `model Group { name String ... }`. unique?
-      // Let's check schema. Usually name is just string.
-      // But if we want to distinguish, maybe keep it simple.
-      // Wait, if I create "Group A" again, does it clash?
-      // If uniqueness is scoped to tournament?
-      // Prislma Schema check needed? Assuming not unique per tournament for now or we might prefix?
-      // Actually, cleaner to append HandType to name? e.g. "BG - Group A".
-      // But user UI shows just "Group A".
-      // Let's try appending hand type to ensure uniqueness if needed, or just let AI name loop.
-      // AI returns "A", "B".
-      // Let's prefix internally or name it "Group A (BG)"?
-      // Or just "Group A" if they are distinct entities.
-      // Better: Name it `${playType} Group ${groupData.groupId}` (e.g. "BG Group A") to avoid confusion.
-
-      const groupName = `${playType} Group ${groupData.groupId}`;
+    // 8. Create NEW Groups into DB
+    for (const groupData of groupsMap) {
+      // Name consistency: "BG Group A"
+      const groupName = `${playType} Group ${groupData.name}`;
 
       const newGroup = await prisma.group.create({
         data: {
@@ -574,26 +610,29 @@ export const managegroup = async (req: Request, res: Response) => {
         },
       });
 
-      await prisma.register.updateMany({
-        where: { id: { in: groupData.players } },
-        data: { groupId: newGroup.id },
-      });
+      // Link Players
+      if (groupData.players.length > 0) {
+        await prisma.register.updateMany({
+          where: { id: { in: groupData.players } },
+          data: { groupId: newGroup.id },
+        });
 
-      // Generate Round Robin Matches
-      const groupPlayers = groupData.players;
-      for (let i = 0; i < groupPlayers.length; i++) {
-        for (let j = i + 1; j < groupPlayers.length; j++) {
-          await prisma.match.create({
-            data: {
-              tournamentId,
-              groupId: newGroup.id,
-              player1Id: groupPlayers[i],
-              player2Id: groupPlayers[j],
-              handType: playType, // ✅ Save handType
-              status: 'PENDING',
-              scheduledTime: tournament.startDate
-            }
-          });
+        // Generate Round Robin Matches
+        const groupPlayers = groupData.players;
+        for (let i = 0; i < groupPlayers.length; i++) {
+          for (let j = i + 1; j < groupPlayers.length; j++) {
+            await prisma.match.create({
+              data: {
+                tournamentId,
+                groupId: newGroup.id,
+                player1Id: groupPlayers[i], // ID ของ register
+                player2Id: groupPlayers[j],
+                handType: playType,
+                status: "PENDING",
+                scheduledTime: tournament.startDate,
+              },
+            });
+          }
         }
       }
     }
@@ -625,7 +664,7 @@ export const managegroup = async (req: Request, res: Response) => {
         color: getGroupColor(groupLetter),
         header: getGroupHeaderColor(groupLetter),
         teams: teamNames,
-        summary: aiResult.groups.find((g: any) => `${playType} Group ${g.groupId}` === group.name)?.summary || "",
+        summary: "",
       };
     });
 

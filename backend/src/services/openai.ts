@@ -8,22 +8,11 @@ export interface Player {
   comment: string;
 }
 
-export const manageGroup = async (player: Player[], detail: string, maxPlayers?: number) => {
+export const rankPlayers = async (players: Player[], detail: string): Promise<number[]> => {
   try {
-    const playerList = player
-      .map((i) => `${i.id} ได้คะแนนระดับความสามารถ: ${i.score}, คำอธิบายการเล่น: ${i.comment}`)
+    const playerList = players
+      .map((i) => `ID:${i.id} | Score:${i.score} | Note:${i.comment}`)
       .join("\n");
-
-    let groupingInstruction = "";
-    if (maxPlayers) {
-      if (maxPlayers === 16) {
-        groupingInstruction = "จัดการแข่งขันแบบ 16 คน ให้แบ่งเป็น 4 กลุ่ม (A, B, C, D) กลุ่มละ 4 คน";
-      } else if (maxPlayers === 32) {
-        groupingInstruction = "จัดการแข่งขันแบบ 32 คน ให้แบ่งเป็น 8 กลุ่ม (A-H) กลุ่มละ 4 คน";
-      } else {
-        groupingInstruction = `จัดการแข่งขันสำหรับ ${maxPlayers} คน ให้แบ่งกลุ่มตามความเหมาะสม โดยเน้นให้จำนวนคนต่อกลุ่มเท่ากันมากที่สุด`;
-      }
-    }
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -31,64 +20,38 @@ export const manageGroup = async (player: Player[], detail: string, maxPlayers?:
         {
           role: "system",
           content: `
-คุณคือ AI ผู้ช่วยจัดกลุ่มนักกีฬาแบดมินตันสำหรับรอบแบ่งกลุ่ม (Group Stage)
-***สำคัญที่สุด***: ต้องส่งคืนเฉพาะข้อมูล JSON เท่านั้น ห้ามมีข้อความอื่นนำหน้าหรือตามหลัง
+คุณคือผู้ช่วยจัดอันดับนักกีฬาแบดมินตัน
+"หน้าที่ของคุณคือเรียงลำดับนักกีฬาจาก เก่งที่สุด(มือวางอันดับ 1) ไปยัง อ่อนที่สุด"
 
-หลักการจัดกลุ่ม (Seeding & Distribution):
-1. **การเรียงลำดับ (Ranking - สำคัญที่สุด!)**:
-   - ให้เรียงลำดับผู้เล่นทุกคนตาม **คะแนน (Score)** จากมากไปน้อย "อย่างเคร่งครัด"
-   - หากคะแนนเท่ากัน ให้ใช้ **Comment** ในการตัดสินใจ (เช่น "ตีดี", "เก่ง", "Pro" ให้จัดไว้อันดับสูงกว่าคนที่มี comment ว่า "มือใหม่")
+เกณฑ์การตัดสิน:
+1. Score (คะแนน): คะแนนสูงกว่า ต้องอยู่อันดับดีกว่า
+2. Comment (Note): ถ้าคะแนนเท่ากัน ให้วิเคราะห์จาก Note (เช่น "ตีดี", "แข่งบ่อย" > "มือใหม่")
+3. Detail: ${detail}
 
-2. **การกระจายลงกลุ่ม (Distribution)**:
-   - เป้าหมายคือ: **ทุกกลุ่มต้องมีความเก่งเฉลี่ยใกล้เคียงกัน** (Fair Competition)
-   - ห้ามนำคนเก่งไปกองรวมกันในกลุ่มเดียว
-   - ใช้วิธีแจกแจงแบบ **Snake Draft** หรือวนลูป:
-     - มือวางอันดับ 1 -> Group A
-     - มือวางอันดับ 2 -> Group B
-     - ... (จนครบจำนวนกลุ่ม)
-     - แล้ววนกลับมาใส่กลุ่มสุดท้ายย้อนกลับมากลุ่มแรก (หรือวน A->B->C->...) เพื่อให้สมดุล
-
-3. **จำนวนคน**: ${groupingInstruction}
-
-4. **การวิเคราะห์ Comment**: ใช้เป็นตัวช่วยเสริมในการจัด Ranking เท่านั้น (แต่ Score คือตัวหลัก)
-
-สรุป: เรียงความเก่งตาม Score -> กระจายลงกลุ่มให้เท่าๆ กัน
-
-ข้อมูลประกอบการวิเคราะห์:
-detail: ${detail}
-
-รูปแบบคำตอบ (JSON เท่านั้น):
+Format คำตอบ (JSON เท่านั้น):
 {
-  "groups": [
-    {
-      "groupId": "A",
-      "players": [1, 5, 7, 9],
-      "summary": "กลุ่มนี้ประกอบด้วยมือวางอันดับ 1, 8, 9, 16 เฉลี่ยความสามารถสมดุลกับกลุ่มอื่น"
-    }
-  ],
-  "criteria": {
-    "method": "เรียงตาม Score แล้วกระจายแบบ Snake Draft",
-    "balanceStrategy": "Average Skill Equalization",
-    "note": "..."
-  }
+  "rankedIds": [id_อันดับ1, id_อันดับ2, id_อันดับ3, ...]
 }
+*** ต้องส่งคืน ID ให้ครบถ้วนตามจำนวนที่ได้รับมา ห้ามตกหล่น ***
 `
         },
         {
           role: "user",
           content: playerList
         }
-      ]
+      ],
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content || "{}";
-    // Remove markdown code blocks if present
-    const cleanContent = content.replace(/```json\n?|\n?```/g, "").trim();
+    const result = JSON.parse(content);
 
-    return JSON.parse(cleanContent);
-
+    // Fallback if AI returns valid JSON but empty array or structure mismatch
+    return Array.isArray(result.rankedIds) ? result.rankedIds : [];
 
   } catch (error) {
-    console.error(error);
+    console.error("AI Ranking Error:", error);
+    // กรณี AI Error ให้คืนค่าตามลำดับเดิม (ดีกว่าพังไปเลย)
+    return players.map(p => p.id);
   }
 };
