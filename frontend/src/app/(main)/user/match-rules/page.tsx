@@ -1,87 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import RulesTablesPage from "../../../../../components/rulesTables";
-import axios from "../../../../lib/api";
-
-interface Tournament {
-  id: number;
-  name: string;
-}
-
-interface Registration {
-  id: number;
-  tournament: Tournament;
-}
 
 export default function Page() {
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [selectedTournamentId, setSelectedTournamentId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUserRegistrations = async () => {
-      try {
-        const response = await axios.get("/api/user/registrations");
-        const data = response.data.data;
-        
-        // กรองเพื่อให้แสดงเฉพาะทัวร์นาเมนต์ที่ไม่ซ้ำกัน
-        const uniqueTournaments = data.filter((reg: Registration, index: number, self: Registration[]) => 
-          index === self.findIndex((r: Registration) => r.tournament.id === reg.tournament.id)
-        );
-        
-        setRegistrations(uniqueTournaments);
-
-        // เลือกรายการแข่งแรกโดยอัตโนมัติถ้ามี
-        if (uniqueTournaments.length > 0) {
-          setSelectedTournamentId(String(uniqueTournaments[0].tournament.id));
-        }
-      } catch (error) {
-        console.error("Failed to fetch user registrations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserRegistrations();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#fff7f3] to-[#ffeae3] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#e07a5f] mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
+  const searchParams = useSearchParams();
+  const tournamentId = searchParams.get("id");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f3] to-[#ffeae3] py-6 px-4">
-      <div className="max-w-6xl mx-auto mb-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#ffd4c4]">
-          <label className="block text-lg font-semibold text-[#e07a5f] mb-3">
-            เลือกรายการแข่งขัน
-          </label>
-          <select
-            value={selectedTournamentId}
-            onChange={(e) => setSelectedTournamentId(e.target.value)}
-            className="w-full p-3 border-2 border-[#ffd4c4] rounded-xl bg-[#fffaf7] text-gray-800 font-medium focus:outline-none focus:border-[#e07a5f] focus:ring-2 focus:ring-[#e07a5f]/20 transition-all"
-          >
-            {registrations.length === 0 && (
-              <option value="">ไม่มีรายการแข่งขันที่สมัคร</option>
-            )}
-            {registrations.map((reg) => (
-              <option key={reg.id} value={String(reg.tournament.id)}>
-                {reg.tournament.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {selectedTournamentId ? (
-        <RulesTablesPage tournamentId={selectedTournamentId} readOnly={true} />
+      {tournamentId ? (
+        <RulesTablesPage tournamentId={tournamentId} readOnly={true} />
       ) : (
         <EmptyRulesView />
       )}
