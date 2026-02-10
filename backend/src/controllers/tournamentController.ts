@@ -549,10 +549,21 @@ export const managegroup = async (req: Request, res: Response) => {
       .filter((p) => !currentGroupedIds.has(p.id))
       .map((p) => p.id);
 
-    // Add missing players to groups (Distribute cyclically)
-    missingIds.forEach((id, idx) => {
-      const groupIdx = idx % numGroups;
-      groupsMap[groupIdx].players.push(id);
+    // Add missing players to groups (Distribute to smallest groups first)
+    missingIds.forEach((id) => {
+      // Find the group with the fewest players
+      let targetGroupIndex = 0;
+      let minCount = Infinity;
+
+      for (let i = 0; i < numGroups; i++) {
+        const count = groupsMap[i].players.length;
+        if (count < minCount) {
+          minCount = count;
+          targetGroupIndex = i;
+        }
+      }
+
+      groupsMap[targetGroupIndex].players.push(id);
     });
 
     // Filter invalid IDs (Cleanup hallucinated IDs)
