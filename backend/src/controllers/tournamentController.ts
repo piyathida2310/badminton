@@ -7,7 +7,7 @@ import S3Client from "../config/minioManage";
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
-import { rankPlayers, Player } from "../services/openai";
+import { groupPlayers, Player } from "../services/openai";
 
 dotenv.config();
 
@@ -478,6 +478,8 @@ export const managegroup = async (req: Request, res: Response) => {
             player1Name: true, // Needed for response enrichment
             player2Name: true,
             teamName: true,
+            player1Gender: true,
+            player2Gender: true,
           },
         },
       },
@@ -500,29 +502,15 @@ export const managegroup = async (req: Request, res: Response) => {
     // 3. Prepare AI players
     const players: Player[] = targetRegistrations.map((reg) => ({
       id: reg.id,
-      score: reg.score,
-      comment: reg.comment,
+      score: reg.score ?? 0,
+      comment: reg.comment ?? "",
+      gender:
+        tournament.playType === "SINGLE"
+          ? reg.player1Gender ?? "Unknown"
+          : `${reg.player1Gender ?? "?"}/${reg.player2Gender ?? "?"}`,
     }));
 
-    // 4. Run AI
-    // 4. Run AI to get Ranking only (List of IDs)
-    const rankedIds = await rankPlayers(players, detail);
-
-    // 4.1 FAILSAFE: ตรวจสอบว่า ID ครบไหม ถ้าไม่ครบให้เติมต่อท้าย
-    const inputIds = new Set(players.map((p) => p.id));
-    const returnedIds = new Set(rankedIds);
-
-    // หา ID ที่หายไปจาก AI (Hallucination fix)
-    const missingIds = players
-      .filter((p) => !returnedIds.has(p.id))
-      .map((p) => p.id);
-
-    // เอา missing ไปต่อท้าย + กรองเฉพาะ ID ที่มีอยู่จริง (กันมั่ว)
-    const finalRankedIds = [...rankedIds, ...missingIds].filter((id) =>
-      inputIds.has(id)
-    );
-
-    // 5. คำนวณจำนวนกลุ่ม (Logic เดิมจาก AI Prompt ย้ายมาไว้ที่นี่)
+    // 4. Calculate numGroups
     let numGroups = 4;
     // ถ้าเกิน 24 คน ให้แบ่ง 8 กลุ่ม (32 คน / 4 = 8 กลุ่ม)
     if (tournament.maxPlayers > 24) {
@@ -532,8 +520,10 @@ export const managegroup = async (req: Request, res: Response) => {
       numGroups = Math.max(1, Math.floor(tournament.maxPlayers / 4));
     }
 
-    // สร้าง Structure รอไว้
-    // Group name: A, B, C, D...
+    // 5. Run AI
+    const groupedIds = await groupPlayers(players, detail, numGroups);
+
+    // 6. Map to groupsMap & Failsafe
     const groupsMap: { name: string; players: number[] }[] = Array.from(
       { length: numGroups },
       (_, i) => ({
@@ -542,29 +532,32 @@ export const managegroup = async (req: Request, res: Response) => {
       })
     );
 
-    // 6. Snake Draft Distribution
-    // 0 -> G0
-    // 1 -> G1
-    // ...
-    // n -> Gn (Top)
-    // n+1 -> Gn (Snake back)
-    finalRankedIds.forEach((playerId, index) => {
-      const round = Math.floor(index / numGroups);
-      const isEvenRound = round % 2 === 0;
-
-      let groupIndex;
-      if (isEvenRound) {
-        // ขาไป: 0, 1, 2, ...
-        groupIndex = index % numGroups;
+    // Fill groupsMap from AI result
+    groupedIds.forEach((ids, index) => {
+      if (index < numGroups) {
+        groupsMap[index].players = ids;
       } else {
-        // ขากลับ: 3, 2, 1, ...
-        groupIndex = numGroups - 1 - (index % numGroups);
+        // If AI returned extra groups, put their players in the last valid group
+        groupsMap[numGroups - 1].players.push(...ids);
       }
+    });
 
-      // ใส่ผู้เล่นลงกลุ่ม
-      if (groupsMap[groupIndex]) {
-        groupsMap[groupIndex].players.push(playerId);
-      }
+    // Failsafe: Check for missing players
+    const allInputIds = new Set(players.map((p) => p.id));
+    const currentGroupedIds = new Set(groupsMap.flatMap((g) => g.players));
+    const missingIds = players
+      .filter((p) => !currentGroupedIds.has(p.id))
+      .map((p) => p.id);
+
+    // Add missing players to groups (Distribute cyclically)
+    missingIds.forEach((id, idx) => {
+      const groupIdx = idx % numGroups;
+      groupsMap[groupIdx].players.push(id);
+    });
+
+    // Filter invalid IDs (Cleanup hallucinated IDs)
+    groupsMap.forEach((g) => {
+      g.players = g.players.filter((id) => allInputIds.has(id));
     });
 
     // 7. Cleanup OLD Groups for this PlayType ONLY
