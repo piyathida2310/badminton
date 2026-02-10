@@ -16,6 +16,10 @@ interface Tournament {
   image: string;
   canceled: boolean;
   IsOwner: boolean;
+  rank: string[];
+  maxPlayers: number;
+  currentPlayers: number;
+  registrationStats: Record<string, number>;
 }
 
 export default function TournamentPage() {
@@ -47,6 +51,44 @@ export default function TournamentPage() {
     router.push(`/manage/${id}/manage-rules/`);
   };
 
+
+  const handleCancelRank = async (id: number, rank: string) => {
+    const confirm = await Swal.fire({
+      title: `ยืนยันการยกเลิก Rank ${formatRank(rank)}?`,
+      text: "เหตุผล: จำนวนผู้สมัครน้อยเกินไป",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ตกลง",
+      cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axios.put(`/api/tournament/cancel-rank/${id}`, { rank });
+      fetchTournament(currentPage);
+
+      Swal.fire({
+        title: "สำเร็จ!",
+        text: `Rank ${formatRank(rank)} ถูกยกเลิกเรียบร้อยแล้ว`,
+        icon: "success",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#10b981"
+      });
+
+    } catch (error: any) {
+      console.log(error);
+      const message = error.response?.data?.message || "เกิดข้อผิดพลาด";
+      Swal.fire({
+        title: "ผิดพลาด",
+        text: message,
+        icon: "error",
+        confirmButtonText: "ตกลง",
+      });
+    }
+  };
 
   const handleCancel = async (id: number) => {
     // แจ้งเตือนยืนยันก่อนยกเลิก
@@ -100,6 +142,23 @@ export default function TournamentPage() {
       day: "numeric",
     });
   }
+
+  const formatRank = (rank: string) => {
+    switch (rank) {
+      case "P_MINUS":
+        return "P-";
+      case "P_PLUS":
+        return "P+";
+      case "S":
+        return "S";
+      case "N":
+        return "N";
+      case "BG":
+        return "BG";
+      default:
+        return rank;
+    }
+  };
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -161,11 +220,32 @@ export default function TournamentPage() {
                 วันที่ {formatThaiDate(t.date)}
               </p>
 
+              <div className="flex flex-wrap justify-center gap-2 mb-3 text-sm text-gray-600">
+                {Array.from(new Set([...t.rank, ...Object.keys(t.registrationStats || {})])).map((r, index) => {
+                  const isActive = t.rank.includes(r);
+                  return (
+                    <span
+                      key={index}
+                      onClick={t.IsOwner && isActive ? () => handleCancelRank(t.id, r) : undefined}
+                      className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
+                        ${isActive
+                          ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                          : "bg-red-100 text-red-600 cursor-not-allowed"}
+                      `}
+                      title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
+                    >
+                      Rank {formatRank(r)} : {t.registrationStats?.[r] || 0}/{t.maxPlayers}
+                      {!isActive && <span className="ml-1 text-xs">(ยกเลิก)</span>}
+                    </span>
+                  );
+                })}
+              </div>
+
               <button
                 disabled={t.canceled}
                 onClick={t.IsOwner ? () => handleCancel(t.id) : () => null}
                 className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${t.IsOwner ? t.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
-                    : "bg-gray-400 cursor-not-allowed text-gray-200"
+                  : "bg-gray-400 cursor-not-allowed text-gray-200"
                   }`}
               >
                 {t.IsOwner === true ? t.canceled ? "ยกเลิกสำเร็จ" : "ยกเลิกรายการจัดแข่ง" : "คุณไม่สามารถยกเลิกได้"}
@@ -182,8 +262,8 @@ export default function TournamentPage() {
               disabled={currentPage === 1}
               onClick={() => goToPage(currentPage - 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
               ก่อนหน้า
@@ -194,8 +274,8 @@ export default function TournamentPage() {
                 key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${currentPage === i + 1
-                    ? "bg-pink-500"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+                  ? "bg-pink-500"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                   }`}
               >
                 {i + 1}
@@ -206,8 +286,8 @@ export default function TournamentPage() {
               disabled={currentPage === totalPages}
               onClick={() => goToPage(currentPage + 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === totalPages
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
               ถัดไป
