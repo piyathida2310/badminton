@@ -492,12 +492,7 @@ export const managegroup = async (req: Request, res: Response) => {
     // 1. Filter specific playType
     const targetRegistrations = tournament.registrations.filter(r => r.playType === playType);
 
-    // 2. Validate Count (< 50% of maxPlayers)
-    if (targetRegistrations.length < (tournament.maxPlayers / 2)) {
-      return res.status(400).json({
-        message: `Not enough players for ${playType}. Current: ${targetRegistrations.length}, Required > ${tournament.maxPlayers / 2}.`,
-      });
-    }
+
 
     // 3. Prepare AI players
     const players: Player[] = targetRegistrations.map((reg) => ({
