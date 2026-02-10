@@ -680,3 +680,49 @@ function getGroupHeaderColor(groupId: string) {
   };
   return colors[groupId] || "bg-gray-400/80 text-gray-900";
 }
+
+export const cancelTournamentRank = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const { rank } = req.body;
+
+    if (!rank) {
+      return res.status(400).json({ message: "Rank is required" });
+    }
+
+    const tournament = await prisma.tournament.findUnique({ where: { id } });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    if (Number(req.user.sub) !== tournament.organizerId) {
+      return res
+        .status(403)
+        .json({ message: "You can only cancel rank in your own tournament." });
+    }
+
+    // Check if rank exists in the tournament
+    if (!tournament.rank.includes(rank)) {
+      return res.status(400).json({ message: "Rank not found in this tournament or already cancelled." });
+    }
+
+    // Remove the rank
+    const updatedRanks = tournament.rank.filter((r) => r !== rank);
+
+    const update = await prisma.tournament.update({
+      where: { id },
+      data: { rank: updatedRanks },
+    });
+
+    return res.json({
+      message: `Rank ${rank} cancelled successfully.`,
+      data: update,
+    });
+  } catch (error) {
+    console.error("Cancel Rank Error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      errors: error instanceof Error ? error.message : error,
+    });
+  }
+};
