@@ -13,6 +13,7 @@ interface Tournament {
   rank: string[];
   maxPlayers: number;
   currentPlayers: number;
+  registrationStats: Record<string, number>;
 }
 
 export default function RegisterPage() {
@@ -48,9 +49,13 @@ export default function RegisterPage() {
         const t = response.data.data as Tournament;
         setTournament(t);
 
-        if ((t.currentPlayers || 0) >= (t.maxPlayers || 0)) {
-          setIsFull(true);
-        }
+        // Check if all ranks are full
+        const ranks = t.rank || [];
+        const isAllFull = ranks.length > 0
+          ? ranks.every(r => (t.registrationStats?.[r] || 0) >= (t.maxPlayers || 0))
+          : (t.currentPlayers || 0) >= (t.maxPlayers || 0);
+
+        setIsFull(isAllFull);
 
         if (t.playType === "SINGLE") setMode("single");
         if (t.playType === "DOUBLE") setMode("double");
@@ -129,19 +134,19 @@ export default function RegisterPage() {
 
     // ✅ 2) ยืนยันก่อนส่ง
     const confirm = await Swal.fire({
-  icon: "question",
-  title: "ยืนยันการลงทะเบียน",
-  text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
-  showCancelButton: true,
-  confirmButtonText: "ยืนยัน",
-  cancelButtonText: "ยกเลิก",
-  reverseButtons: true,
-  focusConfirm: true,
+      icon: "question",
+      title: "ยืนยันการลงทะเบียน",
+      text: "ต้องการยืนยันการลงทะเบียนใช่หรือไม่",
+      showCancelButton: true,
+      confirmButtonText: "ยืนยัน",
+      cancelButtonText: "ยกเลิก",
+      reverseButtons: true,
+      focusConfirm: true,
 
-  customClass: {
-    actions: "flex-row-reverse", // บังคับสลับลำดับปุ่ม
-  },
-});
+      customClass: {
+        actions: "flex-row-reverse", // บังคับสลับลำดับปุ่ม
+      },
+    });
 
 
     if (!confirm.isConfirmed) return;
@@ -489,19 +494,28 @@ export default function RegisterPage() {
             {tournamentLoading ? (
               <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
             ) : tournament && tournament.rank.length > 0 ? (
-              tournament.rank.map((rank) => (
-                <button
-                  key={rank}
-                  type="button"
-                  onClick={() => setSelectedRank(rank)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedRank === rank
-                    ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                    : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
-                    }`}
-                >
-                  {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
-                </button>
-              ))
+              tournament.rank.map((rank) => {
+                const count = tournament.registrationStats?.[rank] || 0;
+                const isRankFull = count >= tournament.maxPlayers;
+
+                return (
+                  <button
+                    key={rank}
+                    type="button"
+                    disabled={isRankFull}
+                    onClick={() => !isRankFull && setSelectedRank(rank)}
+                    className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${isRankFull
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                      : selectedRank === rank
+                        ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
+                        : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                      }`}
+                  >
+                    {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
+                    {isRankFull && " (เต็ม)"}
+                  </button>
+                );
+              })
             ) : (
               <div className="text-red-500">ไม่มีข้อมูลประเภทมือ</div>
             )}
