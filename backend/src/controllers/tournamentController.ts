@@ -1,33 +1,12 @@
+
 import { Request, Response } from "express";
 import { tournamentSchema } from "../models/tournamentModels";
 import { ZodError } from "zod";
 import { prisma } from "../services/prismaClient";
 import crypto from "crypto";
-import S3Client from "../config/minioManage";
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import dotenv from "dotenv";
-import { groupPlayers, Player } from "../services/openai";
-
-dotenv.config();
-
-const BUCKET = process.env.MINIO_BUCKET!;
-
-// =====================
-// Presigned URL helper
-// =====================
-async function signGetObjectUrl(key?: string | null) {
-  if (!key) return null;
-
-  const command = new GetObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-  });
-
-  return await getSignedUrl(S3Client, command, {
-    expiresIn: 24 * 60 * 60, // 1 day
-  });
-}
+import { signGetObjectUrl, uploadFileToS3 } from "../services/storageService";
+import { organizeTournamentGroups } from "../services/groupingService";
+import { getGroupColor, getGroupHeaderColor } from "../utils/groupUtils";
 
 export const createTournament = async (req: Request, res: Response) => {
   try {
@@ -63,24 +42,11 @@ export const createTournament = async (req: Request, res: Response) => {
     const posterName = `${crypto.randomUUID()}.${posterExt}`;
     const qrName = `${crypto.randomUUID()}.${qrExt}`;
 
-    // 4) อัปโหลดไฟล์ไป S3/MinIO
-    await S3Client.send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: posterName,
-        Body: posterFile.buffer,
-        ContentType: posterFile.mimetype,
-      })
-    );
-
-    await S3Client.send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: qrName,
-        Body: qrFile.buffer,
-        ContentType: qrFile.mimetype,
-      })
-    );
+    // 4) อัปโหลดไฟล์ไป S3/MinIO ผ่าน Service
+    await Promise.all([
+      uploadFileToS3(posterFile, posterName),
+      uploadFileToS3(qrFile, qrName),
+    ]);
 
     // 5) สร้างข้อมูลใน Prisma (DB เก็บ "Key" ของรูป)
     const tournament = await prisma.tournament.create({
@@ -180,13 +146,14 @@ export const getTournament = async (req: Request, res: Response) => {
         return reg.player1Name;
       });
 
-      const groupId = group.name.replace("Group ", "");
+      // ใช้ logic เดียวกับ Service เพื่อหา letter
+      const groupLetter = group.name.split(" ").pop() || "A";
 
       return {
         id: group.id,
         name: group.name,
-        color: getGroupColor(groupId),
-        header: getGroupHeaderColor(groupId),
+        color: getGroupColor(groupLetter),
+        header: getGroupHeaderColor(groupLetter),
         teams: teamNames,
         summary: "",
       };
@@ -332,10 +299,6 @@ export const getTournaments = async (req: Request, res: Response) => {
   }
 };
 
-// =====================
-// (Optional) keep these endpoints if you still want
-// poster/qr endpoints to return presigned URL instead of streaming
-// =====================
 export const getPoster = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
@@ -433,14 +396,7 @@ export const getPaymentQr = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "QR Code not found" });
     }
 
-    const command = new GetObjectCommand({
-      Bucket: BUCKET,
-      Key: tournament.qrCodeImg,
-    });
-
-    const presignedUrl = await getSignedUrl(S3Client, command, {
-      expiresIn: 24 * 60 * 60,
-    });
+    const presignedUrl = await signGetObjectUrl(tournament.qrCodeImg);
 
     return res.status(200).json({
       message: "Presigned URL generated successfully",
@@ -461,211 +417,17 @@ export const managegroup = async (req: Request, res: Response) => {
     const playType = req.body.playType; // ✅ รับค่า playType
 
     if (!playType) {
-      return res.status(400).json({ message: "Require playType (Hand Type) to manage group." });
+      return res
+        .status(400)
+        .json({ message: "Require playType (Hand Type) to manage group." });
     }
 
-    const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId },
-      include: {
-        registrations: {
-          where: { status: { not: "FAILED" } },
-          select: {
-            id: true,
-            score: true,
-            comment: true,
-            userId: true,
-            playType: true,
-            player1Name: true, // Needed for response enrichment
-            player2Name: true,
-            teamName: true,
-            player1Gender: true,
-            player2Gender: true,
-          },
-        },
-      },
-    });
-
-    if (!tournament) {
-      return res.status(404).json({ message: "Tournament not found" });
-    }
-
-    // 1. Filter specific playType
-    const targetRegistrations = tournament.registrations.filter(r => r.playType === playType);
-
-
-
-    // 3. Prepare AI players
-    const players: Player[] = targetRegistrations.map((reg) => ({
-      id: reg.id,
-      score: reg.score ?? 0,
-      comment: reg.comment ?? "",
-      gender:
-        tournament.playType === "SINGLE"
-          ? reg.player1Gender ?? "Unknown"
-          : `${reg.player1Gender ?? "?"}/${reg.player2Gender ?? "?"}`,
-    }));
-
-    // 4. Calculate numGroups
-    let numGroups = 4;
-    // ถ้าเกิน 24 คน ให้แบ่ง 8 กลุ่ม (32 คน / 4 = 8 กลุ่ม)
-    if (tournament.maxPlayers > 24) {
-      numGroups = 8;
-    } else {
-      // Default: กลุ่มละ 4 คน (หรือตามความเหมาะสม)
-      numGroups = Math.max(1, Math.floor(tournament.maxPlayers / 4));
-    }
-
-    // 5. Run AI
-    const groupedIds = await groupPlayers(players, detail, numGroups);
-
-    // 6. Map to groupsMap & Failsafe
-    const groupsMap: { name: string; players: number[] }[] = Array.from(
-      { length: numGroups },
-      (_, i) => ({
-        name: String.fromCharCode(65 + i), // 'A', 'B', 'C'...
-        players: [],
-      })
+    // เรียกใช้ Service เพื่อจัดกลุ่ม
+    const enrichedGroups = await organizeTournamentGroups(
+      tournamentId,
+      playType,
+      detail
     );
-
-    // Fill groupsMap from AI result
-    groupedIds.forEach((ids, index) => {
-      if (index < numGroups) {
-        groupsMap[index].players = ids;
-      } else {
-        // If AI returned extra groups, put their players in the last valid group
-        groupsMap[numGroups - 1].players.push(...ids);
-      }
-    });
-
-    // Failsafe: Check for missing players
-    const allInputIds = new Set(players.map((p) => p.id));
-    const currentGroupedIds = new Set(groupsMap.flatMap((g) => g.players));
-    const missingIds = players
-      .filter((p) => !currentGroupedIds.has(p.id))
-      .map((p) => p.id);
-
-    // Add missing players to groups (Distribute to smallest groups first)
-    missingIds.forEach((id) => {
-      // Find the group with the fewest players
-      let targetGroupIndex = 0;
-      let minCount = Infinity;
-
-      for (let i = 0; i < numGroups; i++) {
-        const count = groupsMap[i].players.length;
-        if (count < minCount) {
-          minCount = count;
-          targetGroupIndex = i;
-        }
-      }
-
-      groupsMap[targetGroupIndex].players.push(id);
-    });
-
-    // Filter invalid IDs (Cleanup hallucinated IDs)
-    groupsMap.forEach((g) => {
-      g.players = g.players.filter((id) => allInputIds.has(id));
-    });
-
-    // 7. Cleanup OLD Groups for this PlayType ONLY
-    const groupsToDelete = await prisma.group.findMany({
-      where: {
-        tournamentId,
-        registers: {
-          some: { playType } // Groups containing players of this hand type
-        }
-      },
-      select: { id: true }
-    });
-
-    const groupIdsToDelete = groupsToDelete.map(g => g.id);
-
-    if (groupIdsToDelete.length > 0) {
-      // Unlink players
-      await prisma.register.updateMany({
-        where: { groupId: { in: groupIdsToDelete } },
-        data: { groupId: null },
-      });
-
-      // Delete Matches
-      await prisma.match.deleteMany({
-        where: { groupId: { in: groupIdsToDelete } },
-      });
-
-      // Delete Groups
-      await prisma.group.deleteMany({
-        where: { id: { in: groupIdsToDelete } },
-      });
-    }
-
-    // 8. Create NEW Groups into DB
-    for (const groupData of groupsMap) {
-      // Name consistency: "BG Group A"
-      const groupName = `${playType} Group ${groupData.name}`;
-
-      const newGroup = await prisma.group.create({
-        data: {
-          name: groupName,
-          tournamentId: tournamentId,
-        },
-      });
-
-      // Link Players
-      if (groupData.players.length > 0) {
-        await prisma.register.updateMany({
-          where: { id: { in: groupData.players } },
-          data: { groupId: newGroup.id },
-        });
-
-        // Generate Round Robin Matches
-        const groupPlayers = groupData.players;
-        for (let i = 0; i < groupPlayers.length; i++) {
-          for (let j = i + 1; j < groupPlayers.length; j++) {
-            await prisma.match.create({
-              data: {
-                tournamentId,
-                groupId: newGroup.id,
-                player1Id: groupPlayers[i], // ID ของ register
-                player2Id: groupPlayers[j],
-                handType: playType,
-                status: "PENDING",
-                scheduledTime: tournament.startDate,
-              },
-            });
-          }
-        }
-      }
-    }
-
-    // 7. Success - Fetch ALL groups to return
-    const updatedGroups = await prisma.group.findMany({
-      where: { tournamentId },
-      include: { registers: true },
-      orderBy: { name: "asc" },
-    });
-
-    const enrichedGroups = updatedGroups.map((group) => {
-      // Logic for display name? if we named it "BG Group A", we might want frontend to strip prefix or show full.
-      // Frontend filters by handType anyway.
-      const teamNames = group.registers.map((reg) => {
-        if (reg.teamName) return reg.teamName;
-        if (reg.player2Name) return [reg.player1Name, reg.player2Name];
-        return reg.player1Name;
-      });
-
-      // simplistic header/color logic based on last char?
-      // group.name is "BG Group A".
-      const groupLetter = group.name.split(" ").pop() || "A";
-
-      return {
-        id: group.id,
-        name: group.name,
-        handType: group.registers[0]?.playType || null,
-        color: getGroupColor(groupLetter),
-        header: getGroupHeaderColor(groupLetter),
-        teams: teamNames,
-        summary: "",
-      };
-    });
 
     return res.status(200).json({
       message: `Groups organized for ${playType} successfully`,
@@ -675,6 +437,9 @@ export const managegroup = async (req: Request, res: Response) => {
     console.error(error);
 
     if (error instanceof Error) {
+      if (error.message === "Tournament not found") {
+        return res.status(404).json({ message: "Tournament not found" });
+      }
       return res.status(400).json({
         message: "Something went wrong!",
         errors: error.message,
@@ -686,38 +451,6 @@ export const managegroup = async (req: Request, res: Response) => {
     });
   }
 };
-
-// Helper functions
-function getGroupColor(groupId: string) {
-  const colors: Record<string, string> = {
-    A: "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
-    B: "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
-    C: "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
-    D: "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
-    E: "from-orange-100 to-orange-50 border-orange-400 shadow-orange-200/50",
-    F: "from-purple-100 to-purple-50 border-purple-400 shadow-purple-200/50",
-    G: "from-teal-100 to-teal-50 border-teal-400 shadow-teal-200/50",
-    H: "from-red-100 to-red-50 border-red-400 shadow-red-200/50",
-  };
-  return (
-    colors[groupId] ||
-    "from-gray-100 to-gray-50 border-gray-400 shadow-gray-200/50"
-  );
-}
-
-function getGroupHeaderColor(groupId: string) {
-  const colors: Record<string, string> = {
-    A: "bg-yellow-400/80 text-yellow-900",
-    B: "bg-blue-400/80 text-blue-900",
-    C: "bg-pink-400/80 text-pink-900",
-    D: "bg-green-400/80 text-green-900",
-    E: "bg-orange-400/80 text-orange-900",
-    F: "bg-purple-400/80 text-purple-900",
-    G: "bg-teal-400/80 text-teal-900",
-    H: "bg-red-400/80 text-red-900",
-  };
-  return colors[groupId] || "bg-gray-400/80 text-gray-900";
-}
 
 export const cancelTournamentRank = async (req: Request, res: Response) => {
   try {
@@ -741,7 +474,9 @@ export const cancelTournamentRank = async (req: Request, res: Response) => {
 
     // Check if rank exists in the tournament
     if (!tournament.rank.includes(rank)) {
-      return res.status(400).json({ message: "Rank not found in this tournament or already cancelled." });
+      return res.status(400).json({
+        message: "Rank not found in this tournament or already cancelled.",
+      });
     }
 
     // Remove the rank
