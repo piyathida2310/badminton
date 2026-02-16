@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   BackButton,
@@ -7,12 +7,13 @@ import {
   GroupTable,
   GroupInfo,
 } from "../../../../../../components/groupComponents";
+import api from "../../../../../lib/api";
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
 
-
+  //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
     "Group A": { from: "#FFF8E1", to: "#FFE7B3", accent: "#F59E0B" },
     "Group B": { from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
@@ -20,458 +21,40 @@ export default function GroupStageScoresPage() {
     "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
   };
 
-  const theme = themeMap[groupName];
+  //  Extract Theme Key (รองรับชื่อเช่น "BG Group A")
+  const match = groupName.match(/Group [A-D]/);
+  const themeKey = match ? match[0] : "Group A";
+  const theme = themeMap[themeKey] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
 
-  // ข้อมูลทุกกลุ่ม
-  const groupData: Record<string, { rank: any[][]; matches: any[][] }> = {
-    "Group A": {
-      rank: [
-        ["BG3A", "BGA1", "Badman 2", "ธิติ - โน้ต", "2", "117", "117", "0"],
-        [
-          "BG2A",
-          "BGA2",
-          "อัฟฟ้านานน ผู้จัดการบังคับให้มา",
-          "เวฟ - หยก",
-          "4",
-          "121",
-          "112",
-          "9",
-        ],
-        [
-          "BG1A",
-          "BGA3",
-          "นักแบด Full-Time",
-          "ธนภัทร - เบียร์",
-          "4",
-          "123",
-          "109",
-          "14",
-        ],
-        [
-          "BG4A",
-          "BGA4",
-          "ปรอทแตก/ใครคือตลาดปลาเค้า",
-          "ประวุฒิ - อนันตา",
-          "2",
-          "99",
-          "122",
-          "-23",
-        ],
-      ],
-      matches: [
-        [
-          "09:30",
-          "R1",
-          "13",
-          "BGA1 Badman 2",
-          "ธิติ - โน้ต",
-          "0",
-          "18 : 21",
-          "2",
-          "BGA2 อัฟฟ้านานน ผู้จัดการบังคับให้มา",
-          "เวฟ - หยก",
-        ],
-        [
-          "09:30",
-          "R1",
-          "14",
-          "BGA3 นักแบด Full-Time",
-          "ธนภัทร - เบียร์",
-          "1",
-          "21 : 19",
-          "1",
-          "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
-          "ประวุฒิ - อนันตา",
-        ],
-        [
-          "10:30",
-          "R2",
-          "41",
-          "BGA1 Badman 2",
-          "ธิติ - โน้ต",
-          "0",
-          "19 : 21",
-          "2",
-          "BGA3 นักแบด Full-Time",
-          "ธนภัทร - เบียร์",
-        ],
-        [
-          "10:30",
-          "R2",
-          "42",
-          "BGA2 อัฟฟ้านานน ผู้จัดการบังคับให้มา",
-          "เวฟ - หยก",
-          "1",
-          "21 : 13",
-          "0",
-          "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
-          "ประวุฒิ - อนันตา",
-        ],
-        [
-          "11:30",
-          "R3",
-          "69",
-          "BGA1 Badman 2",
-          "ธิติ - โน้ต",
-          "2",
-          "21 : 19",
-          "0",
-          "BGA4 ปรอทแตก/ใครคือตลาดปลาเค้า",
-          "ประวุฒิ - อนันตา",
-        ],
-        [
-          "11:30",
-          "R3",
-          "70",
-          "BGA2 อัฟฟ้านานน ผู้จัดการบังคับให้มา",
-          "เวฟ - หยก",
-          "1",
-          "18 : 21",
-          "1",
-          "BGA3 นักแบด Full-Time",
-          "ธนภัทร - เบียร์",
-        ],
-      ],
-    },
-    "Group B": {
-      rank: [
-        ["BG2B", "BGB1", "Badman 3", "นนท์ - อิคคิว", "5", "112", "107", "5"],
-        [
-          "BG4B",
-          "BGB2",
-          "บ้านยิ้มสวย",
-          "ชัยชม - รัชพล",
-          "1",
-          "103",
-          "123",
-          "-20",
-        ],
-        [
-          "BG3B",
-          "BGB3",
-          "ขอคิดก่อนค่ะ",
-          "ณัฎฐินันท์ - ก้อย",
-          "1",
-          "108",
-          "123",
-          "-15",
-        ],
-        [
-          "BG1B",
-          "BGB4",
-          "แบดจาร์ทที่ 1",
-          "ตรีพิพัฒน์ - ไกด์",
-          "5",
-          "120",
-          "90",
-          "30",
-        ],
-      ],
-      matches: [
-        [
-          "09:30",
-          "R1",
-          "15",
-          "BGB1 Badman 3",
-          "นนท์ - อิคคิว",
-          "2",
-          "21 : 18",
-          "0",
-          "BGB2 บ้านยิ้มสวย",
-          "ชัยชม - รัชพล",
-        ],
-        [
-          "09:30",
-          "R1",
-          "16",
-          "BGB3 ขอคิดก่อนค่ะ",
-          "ณัฎฐินันท์ - ก้อย",
-          "0",
-          "16 : 21",
-          "2",
-          "BGB4 แบดจาร์ทที่ 1",
-          "ตรีพิพัฒน์ - ไกด์",
-        ],
-        [
-          "10:30",
-          "R2",
-          "43",
-          "BGB1 Badman 3",
-          "นนท์ - อิคคิว",
-          "2",
-          "21 : 19",
-          "1",
-          "BGB3 ขอคิดก่อนค่ะ",
-          "ณัฎฐินันท์ - ก้อย",
-        ],
-        [
-          "10:30",
-          "R2",
-          "44",
-          "BGB2 บ้านยิ้มสวย",
-          "ชัยชม - รัชพล",
-          "0",
-          "15 : 21",
-          "2",
-          "BGB4 แบดจาร์ทที่ 1",
-          "ตรีพิพัฒน์ - ไกด์",
-        ],
-        [
-          "11:30",
-          "R3",
-          "71",
-          "BGB1 Badman 3",
-          "นนท์ - อิคคิว",
-          "1",
-          "21 : 7",
-          "2",
-          "BGB4 แบดจาร์ทที่ 1",
-          "ตรีพิพัฒน์ - ไกด์",
-        ],
-        [
-          "11:30",
-          "R3",
-          "72",
-          "BGB2 บ้านยิ้มสวย",
-          "ชัยชม - รัชพล",
-          "1",
-          "21 : 18",
-          "1",
-          "BGB3 ขอคิดก่อนค่ะ",
-          "ณัฎฐินันท์ - ก้อย",
-        ],
-      ],
-    },
-    "Group C": {
-      rank: [
-        [
-          "BG2C",
-          "BGC1",
-          "Badman X ลูกเจี๊ยบอุ้มไฟ 4DX",
-          "พฤศพงษ์ - เจจุง",
-          "4",
-          "120",
-          "100",
-          "20",
-        ],
-        [
-          "BG4C",
-          "BGC2",
-          "แมวป่าวไงตัวววว",
-          "วิทยา - โนโม้ เบลล์",
-          "0",
-          "97",
-          "126",
-          "-29",
-        ],
-        [
-          "BG1C",
-          "BGC3",
-          "LP 81 Racing Parts",
-          "พรธิดา - N.Anns",
-          "6",
-          "126",
-          "97",
-          "29",
-        ],
-        ["BG3C", "BGC4", "สมุกี้", "พรชัย - กร", "2", "96", "116", "-20"],
-      ],
-      matches: [
-        [
-          "09:30",
-          "R1",
-          "17",
-          "BGC1 Badman X ลูกเจี๊ยบอุ้มไฟ 4DX",
-          "พฤศพงษ์ - เจจุง",
-          "2",
-          "21 : 16",
-          "0",
-          "BGC2 แมวป่าวไงตัวววว",
-          "วิทยา - โนโม้ เบลล์",
-        ],
-        [
-          "09:30",
-          "R1",
-          "18",
-          "BGC3 LP 81 Racing Parts",
-          "พรธิดา - N.Anns",
-          "2",
-          "21 : 14",
-          "0",
-          "BGC4 สมุกี้",
-          "พรชัย - กร",
-        ],
-        [
-          "10:30",
-          "R2",
-          "45",
-          "BGC1 Badman X ลูกเจี๊ยบอุ้มไฟ 4DX",
-          "พฤศพงษ์ - เจจุง",
-          "2",
-          "21 : 20",
-          "2",
-          "BGC3 LP 81 Racing Parts",
-          "พรธิดา - N.Anns",
-        ],
-        [
-          "10:30",
-          "R2",
-          "46",
-          "BGC2 แมวป่าวไงตัวววว",
-          "วิทยา - โนโม้ เบลล์",
-          "0",
-          "16 : 21",
-          "2",
-          "BGC4 สมุกี้",
-          "พรชัย - กร",
-        ],
-        [
-          "11:30",
-          "R3",
-          "73",
-          "BGC1 Badman X ลูกเจี๊ยบอุ้มไฟ 4DX",
-          "พฤศพงษ์ - เจจุง",
-          "2",
-          "21 : 13",
-          "0",
-          "BGC4 สมุกี้",
-          "พรชัย - กร",
-        ],
-        [
-          "11:30",
-          "R3",
-          "74",
-          "BGC2 แมวป่าวไงตัวววว",
-          "วิทยา - โนโม้ เบลล์",
-          "0",
-          "13 : 21",
-          "2",
-          "BGC3 LP 81 Racing Parts",
-          "พรธิดา - N.Anns",
-        ],
-      ],
-    },
-    "Group D": {
-      rank: [
-        [
-          "BG3D",
-          "BGD1",
-          "Badman 1",
-          "ทวีศักดิ์ - ไม้เอก",
-          "2",
-          "114",
-          "119",
-          "-5",
-        ],
-        [
-          "BG1D",
-          "BGD2",
-          "แบดจาร์ทที่ 2",
-          "พนมพร - โต",
-          "5",
-          "121",
-          "103",
-          "18",
-        ],
-        [
-          "BG2D",
-          "BGD3",
-          "แยมโรโบ้บี้",
-          "นนท์นีน - นนท์",
-          "3",
-          "115",
-          "108",
-          "7",
-        ],
-        [
-          "BG4D",
-          "BGD4",
-          "หนียายกันแดด",
-          "อภิวิฒน์ - น้ำพุ",
-          "2",
-          "102",
-          "122",
-          "-20",
-        ],
-      ],
-      matches: [
-        [
-          "09:30",
-          "R1",
-          "19",
-          "BGD1 Badman 1",
-          "ทวีศักดิ์ - ไม้เอก",
-          "0",
-          "19 : 21",
-          "2",
-          "BGD2 แบดจาร์ทที่ 2",
-          "พนมพร - โต",
-        ],
-        [
-          "09:30",
-          "R1",
-          "20",
-          "BGD3 แยมโรโบ้บี้",
-          "นนท์นีน - นนท์",
-          "1",
-          "21 : 14",
-          "1",
-          "BGD4 หนียายกันแดด",
-          "อภิวิฒน์ - น้ำพุ",
-        ],
-        [
-          "10:30",
-          "R2",
-          "47",
-          "BGD1 Badman 1",
-          "ทวีศักดิ์ - ไม้เอก",
-          "1",
-          "21 : 15",
-          "1",
-          "BGD3 แยมโรโบ้บี้",
-          "นนท์นีน - นนท์",
-        ],
-        [
-          "10:30",
-          "R2",
-          "48",
-          "BGD2 แบดจาร์ทที่ 2",
-          "พนมพร - โต",
-          "2",
-          "21 : 18",
-          "0",
-          "BGD4 หนียายกันแดด",
-          "อภิวิฒน์ - น้ำพุ",
-        ],
-        [
-          "11:30",
-          "R3",
-          "75",
-          "BGD1 Badman 1",
-          "ทวีศักดิ์ - ไม้เอก",
-          "1",
-          "21 : 19",
-          "1",
-          "BGD4 หนียายกันแดด",
-          "อภิวิฒน์ - น้ำพุ",
-        ],
-        [
-          "11:30",
-          "R3",
-          "76",
-          "BGD2 แบดจาร์ทที่ 2",
-          "พนมพร - โต",
-          "1",
-          "21 : 16",
-          "1",
-          "BGD3 แยมโรโบ้บี้",
-          "นนท์นีน - นนท์",
-        ],
-      ],
-    },
-  };
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<{ rank: any[][]; matches: any[][] }>({
+    rank: [],
+    matches: [],
+  });
 
-  const selected = groupData[groupName];
+  useEffect(() => {
+    const tournamentId = localStorage.getItem("selectedTournamentId");
+    if (!tournamentId || !groupName) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/api/matches/${tournamentId}`, {
+          params: { groupName },
+        });
+        setSelected(res.data);
+      } catch (err) {
+        console.error("Failed to fetch matches:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [groupName]);
 
   return (
     <div
@@ -482,20 +65,59 @@ export default function GroupStageScoresPage() {
     >
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target="/user/group" />
+
         <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
-        <GroupInfo />
+        <GroupInfo totalTeams={selected.rank.length} />
 
-        <GroupTable
-          title="อันดับคะแนนกลุ่ม"
-          headers={["Rank", "Team", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
-          rows={selected.rank}
-        />
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold py-10">
+            <svg
+              className="animate-spin h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            กำลังโหลดข้อมูล...
+          </div>
+        ) : (
+          <>
+            <GroupTable
+              title="อันดับคะแนนกลุ่ม"
+              headers={["Rank", "Team", "__MERGE__", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+              rows={selected.rank}
+            />
 
-        <GroupTable
-          title="ตารางการแข่งขันแต่ละรอบ"
-          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "ผู้เล่น", "P", "SET", "P", "ทีม", "ผู้เล่น"]}
-          rows={selected.matches}
-        />
+            <GroupTable
+              title="ตารางการแข่งขันแต่ละรอบ"
+              headers={["เวลา", "รอบ", "แมตช์", "ทีม", "__MERGE__", "ผู้เล่น", "P", "SET", "P", "ทีม", "__MERGE__", "ผู้เล่น", "ลูกแบต"]}
+              rows={selected.matches.map((row) => {
+                const cleaned = row.slice(0, 13);
+                // Clean SET column (index 7) — ลบ ", :" ที่ไม่มีตัวเลขออก
+                if (cleaned[7] && typeof cleaned[7] === "string") {
+                  cleaned[7] = cleaned[7]
+                    .replace(/,\s*:\s*$/, "")   // ลบ ", :" ท้ายสุด
+                    .replace(/,\s*\s*:\s*\s*$/g, "") // ลบ ", : " ท้ายสุด
+                    .trim();
+                }
+                return cleaned;
+              })}
+            />
+          </>
+        )}
       </div>
     </div>
   );
