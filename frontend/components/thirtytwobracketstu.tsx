@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
-
 const MatchTable = () => {
   const [scores] = useState({
     totalA: 2,
@@ -28,7 +27,6 @@ const MatchTable = () => {
           display: none;
         }
       `}</style>
-
       <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
         <tbody>
           {/*  แถวผลรวมคะแนน */}
@@ -118,7 +116,6 @@ const MatchTable = () => {
   );
 };
 
-/*  เส้นเชื่อม */
 const Line = ({
   length = 100,
   angle = 0,
@@ -152,174 +149,89 @@ interface ThirtyTwoBracketProps {
   level: string;
 }
 
-/* 🏸 หน้าหลักของแผนผัง 32 ทีม */
+/* 🏸 แผนผังการแข่งขัน แบบ Compact (1050px Height) */
 export default function ThirtyTwoBracketStu({ level }: ThirtyTwoBracketProps) {
   return (
     <div
-      className="h-[2200px] w-[1800px] overflow-x-auto overflow-y-hidden  bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-none"
-      style={{
-        scrollbarWidth: "none", //  ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", // ซ่อน scrollbar (Edge)
-      }}
+      className="h-[1200px] w-full overflow-auto bg-[#f9f9f0] flex flex-col items-start py-10 relative custom-scrollbar"
     >
       <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #888; 
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555; 
         }
       `}</style>
-      <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 32 ทีม ({level})
-      </h1>
 
-      <div className="min-w-[3600px] flex justify-evenly  mb-6 text-sm text-gray-700 font-medium relative ">
-        <div className="text-center absolute left-[1100px] ">Round of 32</div>
-        <div className="text-center absolute left-[1650px]  ">Round of 16</div>
-        <div className="text-center absolute left-[2200px]  ">
-          Quarter Finals
-        </div>
-        <div className="text-center absolute right-[750px]  ">Semi Finals</div>
-        <div className="text-center absolute right-48 ">Final</div>
+      <div className="w-full flex justify-center mb-10">
+        <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center sticky left-0 right-0">
+          🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
+        </h1>
       </div>
 
-      {/* Bracket Layout */}
-      <div className="flex justify-center gap-5 w-full px-10 ml-[1000px]">
-        <div className="flex flex-col justify-between h-[1990px]">
-          {[...Array(16)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-
-          <div>
-            <Line top={200} left={545} length={20} angle={1} color="#555" />
-            <Line top={300} left={545} length={20} angle={1} color="#555" />
-            <Line top={200} left={565} length={100} angle={90} color="#555" />
-            <Line top={250} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={430} left={545} length={20} angle={1} color="#555" />
-            <Line top={535} left={545} length={20} angle={1} color="#555" />
-            <Line top={430} left={565} length={105} angle={90} color="#555" />
-            <Line top={480} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={660} left={545} length={20} angle={1} color="#555" />
-            <Line top={775} left={545} length={20} angle={1} color="#555" />
-            <Line top={660} left={565} length={117} angle={90} color="#555" />
-            <Line top={720} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={900} left={545} length={20} angle={1} color="#555" />
-            <Line top={1000} left={545} length={20} angle={1} color="#555" />
-            <Line top={900} left={565} length={101} angle={90} color="#555" />
-            <Line top={955} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1140} left={545} length={20} angle={1} color="#555" />
-            <Line top={1240} left={545} length={20} angle={1} color="#555" />
-            <Line top={1140} left={565} length={102} angle={90} color="#555" />
-            <Line top={1190} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1370} left={545} length={20} angle={1} color="#555" />
-            <Line top={1470} left={545} length={20} angle={1} color="#555" />
-            <Line top={1370} left={565} length={102} angle={90} color="#555" />
-            <Line top={1425} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1610} left={545} length={20} angle={1} color="#555" />
-            <Line top={1710} left={545} length={20} angle={1} color="#555" />
-            <Line top={1610} left={565} length={102} angle={90} color="#555" />
-            <Line top={1660} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={1850} left={545} length={20} angle={1} color="#555" />
-            <Line top={1950} left={545} length={20} angle={1} color="#555" />
-            <Line top={1850} left={565} length={101} angle={90} color="#555" />
-            <Line top={1900} left={565} length={60} angle={1} color="#555" />
-          </div>
+      <div className="flex flex-col relative px-10">
+        <div className="flex justify-between w-[1600px] mb-6 text-sm text-gray-700 font-medium pl-20">
+          <div className="bg-slate-200 px-3 py-1 rounded-full text-slate-700">Round of 16</div>
+          <div className="bg-slate-200 px-3 py-1 rounded-full text-slate-700">Quarter Finals</div>
+          <div className="bg-slate-200 px-3 py-1 rounded-full text-slate-700">Semi Finals</div>
+          <div className="bg-yellow-400 px-4 py-1 rounded-full text-yellow-900 shadow-sm animate-pulse">Final</div>
         </div>
 
-        <div className="flex flex-col justify-between h-[2280px] mt-15">
-          {[...Array(8)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-          <div>
-            <Line top={270} left={1072} length={20} angle={1} color="#555" />
-            <Line top={500} left={1072} length={20} angle={1} color="#555" />
-            <Line top={270} left={1092} length={230} angle={90} color="#555" />
-            <Line top={370} left={1092} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={730} left={1072} length={20} angle={1} color="#555" />
-            <Line top={950} left={1072} length={20} angle={1} color="#555" />
-            <Line top={730} left={1092} length={221} angle={90} color="#555" />
-            <Line top={835} left={1092} length={60} angle={1} color="#555" />
-          </div>
+        {/* Bracket Layout - Compact */}
+        <div className="flex gap-20 relative">
 
-          <div>
-            <Line top={1200} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1430} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1200} left={1092} length={230} angle={90} color="#555" />
-            <Line top={1310} left={1092} length={60} angle={1} color="#555" />
-          </div>
+          {/* Round of 16 (8 Matches) - H 1050 */}
+          <div className="flex flex-col justify-between h-[1050px] z-10 w-[350px]">
+            {[...Array(8)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
 
-          <div>
-            <Line top={1660} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1890} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1660} left={1092} length={230} angle={90} color="#555" />
-            <Line top={1765} left={1092} length={60} angle={1} color="#555" />
-          </div>
-        </div>
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Lines R16 -> QF */}
+              {/* Colors slightly different for variety #666 */}
+              <div><Line top={60} left={360} length={20} angle={1} color="#666" /><Line top={191} left={360} length={20} angle={1} color="#666" /><Line top={60} left={380} length={131} angle={90} color="#666" /><Line top={125} left={380} length={60} angle={1} color="#666" /></div>
+              <div><Line top={322} left={360} length={20} angle={1} color="#666" /><Line top={453} left={360} length={20} angle={1} color="#666" /><Line top={322} left={380} length={131} angle={90} color="#666" /><Line top={387} left={380} length={60} angle={1} color="#666" /></div>
+              <div><Line top={584} left={360} length={20} angle={1} color="#666" /><Line top={715} left={360} length={20} angle={1} color="#666" /><Line top={584} left={380} length={131} angle={90} color="#666" /><Line top={649} left={380} length={60} angle={1} color="#666" /></div>
+              <div><Line top={846} left={360} length={20} angle={1} color="#666" /><Line top={977} left={360} length={20} angle={1} color="#666" /><Line top={846} left={380} length={131} angle={90} color="#666" /><Line top={911} left={380} length={60} angle={1} color="#666" /></div>
 
-        <div className="flex flex-col justify-between h-[2220px] mt-45">
-          {[...Array(4)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
+              {/* Lines QF -> SF */}
+              <div><Line top={125} left={790} length={20} angle={1} color="#666" /><Line top={387} left={790} length={20} angle={1} color="#666" /><Line top={125} left={810} length={262} angle={90} color="#666" /><Line top={256} left={810} length={60} angle={1} color="#666" /></div>
+              <div><Line top={649} left={790} length={20} angle={1} color="#666" /><Line top={911} left={790} length={20} angle={1} color="#666" /><Line top={649} left={810} length={262} angle={90} color="#666" /><Line top={780} left={810} length={60} angle={1} color="#666" /></div>
 
-          <div>
-            <Line top={370} left={1600} length={20} angle={1} color="#555" />
-            <Line top={820} left={1600} length={20} angle={1} color="#555" />
-            <Line top={370} left={1620} length={451} angle={90} color="#555" />
-            <Line top={580} left={1620} length={60} angle={1} color="#555" />
+              {/* Lines SF -> Final */}
+              <div><Line top={256} left={1220} length={20} angle={1} color="#666" /><Line top={780} left={1220} length={20} angle={1} color="#666" /><Line top={256} left={1240} length={524} angle={90} color="#666" /><Line top={518} left={1240} length={60} angle={1} color="#666" /></div>
+            </div>
           </div>
 
-          <div>
-            <Line top={1300} left={1600} length={20} angle={1} color="#555" />
-            <Line top={1750} left={1600} length={20} angle={1} color="#555" />
-            <Line top={1300} left={1620} length={450} angle={90} color="#555" />
-            <Line top={1530} left={1620} length={60} angle={1} color="#555" />
+          {/* QF (4 Matches) */}
+          <div className="flex flex-col justify-between h-[906px] mt-[65px] z-10 w-[350px]">
+            {[...Array(4)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
           </div>
-        </div>
 
-        <div className="flex flex-col justify-between h-[1900px] mt-97">
-          {[...Array(2)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-
-          <div>
-            <Line top={580} left={2128} length={20} angle={1} color="#555" />
-            <Line top={1520} left={2128} length={20} angle={1} color="#555" />
-            <Line top={580} left={2148} length={942} angle={90} color="#555" />
-            <Line top={1000} left={2148} length={60} angle={1} color="#555" />
+          {/* SF (2 Matches) */}
+          <div className="flex flex-col justify-between h-[644px] mt-[196px] z-10 w-[350px]">
+            {[...Array(2)].map((_, i) => (
+              <MatchTable key={i} />
+            ))}
           </div>
-        </div>
 
-        <div className="flex flex-col justify-center h-[850px] mt-110">
-          <MatchTable />
+          {/* Final (1 Match) */}
+          <div className="flex flex-col justify-center h-[120px] mt-[458px] z-10 w-[350px]">
+            <MatchTable />
+          </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        html,
-        body {
-          overflow-x: hidden !important;
-        }
-        div::-webkit-scrollbar {
-          display: none !important;
-        }
-      `}</style>
     </div>
   );
 }

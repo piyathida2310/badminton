@@ -1,251 +1,309 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useRef } from "react";
+import api from "../src/lib/api";
+import html2canvas from "html2canvas";
+import { Download, Save, X, Edit } from "lucide-react"; // Added Shuttle icon if available, else use generic
 
+// --- Types ---
+interface Team {
+  code: string;
+  name: string;
+  players: string;
+}
 
-const MatchTable = () => {
-  const [scores, setScores] = useState({
-    totalA: 2,
-    totalB: 0,
-    set1A: 21,
-    set1B: 10,
-    set2A: 21,
-    set2B: 15,
-    set3A: 0,
-    set3B: 0,
-    set4A: 0,
-    set4B: 0,
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (/^\d*$/.test(value)) setScores((prev) => ({ ...prev, [name]: value }));
+interface MatchNode {
+  id: number;
+  t1?: Team;
+  t2?: Team;
+  scores?: {
+    totalA: number;
+    totalB: number;
+    set1A: number;
+    set1B: number;
+    set2A: number;
+    set2B: number;
+    set3A: number;
+    set3B: number;
   };
+  shuttlesUsed?: number; // New field
+  winnerCode?: string;
+}
 
-  const handleSave = () => {
-    setIsEditing(false);
-    console.log(" คะแนนที่บันทึกแล้ว:", scores);
-    alert(" บันทึกคะแนนเรียบร้อย!");
-  };
+interface ThirtyTwoBracketProps {
+  level: string;
+  tournamentId?: number;
+}
+
+// --- Helper Components ---
+
+// 1. Simplified Match Card
+const MatchCard = ({
+  matchId,
+  match,
+  matchNumber,
+  onClick,
+}: {
+  matchId: number;
+  match?: MatchNode;
+  matchNumber?: number;
+  onClick: () => void;
+}) => {
+  const t1 = match?.t1;
+  const t2 = match?.t2;
+  const scores = match?.scores;
+
+  const hasScore = scores && (scores.totalA > 0 || scores.totalB > 0 || scores.set1A > 0 || scores.set1B > 0);
+
+  // Determine winner for styling
+  let winner = null;
+  if (scores) {
+    let s1Wins = 0, s2Wins = 0;
+    if (scores.set1A > scores.set1B) s1Wins++; else if (scores.set1B > scores.set1A) s2Wins++;
+    if (scores.set2A > scores.set2B) s1Wins++; else if (scores.set2B > scores.set2A) s2Wins++;
+    if (scores.set3A > scores.set3B) s1Wins++; else if (scores.set3B > scores.set3A) s2Wins++;
+
+    if (s1Wins >= 2) winner = 'A';
+    else if (s2Wins >= 2) winner = 'B';
+  }
+
+  // Helper to extract first name
+  const getFirstName = (players?: string) => players ? players.split(" ")[0].split("/")[0] : "-"; // Simple split, customize as needed
 
   return (
     <div
-      className="p-1 overflow-x-auto overflow-y-hidden scale-[0.9] origin-top-left w-fit scrollbar-hide"
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      onClick={onClick}
+      className="relative w-[300px] rounded-xl shadow-md border 
+                 hover:shadow-xl hover:scale-105 transition-all cursor-pointer overflow-hidden group"
+      style={{
+        backgroundColor: "#ffffff",
+        borderColor: "#cbd5e1", // slate-300
+        borderWidth: "1px",
+      }}
     >
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-
-      {/* ปุ่มแก้ไข/บันทึก */}
-      <div className="flex justify-end mb-1">
-        {isEditing ? (
-          <button
-            onClick={handleSave}
-            className="text-[10px] bg-green-500 text-white px-2 py-[2px] rounded hover:bg-green-600 transition"
-          >
-            บันทึก
-          </button>
-        ) : (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-[10px] bg-blue-500 text-white px-2 py-[2px] rounded hover:bg-blue-600 transition"
-          >
-            แก้ไขคะแนน
-          </button>
-        )}
+      {/* Header / Match Info */}
+      <div
+        className="flex justify-between items-center px-3 py-1 border-b"
+        style={{ backgroundColor: "#f1f5f9", borderColor: "#e2e8f0" }} // slate-100, slate-200
+      >
+        <span className="text-[10px] font-bold" style={{ color: "#64748b" }}>Match #{matchNumber}</span>
+        {match?.shuttlesUsed ? (
+          <span className="text-[10px] font-medium flex items-center gap-1" style={{ color: "#475569" }}>
+            🏸 {match.shuttlesUsed}
+          </span>
+        ) : null}
       </div>
 
-      <table className="border border-black text-[10px] text-center w-full min-w-[500px]">
-        <tbody>
-          {/* แถวผลรวมคะแนน */}
-          <tr className="border border-black">
-            <td colSpan={5}></td>
-            <td className="border border-black w-8 bg-green-400 font-bold text-white">
-              {isEditing ? (
-                <input
-                  name="totalA"
-                  value={scores.totalA}
-                  onChange={handleChange}
-                  className="w-full bg-green-300 text-center"
-                />
-              ) : (
-                scores.totalA
-              )}
-            </td>
-            <td className="border border-black w-8 font-semibold">
-              {isEditing ? (
-                <input
-                  name="totalB"
-                  value={scores.totalB}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.totalB
-              )}
-            </td>
-          </tr>
+      <div className="p-2 flex flex-col gap-1">
+        {/* Team A */}
+        <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'A' ? "#fef9c3" : "transparent" }}>
+          <div className="flex flex-col flex-1 min-w-0 mr-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+                {t1?.code || "-"}
+              </span>
+              <span className="text-[11px] font-semibold truncate" style={{ color: "#1e293b" }}>
+                {t1?.name || "-"}
+              </span>
+            </div>
+            <span className="text-[9px] pl-10 truncate" style={{ color: "#64748b" }}>
+              {t1?.players || "Waiting..."}
+            </span>
+          </div>
+          {hasScore && (
+            <div className="font-bold text-lg shrink-0" style={{ color: "#1e293b" }}>
+              {scores?.totalA ?? 0}
+            </div>
+          )}
+        </div>
 
-          {/*  ทีมบน */}
-          <tr className="border border-black">
-            <td
-              rowSpan={8}
-              className="text-left text-red-600 pl-2 py-[2px] border border-black bg-red-100 font-semibold"
-            >
-              249
-            </td>
-            <td className="border border-black w-12 font-semibold bg-yellow-300 py-[2px]">
-              N1A
-            </td>
-            <td className="border border-black text-left px-1 bg-yellow-300 font-semibold truncate max-w-[180px]">
-              JPLBYTHITIPONG/MASTERPIECE
-            </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
-              ดลสิทธิ์
-            </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
-              ภาคภูมิ
-            </td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set1A"
-                  value={scores.set1A}
-                  onChange={handleChange}
-                  className="w-full bg-green-200 text-center"
-                />
-              ) : (
-                scores.set1A
-              )}
-            </td>
-            <td className="border border-black w-8 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set1B"
-                  value={scores.set1B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set1B
-              )}
-            </td>
-          </tr>
+        {/* Divider */}
+        <div className="h-[1px] w-full" style={{ backgroundColor: "#f1f5f9" }} />
 
-          {/*  เซตถัดไป */}
-          <tr className="border border-black">
-            <td colSpan={4}></td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set2A"
-                  value={scores.set2A}
-                  onChange={handleChange}
-                  className="w-full bg-green-200 text-center"
-                />
-              ) : (
-                scores.set2A
-              )}
-            </td>
-            <td className="border border-black w-8 font-semibold py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set2B"
-                  value={scores.set2B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set2B
-              )}
-            </td>
-          </tr>
+        {/* Team B */}
+        <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'B' ? "#fef9c3" : "transparent" }}>
+          <div className="flex flex-col flex-1 min-w-0 mr-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+                {t2?.code || "-"}
+              </span>
+              <span className="text-[11px] font-semibold truncate" style={{ color: "#1e293b" }}>
+                {t2?.name || "-"}
+              </span>
+            </div>
+            <span className="text-[9px] pl-10 truncate" style={{ color: "#64748b" }}>
+              {t2?.players || "Waiting..."}
+            </span>
+          </div>
+          {hasScore && (
+            <div className="font-bold text-lg shrink-0" style={{ color: "#1e293b" }}>
+              {scores?.totalB ?? 0}
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/*  ทีมล่าง */}
-          <tr className="border border-black">
-            <td className="border border-black font-semibold bg-gray-100 py-[2px]">
-              N2B
-            </td>
-            <td className="border border-black text-left px-1 bg-gray-100 truncate max-w-[180px]">
-              ไม่ยอมว่ะLittle Bear
-            </td>
-            <td className="border border-black bg-gray-100 py-[2px]">
-              ชานาญ (เล็ก)
-            </td>
-            <td className="border border-black bg-gray-100 py-[2px]">
-              พงศกร (บิ๊ก)
-            </td>
-            <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set3A"
-                  value={scores.set3A}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3A
-              )}
-            </td>
-            <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set3B"
-                  value={scores.set3B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3B
-              )}
-            </td>
-          </tr>
-
-          <tr className="border border-black">
-            <td colSpan={4}></td>
-            <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set4A"
-                  value={scores.set3A}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3A
-              )}
-            </td>
-            <td className="border border-black w-8 font-semibold bg-white py-[2px]">
-              {isEditing ? (
-                <input
-                  name="set4B"
-                  value={scores.set3B}
-                  onChange={handleChange}
-                  className="w-full text-center"
-                />
-              ) : (
-                scores.set3B
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Hover Overlay Hint */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none" style={{ backgroundColor: "rgba(0,0,0,0.05)" }}>
+        <span className="text-xs px-2 py-1 rounded shadow font-medium" style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#334155" }}>Click to Edit Score</span>
+      </div>
     </div>
   );
 };
 
-/*  เส้นเชื่อม */
+// 2. Score Entry Modal
+const ScoreModal = ({
+  isOpen,
+  onClose,
+  match,
+  matchNumber,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  match?: MatchNode;
+  matchNumber?: number;
+  onSave: (matchId: number, scores: any, shuttles: number) => void;
+}) => {
+  const [scores, setScores] = useState({
+    totalA: 0, totalB: 0,
+    set1A: 0, set1B: 0,
+    set2A: 0, set2B: 0,
+    set3A: 0, set3B: 0,
+  });
+  const [shuttles, setShuttles] = useState(0);
+
+  useEffect(() => {
+    if (isOpen && match) {
+      setScores({
+        totalA: match.scores?.totalA ?? 0,
+        totalB: match.scores?.totalB ?? 0,
+        set1A: match.scores?.set1A ?? 0,
+        set1B: match.scores?.set1B ?? 0,
+        set2A: match.scores?.set2A ?? 0,
+        set2B: match.scores?.set2B ?? 0,
+        set3A: match.scores?.set3A ?? 0,
+        set3B: match.scores?.set3B ?? 0,
+      });
+      setShuttles(match.shuttlesUsed ?? 0);
+    }
+  }, [isOpen, match]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (!value || /^\d*$/.test(value)) {
+      setScores((prev) => ({ ...prev, [name]: value === "" ? 0 : parseInt(value) }));
+    }
+  };
+
+  const handleSave = () => {
+    if (match) {
+      onSave(match.id, scores, shuttles);
+      onClose();
+    }
+  };
+
+  if (!isOpen || !match) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        {/* Header */}
+        <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            Match #{matchNumber} Scoreboard
+          </h2>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* Teams Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col items-center w-1/3">
+              <div className="font-bold text-center text-slate-800 text-sm">{match.t1?.name || "Team A"}</div>
+              <div className="text-xs text-slate-500 text-center">{match.t1?.code}</div>
+            </div>
+            <div className="font-black text-2xl text-slate-300">VS</div>
+            <div className="flex flex-col items-center w-1/3">
+              <div className="font-bold text-center text-slate-800 text-sm">{match.t2?.name || "Team B"}</div>
+              <div className="text-xs text-slate-500 text-center">{match.t2?.code}</div>
+            </div>
+          </div>
+
+          {/* Score Inputs Table */}
+          <div className="mb-6">
+            <div className="grid grid-cols-4 gap-2 mb-2 text-center text-xs font-semibold text-slate-500">
+              <div></div>
+              <div>Set 1</div>
+              <div>Set 2</div>
+              <div>Set 3</div>
+            </div>
+
+            {/* Team A Row */}
+            <div className="grid grid-cols-4 gap-2 mb-2 items-center">
+              <div className="text-right font-bold text-slate-700 text-sm pr-2">Team A</div>
+              <input name="set1A" value={scores.set1A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set2A" value={scores.set2A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set3A" value={scores.set3A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+            </div>
+
+            {/* Team B Row */}
+            <div className="grid grid-cols-4 gap-2 mb-4 items-center">
+              <div className="text-right font-bold text-slate-700 text-sm pr-2">Team B</div>
+              <input name="set1B" value={scores.set1B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set2B" value={scores.set2B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set3B" value={scores.set3B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+            </div>
+
+            <hr className="my-4 border-slate-100" />
+
+            {/* Total Score & Shuttles */}
+            <div className="flex justify-between gap-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 mb-1">Set Score (Total)</label>
+                <div className="flex items-center gap-2">
+                  <input name="totalA" value={scores.totalA} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-blue-600 bg-blue-50" />
+                  <span>:</span>
+                  <input name="totalB" value={scores.totalB} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-blue-600 bg-blue-50" />
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 mb-1">Shuttles Used (ลูกขนไก่)</label>
+                <input
+                  type="number"
+                  value={shuttles}
+                  onChange={(e) => setShuttles(Number(e.target.value))}
+                  className="w-full border rounded px-2 py-1 text-center bg-yellow-50 font-medium"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition">
+              Cancel
+            </button>
+            <button onClick={handleSave} className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 transition">
+              Save Result
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// 3. Line Component (unchanged)
 const Line = ({
   length = 100,
   angle = 0,
   thickness = 2,
-  color = "#000",
+  color = "#64748b",
   top = 0,
   left = 0,
 }: {
@@ -270,178 +328,294 @@ const Line = ({
   />
 );
 
-interface ThirtyTwoBracketProps {
-  level: string;
-}
+/* 🏸 Tournament Bracket - Main Component */
+export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBracketProps) {
+  const [matches, setMatches] = useState<MatchNode[]>([]);
+  const [loading, setLoading] = useState(false);
+  const bracketRef = useRef<HTMLDivElement>(null);
 
-/* 🏸 หน้าหลักของแผนผัง 32 ทีม */
-export default function ThirtyTwoBracket({ level }: ThirtyTwoBracketProps) {
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<MatchNode | undefined>(undefined);
+
+  useEffect(() => {
+    // 8 + 4 + 2 + 1 = 15 matches total
+    const initMatches: MatchNode[] = [];
+    for (let i = 0; i < 15; i++) {
+      initMatches.push({ id: i });
+    }
+    setMatches(initMatches);
+  }, []);
+
+  useEffect(() => {
+    if (!tournamentId) return;
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(`/api/tournament/${tournamentId}`);
+        const tournament = res.data.data;
+        if (tournament && tournament.groups) {
+          const groups = tournament.groups;
+          const rankPromises = groups.map((g: any) =>
+            api.get(`/api/matches/${tournamentId}`, { params: { groupName: g.name } })
+              .then(r => ({ groupName: g.name, ranks: r.data.rank }))
+              .catch(e => ({ groupName: g.name, ranks: [] }))
+          );
+
+          const results = await Promise.all(rankPromises);
+          const qualifiedTeams: Team[] = [];
+
+          results.sort((a, b) => a.groupName.localeCompare(b.groupName));
+
+          results.forEach(res => {
+            const ranks = res.ranks;
+            // Add Rank 1
+            if (ranks.length > 0) {
+              qualifiedTeams.push({ code: ranks[0][0], name: ranks[0][2], players: ranks[0][3] });
+            } else {
+              qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
+            }
+
+            // Add Rank 2
+            if (ranks.length > 1) {
+              qualifiedTeams.push({ code: ranks[1][0], name: ranks[1][2], players: ranks[1][3] });
+            } else {
+              qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
+            }
+          });
+
+          setMatches(prev => {
+            const newMatches = [...prev];
+            let teamIdx = 0;
+            // Populate first 8 matches (Round of 16)
+            for (let i = 0; i < 8; i++) {
+              if (teamIdx < qualifiedTeams.length) {
+                newMatches[i].t1 = qualifiedTeams[teamIdx++];
+              }
+              if (teamIdx < qualifiedTeams.length) {
+                newMatches[i].t2 = qualifiedTeams[teamIdx++];
+              }
+            }
+            return newMatches;
+          });
+        }
+      } catch (e) {
+        console.error("Error fetching bracket data:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [tournamentId]);
+
+
+  const handleMatchClick = (match: MatchNode) => {
+    setSelectedMatch(match);
+    setIsModalOpen(true);
+  };
+
+  const handleScoreUpdate = (matchId: number, scores: any, shuttles: number) => {
+    setMatches(prev => {
+      const newMatches = [...prev];
+      const match = newMatches[matchId];
+      match.scores = scores;
+      match.shuttlesUsed = shuttles;
+
+      // Winner Logic
+      let s1Wins = 0, s2Wins = 0;
+
+      if (scores.set1A > scores.set1B) s1Wins++; else if (scores.set1B > scores.set1A) s2Wins++;
+      if (scores.set2A > scores.set2B) s1Wins++; else if (scores.set2B > scores.set2A) s2Wins++;
+      if (scores.set3A > scores.set3B) s1Wins++; else if (scores.set3B > scores.set3A) s2Wins++;
+
+      let winner: Team | undefined;
+      if (s1Wins >= 2) winner = match.t1;
+      else if (s2Wins >= 2) winner = match.t2;
+
+      if (!winner && scores.totalA && scores.totalB) {
+        if (scores.totalA > scores.totalB) winner = match.t1;
+        else if (scores.totalB > scores.totalA) winner = match.t2;
+      }
+
+      if (winner) {
+        let nextMatchId = -1;
+        let isSlot1 = false;
+
+        // Advance logic (16 teams)
+        if (matchId < 8) {
+          nextMatchId = 8 + Math.floor(matchId / 2);
+          isSlot1 = (matchId % 2) === 0;
+        } else if (matchId < 12) {
+          nextMatchId = 12 + Math.floor((matchId - 8) / 2);
+          isSlot1 = ((matchId - 8) % 2) === 0;
+        } else if (matchId < 14) {
+          nextMatchId = 14;
+          isSlot1 = ((matchId - 12) % 2) === 0;
+        }
+
+        if (nextMatchId !== -1) {
+          const nextMatch = newMatches[nextMatchId];
+          if (isSlot1) nextMatch.t1 = winner;
+          else nextMatch.t2 = winner;
+          // Reset scores of next match if re-advancing (optional, prevents stale data)
+          // nextMatch.scores = ...
+        }
+      }
+
+      return newMatches;
+    });
+  };
+
+  const handleDownload = async () => {
+    if (bracketRef.current) {
+      try {
+        const canvas = await html2canvas(bracketRef.current, {
+          scale: 2,
+          backgroundColor: "#f9f9f0", // Hex safe
+          useCORS: true,
+        });
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = image;
+        link.download = `bracket-${level}-${new Date().toISOString().slice(0, 10)}.png`;
+        link.click();
+      } catch (err) {
+        console.error("Download failed", err);
+        alert("Cannot download image");
+      }
+    }
+  };
+
   return (
-    <div
-      className="h-[2200px] w-[1800px] overflow-x-auto overflow-y-hidden  bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-none"
-      style={{
-        scrollbarWidth: "none", // ซ่อน scrollbar (Firefox)
-        msOverflowStyle: "none", // ซ่อน scrollbar (Edge)
-      }}
-    >
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-      <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 32 ทีม ({level})
-      </h1>
+    <div className="relative flex flex-col items-center">
 
-      <div className="min-w-[3600px] flex justify-evenly  mb-6 text-sm text-gray-700 font-medium relative ">
-        <div className="text-center absolute left-[1100px] ">Round of 32</div>
-        <div className="text-center absolute left-[1650px]  ">Round of 16</div>
-        <div className="text-center absolute left-[2200px]  ">
-          Quarter Finals
-        </div>
-        <div className="text-center absolute right-[750px]  ">Semi Finals</div>
-        <div className="text-center absolute right-48 ">Final</div>
+      <ScoreModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        match={selectedMatch}
+        matchNumber={selectedMatch ? selectedMatch.id + 1 : 0}
+        onSave={handleScoreUpdate}
+      />
+
+      {/* Toolbar */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-xl shadow-lg mb-4 mt-2 border border-blue-100 flex gap-4">
+        <button
+          onClick={handleDownload}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-all text-sm"
+        >
+          <Download size={16} /> Download Bracket
+        </button>
       </div>
 
-      {/* Bracket Layout */}
-      <div className="flex justify-center gap-5 w-full px-10 ml-[1000px]">
-        <div className="flex flex-col justify-between h-[1990px]">
-          {[...Array(16)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-
-          <div>
-            <Line top={220} left={545} length={20} angle={1} color="#555" />
-            <Line top={325} left={545} length={20} angle={1} color="#555" />
-            <Line top={220} left={565} length={107} angle={90} color="#555" />
-            <Line top={270} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={460} left={545} length={20} angle={1} color="#555" />
-            <Line top={575} left={545} length={20} angle={1} color="#555" />
-            <Line top={460} left={565} length={116} angle={90} color="#555" />
-            <Line top={520} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={710} left={545} length={20} angle={1} color="#555" />
-            <Line top={825} left={545} length={20} angle={1} color="#555" />
-            <Line top={710} left={565} length={117} angle={90} color="#555" />
-            <Line top={770} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={960} left={545} length={20} angle={1} color="#555" />
-            <Line top={1080} left={545} length={20} angle={1} color="#555" />
-            <Line top={960} left={565} length={122} angle={90} color="#555" />
-            <Line top={1020} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1210} left={545} length={20} angle={1} color="#555" />
-            <Line top={1310} left={545} length={20} angle={1} color="#555" />
-            <Line top={1210} left={565} length={102} angle={90} color="#555" />
-            <Line top={1270} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1460} left={545} length={20} angle={1} color="#555" />
-            <Line top={1560} left={545} length={20} angle={1} color="#555" />
-            <Line top={1460} left={565} length={102} angle={90} color="#555" />
-            <Line top={1520} left={565} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1710} left={545} length={20} angle={1} color="#555" />
-            <Line top={1810} left={545} length={20} angle={1} color="#555" />
-            <Line top={1710} left={565} length={102} angle={90} color="#555" />
-            <Line top={1760} left={565} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={1950} left={545} length={20} angle={1} color="#555" />
-            <Line top={2060} left={545} length={20} angle={1} color="#555" />
-            <Line top={1950} left={565} length={110} angle={90} color="#555" />
-            <Line top={2010} left={565} length={60} angle={1} color="#555" />
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between h-[2350px] mt-15">
-          {[...Array(8)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-          <div>
-            <Line top={270} left={1072} length={20} angle={1} color="#555" />
-            <Line top={500} left={1072} length={20} angle={1} color="#555" />
-            <Line top={270} left={1092} length={230} angle={90} color="#555" />
-            <Line top={370} left={1092} length={60} angle={1} color="#555" />
-          </div>
-          <div>
-            <Line top={770} left={1072} length={20} angle={1} color="#555" />
-            <Line top={990} left={1072} length={20} angle={1} color="#555" />
-            <Line top={770} left={1092} length={221} angle={90} color="#555" />
-            <Line top={885} left={1092} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1250} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1480} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1250} left={1092} length={230} angle={90} color="#555" />
-            <Line top={1370} left={1092} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1760} left={1072} length={20} angle={1} color="#555" />
-            <Line top={2000} left={1072} length={20} angle={1} color="#555" />
-            <Line top={1760} left={1092} length={241} angle={90} color="#555" />
-            <Line top={1875} left={1092} length={60} angle={1} color="#555" />
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between h-[2430px] mt-40">
-          {[...Array(4)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-
-          <div>
-            <Line top={370} left={1600} length={20} angle={1} color="#555" />
-            <Line top={870} left={1600} length={20} angle={1} color="#555" />
-            <Line top={370} left={1620} length={501} angle={90} color="#555" />
-            <Line top={610} left={1620} length={60} angle={1} color="#555" />
-          </div>
-
-          <div>
-            <Line top={1400} left={1600} length={20} angle={1} color="#555" />
-            <Line top={1890} left={1600} length={20} angle={1} color="#555" />
-            <Line top={1400} left={1620} length={492} angle={90} color="#555" />
-            <Line top={1660} left={1620} length={60} angle={1} color="#555" />
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between h-[2100px] mt-100">
-          {[...Array(2)].map((_, i) => (
-            <MatchTable key={i} />
-          ))}
-
-          <div>
-            <Line top={600} left={2128} length={20} angle={1} color="#555" />
-            <Line top={1650} left={2128} length={20} angle={1} color="#555" />
-            <Line top={600} left={2148} length={1051} angle={90} color="#555" />
-            <Line top={1100} left={2148} length={60} angle={1} color="#555" />
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-center h-[850px] mt-130">
-          <MatchTable />
-        </div>
-      </div>
-
-      <style jsx global>{`
-        html,
-        body {
-          overflow-x: hidden !important;
+      {/* Scrollable Container (Viewport) */}
+      <div
+        className="h-[1200px] w-full overflow-auto flex flex-col items-start py-10 relative custom-scrollbar"
+        style={{ backgroundColor: "#f9f9f0" }}
+      >
+        <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
         }
-        div::-webkit-scrollbar {
-          display: none !important;
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #888; 
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555; 
         }
       `}</style>
+
+        {/* Captured Area Container */}
+        <div ref={bracketRef} className="w-fit min-w-[1500px] p-10" style={{ backgroundColor: "#f9f9f0" }}>
+
+          <div className="w-full flex justify-center mb-10">
+            <h1 className="text-4xl font-extrabold drop-shadow-sm uppercase tracking-wider sticky left-0 right-0" style={{ color: "#1e3a8a" }}>
+              🏸 Tournament Bracket - {level}
+            </h1>
+          </div>
+
+          {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
+
+          <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
+            <div className="flex justify-between w-[1400px] mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
+              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Round of 16</div>
+              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Quarter Finals</div>
+              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Semi Finals</div>
+              <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "#facc15", color: "#713f12" }}>🏆 Final</div>
+            </div>
+
+            {/* Bracket Layout - Compact */}
+            <div className="flex gap-16 relative"> {/* Reduced gap from 20 to 16 for new card size */}
+
+              {/* Round of 16 (8 Matches) */}
+              <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
+                {matches.slice(0, 8).map((m, i) => (
+                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                ))}
+
+                {/* LINES - Recalculated for Card Width 300px */}
+                <div className="absolute inset-0 pointer-events-none -z-10">
+                  {/* R16 -> QF */}
+                  {/* Box Height ~100px? Adjusted logic. 
+                            If 1050 / 8 = ~131px spacing.
+                            Center of box 1 ~65px. 
+                        */}
+                  <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
+                    {/* Group 1 */}
+                    <div><Line top={80} left={300} length={20} angle={0} /><Line top={211} left={300} length={20} angle={0} /><Line top={80} left={320} length={131} angle={90} /><Line top={145} left={320} length={30} angle={0} /></div>
+                    {/* Group 2 */}
+                    <div><Line top={342} left={300} length={20} angle={0} /><Line top={473} left={300} length={20} angle={0} /><Line top={342} left={320} length={131} angle={90} /><Line top={407} left={320} length={30} angle={0} /></div>
+                    {/* Group 3 */}
+                    <div><Line top={604} left={300} length={20} angle={0} /><Line top={735} left={300} length={20} angle={0} /><Line top={604} left={320} length={131} angle={90} /><Line top={669} left={320} length={30} angle={0} /></div>
+                    {/* Group 4 */}
+                    <div><Line top={866} left={300} length={20} angle={0} /><Line top={997} left={300} length={20} angle={0} /><Line top={866} left={320} length={131} angle={90} /><Line top={931} left={320} length={30} angle={0} /></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* QF (4 Matches) */}
+              <div className="flex flex-col justify-between h-[906px] mt-[65px] w-[300px] z-10">
+                {matches.slice(8, 12).map((m, i) => (
+                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                ))}
+                <div className="absolute inset-0 pointer-events-none -z-10">
+                  <div style={{ position: 'relative', top: '-25px' }}>
+                    {/* QF -> SF */}
+                    <div><Line top={145} left={650} length={20} angle={0} /><Line top={407} left={650} length={20} angle={0} /><Line top={145} left={670} length={262} angle={90} /><Line top={276} left={670} length={46} angle={0} /></div>
+                    <div><Line top={669} left={650} length={20} angle={0} /><Line top={931} left={650} length={20} angle={0} /><Line top={669} left={670} length={262} angle={90} /><Line top={800} left={670} length={46} angle={0} /></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SF (2 Matches) */}
+              <div className="flex flex-col justify-between h-[644px] mt-[196px] w-[300px] z-10">
+                {matches.slice(12, 14).map((m, i) => (
+                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                ))}
+                <div className="absolute inset-0 pointer-events-none -z-10">
+                  <div style={{ position: 'relative', top: '-25px' }}>
+                    {/* SF -> Final */}
+                    <div><Line top={276} left={1016} length={20} angle={0} /><Line top={800} left={1016} length={20} angle={0} /><Line top={276} left={1036} length={524} angle={90} /><Line top={538} left={1036} length={46} angle={0} /></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Final (1 Match) */}
+              <div className="flex flex-col justify-center h-[120px] mt-[458px] w-[300px] z-10">
+                {matches.slice(14, 15).map((m, i) => (
+                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
