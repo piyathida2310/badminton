@@ -6,9 +6,6 @@ import { prisma } from "../services/prismaClient";
 function getPoints(score1: number | null, score2: number | null, setScores: string = ""): [number, number] {
     // Priority: Calculate based on Set Wins
     if (setScores) {
-        // Normalize separators: replace newline, comma with pipe, keeping space if it separates sets? 
-        // Better: extract all "num-num" or "num:num" patterns
-        // Regex to find pairs like "21-19" or "21:19"
         const matches = setScores.match(/(\d+)[:\-](\d+)/g);
 
         if (matches && matches.length > 0) {
@@ -38,6 +35,8 @@ function getPoints(score1: number | null, score2: number | null, setScores: stri
     return [0, 0];
 }
 
+// ==================== GROUP MATCH ====================
+
 export const getGroupDetails = async (req: Request, res: Response) => {
     try {
         const { tournamentId } = req.params;
@@ -56,8 +55,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 name: groupName,
             },
             include: {
-                registers: true, // Teams in this group
-                matches: {
+                registers: true,
+                groupMatches: {
                     include: {
                         player1: true,
                         player2: true,
@@ -70,35 +69,26 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         });
 
         if (!group) {
-            // Return empty structure if group not found found (or handle error)
-            // Check if tournament exists to be sure?
             return res.status(404).json({ message: "Group not found" });
         }
 
         // 2. Calculate Rankings
-        // Map teams
         const teamStats = new Map<number, {
             id: number;
-            code: string; // e.g. "BG" + ..
-            name: string; // Team Name
+            code: string;
+            name: string;
             players: string;
-            totalScore: number; // Points (P)
-            won: number; // Sets/Points Won
-            lost: number; // Sets/Points Lost
+            totalScore: number;
+            won: number;
+            lost: number;
             diff: number;
         }>();
 
-        // Initialize stats for each register in group
-        // Sort first to ensure consistent Index for code generation
         group.registers.sort((a, b) => a.id - b.id);
-        // Extract strictly the letter after "Group " (e.g. "BG Group A" -> "A")
         const groupMatch = groupName.match(/Group\s+(\w+)/i);
         const groupLetter = groupMatch ? groupMatch[1] : groupName.replace("Group ", "").trim();
 
-        // Helper for mapping HandType to string (if needed, or just use playType)
         const getHandTypeDisplay = (pt: string) => {
-            // Basic mapping if needed, otherwise just use as is if it matches "BG", "S", etc.
-            // If Prisma enum is used, it might be keys.
             if (pt === "P_MINUS") return "P-";
             if (pt === "P_PLUS") return "P+";
             return pt;
@@ -109,7 +99,6 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             if (reg.player2Name) players += ` - ${reg.player2Name}`;
             let teamName = reg.teamName || players;
 
-            // Generate code: {Rank}{Group}{Index} -> e.g. BGA1
             const hType = getHandTypeDisplay(reg.playType);
             const teamIndex = index + 1;
             const code = `${hType}${groupLetter}${teamIndex}`;
@@ -127,14 +116,15 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         });
 
         // Process Matches for Stats
-        group.matches.forEach(match => {
+        group.groupMatches.forEach(match => {
             if (match.status === 'FINISHED' || (match.score1 !== null && match.score2 !== null)) {
                 const p1 = match.player1Id;
                 const p2 = match.player2Id;
                 const s1 = match.score1 || 0;
                 const s2 = match.score2 || 0;
 
-                const [pts1, pts2] = getPoints(s1, s2, match.round || "");
+                const setScores = match.sets || "";
+                const [pts1, pts2] = getPoints(s1, s2, setScores);
 
                 if (p1 && teamStats.has(p1)) {
                     const stats = teamStats.get(p1)!;
@@ -156,9 +146,9 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         // Convert to Array and Sort for Rank Table
         const rankData = Array.from(teamStats.values())
             .map(t => [
-                t.code, // Col 0: Code (Displayed in Gray Box)
-                t.code, // Col 1: Code (Backup)
-                t.name, // Col 2: Name
+                t.code,
+                t.code,
+                t.name,
                 t.players,
                 t.totalScore.toString(),
                 t.won.toString(),
@@ -166,7 +156,6 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.diff.toString()
             ]);
 
-        // Sort: TotalScore DESC, Diff DESC, Won DESC, then by Code ASC (Tie-breaker)
         rankData.sort((a, b) => {
             const scoreA = parseFloat(a[4]);
             const scoreB = parseFloat(b[4]);
@@ -180,94 +169,73 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             const wonB = parseFloat(b[5]);
             if (wonB !== wonA) return wonB - wonA;
 
-            // Fallback to Code string compare
             return a[1].localeCompare(b[1]);
         });
 
-        // Assign Rank Number to the first column (Column 0) after sorting
-        // User wants "BGA1", "BGA2" etc. as rank indicators, preserving the group/hand prefix
         rankData.forEach((row, index) => {
             const teamCode = row[1] as string;
-            // Extract prefix (letters) from team code
             const prefixMatch = teamCode.match(/^([A-Za-z]+)/);
             const prefix = prefixMatch ? prefixMatch[1] : "";
-            row[0] = `${prefix}${index + 1}`; // BGA1, BGA2...
+            row[0] = `${prefix}${index + 1}`;
         });
 
-        // Re-order matches to ensure valid Round Robin (no team plays twice in same round)
+        // Re-order matches to ensure valid Round Robin
         const totalTeams = group.registers.length;
-        const matchesPerRound = totalTeams === 3 ? 1 : Math.floor(totalTeams / 2); // 3 teams->1 match/round (bye), 4->2, 5->2, etc.
+        const matchesPerRound = totalTeams === 3 ? 1 : Math.floor(totalTeams / 2);
 
         const validPlayerIds = new Set(teamStats.keys());
-        // Filter matches to ensure only players currently in this group are shown
-        // This removes orphans where a player might have been moved to another group but the match remains
-        let pendingMatches = group.matches.filter(m =>
+        let pendingMatches = group.groupMatches.filter(m =>
             m.player1Id && validPlayerIds.has(m.player1Id) &&
             m.player2Id && validPlayerIds.has(m.player2Id)
         );
         const organizedMatches = [];
 
-        // Track Round Number dynamically
         let roundCounter = 0;
         const matchRoundMap = new Map<number, string>();
 
-        // Calculate Max Rounds for Single Round Robin to force cycle if matches exceed standard
-        // 3 Teams -> 3 Rounds, 4 Teams -> 3 Rounds
         const maxRounds = totalTeams > 0 ? (totalTeams % 2 === 0 ? totalTeams - 1 : totalTeams) : 1;
 
         while (pendingMatches.length > 0) {
             roundCounter++;
-            const currentRoundMatches: typeof group.matches = [];
+            const currentRoundMatches: typeof group.groupMatches = [];
             const teamsInRound = new Set<number>();
 
-            // Try to fill this round
             for (let i = 0; i < pendingMatches.length; i++) {
-                // If round is full, stop adding
                 if (currentRoundMatches.length >= matchesPerRound) break;
 
                 const m = pendingMatches[i];
                 const p1 = m.player1Id;
                 const p2 = m.player2Id;
 
-                // Check if players already playing in this round
                 if (p1 && teamsInRound.has(p1)) continue;
                 if (p2 && teamsInRound.has(p2)) continue;
 
-                // Add to round
                 currentRoundMatches.push(m);
                 if (p1) teamsInRound.add(p1);
                 if (p2) teamsInRound.add(p2);
             }
 
-            // If we couldn't find ANY match for a round but pending exists, 
-            // force add the first one to avoid infinite loop (fallback)
             if (currentRoundMatches.length === 0 && pendingMatches.length > 0) {
                 currentRoundMatches.push(pendingMatches[0]);
             }
 
-            // Assign Round Name to matches in this batch (Cycle if > maxRounds)
             const displayRoundNum = ((roundCounter - 1) % maxRounds) + 1;
             currentRoundMatches.forEach(m => {
                 matchRoundMap.set(m.id, `R${displayRoundNum}`);
             });
 
-            // Remove found matches from pending
             pendingMatches = pendingMatches.filter(pm => !currentRoundMatches.includes(pm));
-
-            // Add to final list
             organizedMatches.push(...currentRoundMatches);
         }
 
         // 3. Format Matches
-        // Fetch active groups first to ignore matches from deleted groups (orphan matches)
         const activeGroups = await prisma.group.findMany({
             where: { tournamentId: tId },
             select: { id: true }
         });
         const activeGroupIds = activeGroups.map(g => g.id);
 
-        // Fetch all match IDs from ACTIVE groups to determine global match sequence
-        const allTournamentMatches = await prisma.match.findMany({
+        const allTournamentMatches = await prisma.groupMatch.findMany({
             where: {
                 tournamentId: tId,
                 groupId: { in: activeGroupIds }
@@ -280,29 +248,15 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         const matchData = organizedMatches.map((m, index) => {
             const time = m.scheduledTime ? new Date(m.scheduledTime).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : "";
 
-            // Use dynamically assigned Round Name
             const roundName = matchRoundMap.get(m.id) || "-";
 
-            let shuttle = "";
-            let setScores = "";
-            try {
-                const dbRound = m.round || "";
-                if (dbRound.includes("|")) {
-                    const parts = dbRound.split("|");
-                    shuttle = parts[1] || "";
-                    setScores = parts[2] || "";
-                } else if (dbRound.startsWith("{")) {
-                    const parsed = JSON.parse(dbRound);
-                    shuttle = parsed.shuttle || "";
-                }
-            } catch (e) { }
+            const shuttle = m.shuttle !== null ? m.shuttle.toString() : "";
+            const setScores = m.sets || "";
 
             const matchId = m.id.toString();
-            // Global Match Number (Sequence in Tournament)
             const globalMatchNumber = allMatchIds.indexOf(m.id) + 1;
             const matchDisplay = globalMatchNumber > 0 ? globalMatchNumber.toString() : "-";
 
-            // Helper to get Code/Name
             const getTeamData = (pid: number | null, fallbackName: string | null, fallbackP1: string | null) => {
                 if (!pid) return { code: "-", name: "-" };
                 const stats = teamStats.get(pid);
@@ -323,14 +277,13 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             const s1 = m.score1;
             const s2 = m.score2;
 
-            const [p1, p2] = getPoints(s1, s2, m.round || "");
-            // Index 7 (New Set Column Index): Use detailed setScores if available, else standard S1:S2
+            const [p1, p2] = getPoints(s1, s2, setScores);
             const setStr = setScores ? setScores : ((s1 !== null && s2 !== null) ? `${s1} : ${s2}` : " : ");
 
             return [
                 time,          // 0
                 roundName,     // 1
-                matchDisplay, // 2: Seq Number (Global)
+                matchDisplay,  // 2: Seq Number (Global)
                 t1Data.code,   // 3 (Code)
                 t1Data.name,   // 4 (Name)
                 t1Players,     // 5
@@ -356,42 +309,18 @@ export const getGroupDetails = async (req: Request, res: Response) => {
     }
 };
 
-export const updateMatchScore = async (req: Request, res: Response) => {
+// ==================== GROUP MATCH - UPDATE SCORE ====================
+
+export const updateGroupMatchScore = async (req: Request, res: Response) => {
     try {
         const { matchId } = req.params;
-        const { score1, score2, shuttle, time, roundName, sets } = req.body;
+        const { score1, score2, shuttle, time, sets } = req.body;
 
-        // Fetch existing to preserve round name if we use JSON trick
-        const match = await prisma.match.findUnique({
+        const match = await prisma.groupMatch.findUnique({
             where: { id: Number(matchId) },
             include: { tournament: true }
         });
-        if (!match) return res.status(404).json({ message: "Match not found" });
-
-        let newRound = match.round;
-        // We update round string if shuttle OR sets OR roundName provided
-        if (shuttle !== undefined || sets !== undefined || roundName) {
-            let rName = match.round || "";
-            let currentShuttle = "";
-            let currentSets = "";
-
-            // Parse existing
-            if (rName.startsWith("{")) {
-                try { const p = JSON.parse(rName); rName = p.name || ""; currentShuttle = p.shuttle || ""; } catch (e) { }
-            } else if (rName.includes("|")) {
-                const parts = rName.split("|");
-                rName = parts[0];
-                currentShuttle = parts[1] || "";
-                currentSets = parts[2] || "";
-            }
-
-            // Overwrite with new values if provided
-            if (roundName) rName = roundName;
-            if (shuttle !== undefined) currentShuttle = shuttle;
-            if (sets !== undefined) currentSets = sets;
-
-            newRound = `${rName}|${currentShuttle}|${currentSets}`;
-        }
+        if (!match) return res.status(404).json({ message: "GroupMatch not found" });
 
         let newScheduledTime = match.scheduledTime;
         if (time && typeof time === 'string') {
@@ -400,7 +329,6 @@ export const updateMatchScore = async (req: Request, res: Response) => {
                 const h = parseInt(parts[0]);
                 const m = parseInt(parts[1]);
                 if (!isNaN(h) && !isNaN(m)) {
-                    // Use existing date or tournament start date
                     const baseDate = match.scheduledTime ? new Date(match.scheduledTime) : new Date(match.tournament.startDate);
                     baseDate.setHours(h);
                     baseDate.setMinutes(m);
@@ -411,21 +339,70 @@ export const updateMatchScore = async (req: Request, res: Response) => {
             }
         }
 
-        const updated = await prisma.match.update({
+        const updated = await prisma.groupMatch.update({
             where: { id: Number(matchId) },
             data: {
                 score1: score1 !== undefined ? Number(score1) : match.score1,
                 score2: score2 !== undefined ? Number(score2) : match.score2,
-                round: newRound,
+                sets: sets !== undefined ? sets : match.sets,
+                shuttle: shuttle !== undefined ? Number(shuttle) : match.shuttle,
                 scheduledTime: newScheduledTime,
-                // Automatically set status to FINISHED if scores are present?
                 status: (score1 !== undefined && score2 !== undefined) ? 'FINISHED' : match.status
             }
         });
 
-        return res.status(200).json({ message: "Match updated", data: updated });
+        return res.status(200).json({ message: "GroupMatch updated", data: updated });
     } catch (error) {
-        console.error("Update Match Error:", error);
+        console.error("Update GroupMatch Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+};
+
+// ==================== BRACKET MATCH - UPDATE SCORE ====================
+
+export const updateBracketMatchScore = async (req: Request, res: Response) => {
+    try {
+        const { matchId } = req.params;
+        const { score1, score2, shuttle, time, sets } = req.body;
+
+        const match = await prisma.bracketMatch.findUnique({
+            where: { id: Number(matchId) },
+            include: { tournament: true }
+        });
+        if (!match) return res.status(404).json({ message: "BracketMatch not found" });
+
+        let newScheduledTime = match.scheduledTime;
+        if (time && typeof time === 'string') {
+            const parts = time.split(':');
+            if (parts.length === 2) {
+                const h = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                if (!isNaN(h) && !isNaN(m)) {
+                    const baseDate = match.scheduledTime ? new Date(match.scheduledTime) : new Date(match.tournament.startDate);
+                    baseDate.setHours(h);
+                    baseDate.setMinutes(m);
+                    baseDate.setSeconds(0);
+                    baseDate.setMilliseconds(0);
+                    newScheduledTime = baseDate;
+                }
+            }
+        }
+
+        const updated = await prisma.bracketMatch.update({
+            where: { id: Number(matchId) },
+            data: {
+                score1: score1 !== undefined ? Number(score1) : match.score1,
+                score2: score2 !== undefined ? Number(score2) : match.score2,
+                sets: sets !== undefined ? sets : match.sets,
+                shuttle: shuttle !== undefined ? Number(shuttle) : match.shuttle,
+                scheduledTime: newScheduledTime,
+                status: (score1 !== undefined && score2 !== undefined) ? 'FINISHED' : match.status
+            }
+        });
+
+        return res.status(200).json({ message: "BracketMatch updated", data: updated });
+    } catch (error) {
+        console.error("Update BracketMatch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};

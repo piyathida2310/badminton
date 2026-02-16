@@ -20,7 +20,7 @@ CREATE TYPE "EvaluationStatus" AS ENUM ('WAITING', 'PASSED', 'FAILED');
 CREATE TYPE "MatchStatus" AS ENUM ('PENDING', 'RUNNING', 'FINISHED', 'CANCELLED');
 
 -- CreateEnum
-CREATE TYPE "MatchStage" AS ENUM ('GROUP', 'UPPER', 'LOWER', 'GRAND_FINAL', 'THIRD_PLACE');
+CREATE TYPE "MatchStage" AS ENUM ('UPPER', 'LOWER', 'GRAND_FINAL', 'THIRD_PLACE');
 
 -- CreateEnum
 CREATE TYPE "MatchSlot" AS ENUM ('P1', 'P2');
@@ -144,19 +144,40 @@ CREATE TABLE "Group" (
 );
 
 -- CreateTable
-CREATE TABLE "Match" (
+CREATE TABLE "GroupMatch" (
     "id" SERIAL NOT NULL,
     "tournamentId" INTEGER NOT NULL,
-    "groupId" INTEGER,
-    "stage" "MatchStage" NOT NULL DEFAULT 'GROUP',
+    "groupId" INTEGER NOT NULL,
+    "handType" "HandType",
+    "roundName" TEXT,
+    "player1Id" INTEGER,
+    "player2Id" INTEGER,
+    "winnerId" INTEGER,
+    "score1" INTEGER,
+    "score2" INTEGER,
+    "sets" TEXT,
+    "shuttle" INTEGER,
+    "status" "MatchStatus" NOT NULL DEFAULT 'PENDING',
+    "scheduledTime" TIMESTAMP(3),
+
+    CONSTRAINT "GroupMatch_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BracketMatch" (
+    "id" SERIAL NOT NULL,
+    "tournamentId" INTEGER NOT NULL,
+    "handType" "HandType",
+    "stage" "MatchStage" NOT NULL DEFAULT 'UPPER',
     "roundSequence" INTEGER,
     "matchSequence" INTEGER,
     "player1Id" INTEGER,
     "player2Id" INTEGER,
     "winnerId" INTEGER,
-    "round" TEXT,
     "score1" INTEGER,
     "score2" INTEGER,
+    "sets" TEXT,
+    "shuttle" INTEGER,
     "status" "MatchStatus" NOT NULL DEFAULT 'PENDING',
     "scheduledTime" TIMESTAMP(3),
     "winnerNextMatchId" INTEGER,
@@ -164,7 +185,7 @@ CREATE TABLE "Match" (
     "loserNextMatchId" INTEGER,
     "loserNextMatchSlot" "MatchSlot",
 
-    CONSTRAINT "Match_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "BracketMatch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -206,10 +227,13 @@ CREATE UNIQUE INDEX "User_clerk_id_key" ON "User"("clerk_id");
 CREATE UNIQUE INDEX "Payment_registerId_key" ON "Payment"("registerId");
 
 -- CreateIndex
-CREATE INDEX "Match_tournamentId_idx" ON "Match"("tournamentId");
+CREATE INDEX "GroupMatch_tournamentId_idx" ON "GroupMatch"("tournamentId");
 
 -- CreateIndex
-CREATE INDEX "Match_groupId_idx" ON "Match"("groupId");
+CREATE INDEX "GroupMatch_groupId_idx" ON "GroupMatch"("groupId");
+
+-- CreateIndex
+CREATE INDEX "BracketMatch_tournamentId_idx" ON "BracketMatch"("tournamentId");
 
 -- AddForeignKey
 ALTER TABLE "Tournament" ADD CONSTRAINT "Tournament_organizerId_fkey" FOREIGN KEY ("organizerId") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -239,25 +263,37 @@ ALTER TABLE "Payment" ADD CONSTRAINT "Payment_confirmedById_fkey" FOREIGN KEY ("
 ALTER TABLE "Group" ADD CONSTRAINT "Group_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GroupMatch" ADD CONSTRAINT "GroupMatch_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "GroupMatch" ADD CONSTRAINT "GroupMatch_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "GroupMatch" ADD CONSTRAINT "GroupMatch_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_player2Id_fkey" FOREIGN KEY ("player2Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "GroupMatch" ADD CONSTRAINT "GroupMatch_player2Id_fkey" FOREIGN KEY ("player2Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "GroupMatch" ADD CONSTRAINT "GroupMatch_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_winnerNextMatchId_fkey" FOREIGN KEY ("winnerNextMatchId") REFERENCES "Match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Match" ADD CONSTRAINT "Match_loserNextMatchId_fkey" FOREIGN KEY ("loserNextMatchId") REFERENCES "Match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_player1Id_fkey" FOREIGN KEY ("player1Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_player2Id_fkey" FOREIGN KEY ("player2Id") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_winnerId_fkey" FOREIGN KEY ("winnerId") REFERENCES "Register"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_winnerNextMatchId_fkey" FOREIGN KEY ("winnerNextMatchId") REFERENCES "BracketMatch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BracketMatch" ADD CONSTRAINT "BracketMatch_loserNextMatchId_fkey" FOREIGN KEY ("loserNextMatchId") REFERENCES "BracketMatch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Summary" ADD CONSTRAINT "Summary_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

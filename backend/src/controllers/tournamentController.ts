@@ -99,7 +99,11 @@ export const getTournament = async (req: Request, res: Response) => {
           orderBy: { time: "asc" },
         },
         groups: {
-          include: { registers: true },
+          include: {
+            registers: {
+              orderBy: { score: "desc" },
+            },
+          },
           orderBy: { name: "asc" },
         },
         _count: {

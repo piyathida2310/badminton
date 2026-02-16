@@ -53,10 +53,8 @@ enum MatchStatus {
 
 // New Enums for Bracket & Gender
 enum MatchStage {
-  GROUP
   UPPER
   LOWER
-  // Optional: FINAL could be used for grand final across brackets if needed
   GRAND_FINAL
   THIRD_PLACE
 }
@@ -123,11 +121,12 @@ model Tournament {
   organizer User @relation("OrganizerTournaments", fields: [organizerId], references: [id])
   rule      Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
-  matches       Match[]
-  registrations Register[]
-  groups        Group[]
-  summaries     Summary[]
-  competition   Competition[]
+  groupMatches   GroupMatch[]
+  bracketMatches BracketMatch[]
+  registrations  Register[]
+  groups         Group[]
+  summaries      Summary[]
+  competition    Competition[]
 }
 
 // ---------- competition ----------
@@ -190,10 +189,15 @@ model Register {
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   payment    Payment?
 
-  // สำหรับ relation กับ Match
-  matchesAsPlayer1 Match[] @relation("Player1")
-  matchesAsPlayer2 Match[] @relation("Player2")
-  matchesAsWinner  Match[] @relation("Winner")
+  // สำหรับ relation กับ GroupMatch
+  groupMatchesAsPlayer1 GroupMatch[] @relation("GroupPlayer1")
+  groupMatchesAsPlayer2 GroupMatch[] @relation("GroupPlayer2")
+  groupMatchesAsWinner  GroupMatch[] @relation("GroupWinner")
+
+  // สำหรับ relation กับ BracketMatch
+  bracketMatchesAsPlayer1 BracketMatch[] @relation("BracketPlayer1")
+  bracketMatchesAsPlayer2 BracketMatch[] @relation("BracketPlayer2")
+  bracketMatchesAsWinner  BracketMatch[] @relation("BracketWinner")
 
   // สำหรับ relation กับ Summary (ถ้ามี)
   summaries Summary[] @relation("SummaryRegister")
@@ -219,58 +223,83 @@ model Group {
   tournamentId Int
   createdAt    DateTime @default(now())
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id])
-  matches    Match[]
-  registers  Register[]
+  tournament   Tournament   @relation(fields: [tournamentId], references: [id])
+  groupMatches GroupMatch[]
+  registers    Register[]
 }
 
-// ---------- MATCH ----------
-model Match {
+// ---------- GROUP MATCH (รอบแบ่งกลุ่ม) ----------
+model GroupMatch {
   id            Int         @id @default(autoincrement())
   tournamentId  Int
-  groupId       Int?
-  
+  groupId       Int
+
   handType      HandType?
-  
-  // Bracket Info
-  stage         MatchStage  @default(GROUP)
-  roundSequence Int?        // 1=RoundOne, 2=RoundTwo...
-  matchSequence Int?        // Vertical Order: 1, 2, 3...
-  
+  roundName     String?     // "R1", "R2", "R3"
+
   player1Id     Int?
   player2Id     Int?
   winnerId      Int?
-  
-  round         String?     // Can still be used for detailed round name or text
+
   score1        Int?
   score2        Int?
+  sets          String?     // "21:19, 18:21"
+  shuttle       Int?        // จำนวนลูกแบด
   status        MatchStatus @default(PENDING)
   scheduledTime DateTime?
 
-  // Pathing for Bracket (Winner Automation)
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  group      Group      @relation(fields: [groupId], references: [id])
+
+  player1 Register? @relation("GroupPlayer1", fields: [player1Id], references: [id])
+  player2 Register? @relation("GroupPlayer2", fields: [player2Id], references: [id])
+  winner  Register? @relation("GroupWinner", fields: [winnerId], references: [id])
+
+  @@index([tournamentId])
+  @@index([groupId])
+}
+
+// ---------- BRACKET MATCH (สายแข่ง) ----------
+model BracketMatch {
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int
+
+  handType      HandType?
+  stage         MatchStage  @default(UPPER)  // UPPER, LOWER, GRAND_FINAL, THIRD_PLACE
+  roundSequence Int?        // 1=รอบแรก, 2=รอบสอง...
+  matchSequence Int?        // ลำดับแมตช์ในรอบ: 1, 2, 3...
+
+  player1Id     Int?
+  player2Id     Int?
+  winnerId      Int?
+
+  score1        Int?
+  score2        Int?
+  sets          String?     // "21:19, 18:21"
+  shuttle       Int?        // จำนวนลูกแบด
+  status        MatchStatus @default(PENDING)
+  scheduledTime DateTime?
+
+  // เส้นทาง Bracket (เลื่อนผู้เล่นอัตโนมัติ)
   winnerNextMatchId    Int?
   winnerNextMatchSlot  MatchSlot?
-  
-  // Optional: For loser bracket if needed later
   loserNextMatchId     Int?
   loserNextMatchSlot   MatchSlot?
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
-  group      Group?     @relation(fields: [groupId], references: [id])
 
-  player1 Register? @relation("Player1", fields: [player1Id], references: [id])
-  player2 Register? @relation("Player2", fields: [player2Id], references: [id])
-  winner  Register? @relation("Winner", fields: [winnerId], references: [id])
-  
+  player1 Register? @relation("BracketPlayer1", fields: [player1Id], references: [id])
+  player2 Register? @relation("BracketPlayer2", fields: [player2Id], references: [id])
+  winner  Register? @relation("BracketWinner", fields: [winnerId], references: [id])
+
   // Relations for Linked Matches
-  previousWinnerMatch  Match?  @relation("WinnerPath", fields: [winnerNextMatchId], references: [id])
-  nextWinnerMatches    Match[] @relation("WinnerPath")
-  
-  previousLoserMatch   Match?  @relation("LoserPath", fields: [loserNextMatchId], references: [id])
-  nextLoserMatches     Match[] @relation("LoserPath")
+  previousWinnerMatch  BracketMatch?  @relation("WinnerPath", fields: [winnerNextMatchId], references: [id])
+  nextWinnerMatches    BracketMatch[] @relation("WinnerPath")
+
+  previousLoserMatch   BracketMatch?  @relation("LoserPath", fields: [loserNextMatchId], references: [id])
+  nextLoserMatches     BracketMatch[] @relation("LoserPath")
 
   @@index([tournamentId])
-  @@index([groupId])
 }
 
 // ---------- SUMMARY ----------
