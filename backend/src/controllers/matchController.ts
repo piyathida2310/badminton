@@ -153,7 +153,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.totalScore.toString(),
                 t.won.toString(),
                 t.lost.toString(),
-                t.diff.toString()
+                t.diff.toString(),
+                t.id.toString()
             ]);
 
         rankData.sort((a, b) => {
@@ -360,10 +361,14 @@ export const updateGroupMatchScore = async (req: Request, res: Response) => {
 
 // ==================== BRACKET MATCH - UPDATE SCORE ====================
 
+// ==================== BRACKET MATCH - UPDATE SCORE ====================
+
+// ==================== BRACKET MATCH - UPDATE SCORE ====================
+
 export const updateBracketMatchScore = async (req: Request, res: Response) => {
     try {
         const { matchId } = req.params;
-        const { score1, score2, shuttle, time, sets } = req.body;
+        const { score1, score2, shuttle, time, sets, player1Id, player2Id } = req.body;
 
         const match = await prisma.bracketMatch.findUnique({
             where: { id: Number(matchId) },
@@ -388,21 +393,186 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
             }
         }
 
+        const newScore1 = score1 !== undefined ? Number(score1) : match.score1;
+        const newScore2 = score2 !== undefined ? Number(score2) : match.score2;
+        const newSets = sets !== undefined ? sets : match.sets;
+        const newShuttle = shuttle !== undefined ? Number(shuttle) : match.shuttle;
+
+        // Determine Winner
+        let winnerId = match.winnerId;
+        let status = match.status;
+
+        if (newScore1 !== null && newScore2 !== null) {
+            status = 'FINISHED';
+            const [p1, p2] = getPoints(newScore1, newScore2, newSets || "");
+            if (p1 > p2) winnerId = match.player1Id; // Note: Uses current/new player IDs?
+            // Actually if we update player1Id in the SAME call, we should use the new one?
+            // Let's assume standard update. Ideally player update and score update are separate.
+            // But if we do update player, logic below uses `match.player1Id which is OLD`.
+            // Let's rely on stored IDs for winner calculation unless updated.
+            const p1Id = player1Id !== undefined ? Number(player1Id) : match.player1Id;
+            const p2Id = player2Id !== undefined ? Number(player2Id) : match.player2Id;
+
+            if (p1 > p2) winnerId = p1Id;
+            else if (p2 > p1) winnerId = p2Id;
+            else winnerId = null;
+        }
+
         const updated = await prisma.bracketMatch.update({
             where: { id: Number(matchId) },
             data: {
-                score1: score1 !== undefined ? Number(score1) : match.score1,
-                score2: score2 !== undefined ? Number(score2) : match.score2,
-                sets: sets !== undefined ? sets : match.sets,
-                shuttle: shuttle !== undefined ? Number(shuttle) : match.shuttle,
+                score1: newScore1,
+                score2: newScore2,
+                sets: newSets,
+                shuttle: newShuttle,
                 scheduledTime: newScheduledTime,
-                status: (score1 !== undefined && score2 !== undefined) ? 'FINISHED' : match.status
+                status: status,
+                winnerId: winnerId,
+                player1Id: player1Id !== undefined ? Number(player1Id) : match.player1Id,
+                player2Id: player2Id !== undefined ? Number(player2Id) : match.player2Id,
             }
         });
+
+        // Advance Winner
+        if (winnerId && match.winnerNextMatchId) {
+            const slotField = match.winnerNextMatchSlot === 'P1' ? 'player1Id' : 'player2Id';
+            await prisma.bracketMatch.update({
+                where: { id: match.winnerNextMatchId },
+                data: {
+                    [slotField]: winnerId
+                }
+            });
+        }
 
         return res.status(200).json({ message: "BracketMatch updated", data: updated });
     } catch (error) {
         console.error("Update BracketMatch Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+// ==================== BRACKET MATCH - GET / INITIALIZE ====================
+
+export const getBracketMatches = async (req: Request, res: Response) => {
+    try {
+        const { tournamentId } = req.params;
+        const tId = Number(tournamentId);
+
+        if (!tId) return res.status(400).json({ message: "Invalid Tournament ID" });
+
+        // 1. Check if matches exist
+        const existingMatches = await prisma.bracketMatch.findMany({
+            where: { tournamentId: tId },
+            orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
+            include: {
+                player1: true,
+                player2: true,
+                winner: true
+            }
+        });
+
+        if (existingMatches.length > 0) {
+            return res.status(200).json({ data: existingMatches });
+        }
+
+        // 2. Initialize Bracket
+        // Determine Size
+        const tournament = await prisma.tournament.findUnique({ where: { id: tId } });
+        // Logic: If <= 16 teams, we expect 8 Qualifiers (Top 2 of 4 Groups) -> QF Start (4 matches).
+        // If > 16 (e.g. 32), we expect 16 Qualifiers (Top 2 of 8 Groups) -> R16 Start (8 matches).
+        const isSmallBracket = (tournament?.maxPlayers || 32) <= 16;
+
+        // Structure: 
+        // R4: Final (1 Match)
+        // R3: SF (2 Matches)
+        // R2: QF (4 Matches)
+        // R1: R16 (8 Matches) - Optional
+
+        // Round 4: Final (1 Match)
+        const final = await prisma.bracketMatch.create({
+            data: {
+                tournamentId: tId,
+                roundSequence: 4,
+                matchSequence: 1,
+                stage: 'GRAND_FINAL'
+            }
+        });
+
+        // Round 3: Semi Finals (2 Matches)
+        const sf1 = await prisma.bracketMatch.create({
+            data: {
+                tournamentId: tId,
+                roundSequence: 3,
+                matchSequence: 1,
+                stage: 'UPPER',
+                winnerNextMatchId: final.id,
+                winnerNextMatchSlot: 'P1'
+            }
+        });
+        const sf2 = await prisma.bracketMatch.create({
+            data: {
+                tournamentId: tId,
+                roundSequence: 3,
+                matchSequence: 2,
+                stage: 'UPPER',
+                winnerNextMatchId: final.id,
+                winnerNextMatchSlot: 'P2'
+            }
+        });
+        const sfs = [sf1, sf2];
+
+        // Round 2: Quarter Finals (4 Matches)
+        const qfs = [];
+        for (let i = 0; i < 4; i++) {
+            const parent = sfs[Math.floor(i / 2)];
+            const slot = (i % 2 === 0) ? 'P1' : 'P2';
+            const qf = await prisma.bracketMatch.create({
+                data: {
+                    tournamentId: tId,
+                    roundSequence: 2,
+                    matchSequence: i + 1,
+                    stage: 'UPPER',
+                    winnerNextMatchId: parent.id,
+                    winnerNextMatchSlot: slot
+                }
+            });
+            qfs.push(qf);
+        }
+
+        // Round 1: Round of 16 (8 Matches) - Only for Large Brackets
+        if (!isSmallBracket) {
+            const r16s = [];
+            for (let i = 0; i < 8; i++) {
+                const parent = qfs[Math.floor(i / 2)];
+                const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                const r16 = await prisma.bracketMatch.create({
+                    data: {
+                        tournamentId: tId,
+                        roundSequence: 1,
+                        matchSequence: i + 1,
+                        stage: 'UPPER',
+                        winnerNextMatchId: parent.id,
+                        winnerNextMatchSlot: slot
+                    }
+                });
+                r16s.push(r16);
+            }
+        }
+
+        // Fetch all newly created
+        const allMatches = await prisma.bracketMatch.findMany({
+            where: { tournamentId: tId },
+            orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
+            include: {
+                player1: true,
+                player2: true,
+                winner: true
+            }
+        });
+
+        return res.status(201).json({ message: "Bracket initialized", data: allMatches });
+
+    } catch (error) {
+        console.error("Get Bracket Matches Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };

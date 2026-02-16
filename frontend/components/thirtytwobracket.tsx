@@ -7,6 +7,7 @@ import { Download, Save, X, Edit } from "lucide-react"; // Added Shuttle icon if
 
 // --- Types ---
 interface Team {
+  id?: number; // Added ID for DB linking
   code: string;
   name: string;
   players: string;
@@ -14,6 +15,7 @@ interface Team {
 
 interface MatchNode {
   id: number;
+  dbId?: number; // Added DB ID
   t1?: Team;
   t2?: Team;
   scores?: {
@@ -26,7 +28,7 @@ interface MatchNode {
     set3A: number;
     set3B: number;
   };
-  shuttlesUsed?: number; // New field
+  shuttlesUsed?: number;
   winnerCode?: string;
 }
 
@@ -332,6 +334,7 @@ const Line = ({
 export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBracketProps) {
   const [matches, setMatches] = useState<MatchNode[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSmallBracket, setIsSmallBracket] = useState(false);
   const bracketRef = useRef<HTMLDivElement>(null);
 
   // Modal State
@@ -353,53 +356,144 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
     const loadData = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/api/tournament/${tournamentId}`);
-        const tournament = res.data.data;
+        // 1. Fetch Tournament Info and Bracket Matches (Parallel)
+        const [tournamentRes, bracketRes] = await Promise.all([
+          api.get(`/api/tournament/${tournamentId}`),
+          api.get(`/api/bracket-matches/${tournamentId}`)
+        ]);
+
+        const tournament = tournamentRes.data.data;
+        const dbMatches: any[] = bracketRes.data.data || []; // Array of BracketMatch
+
+        // Determine Size
+        const isSmall = (tournament?.maxPlayers || 32) <= 16;
+        setIsSmallBracket(isSmall);
+
+        // 2. Fetch Group Ranks to build Lookup Map
+        const teamLookup = new Map<number, Team>();
+        const qualifiedTeams: Team[] = [];
+
         if (tournament && tournament.groups) {
           const groups = tournament.groups;
           const rankPromises = groups.map((g: any) =>
             api.get(`/api/matches/${tournamentId}`, { params: { groupName: g.name } })
-              .then(r => ({ groupName: g.name, ranks: r.data.rank }))
+              .then(r => ({ groupName: g.name, ranks: r.data.rank })) // rank includes ID at index 8 now
               .catch(e => ({ groupName: g.name, ranks: [] }))
           );
 
           const results = await Promise.all(rankPromises);
-          const qualifiedTeams: Team[] = [];
-
           results.sort((a, b) => a.groupName.localeCompare(b.groupName));
 
           results.forEach(res => {
             const ranks = res.ranks;
-            // Add Rank 1
+            // Process Rank 1
             if (ranks.length > 0) {
-              qualifiedTeams.push({ code: ranks[0][0], name: ranks[0][2], players: ranks[0][3] });
+              const t: Team = { id: Number(ranks[0][8]), code: ranks[0][0], name: ranks[0][2], players: ranks[0][3] };
+              teamLookup.set(t.id!, t);
+              qualifiedTeams.push(t);
             } else {
               qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
             }
-
-            // Add Rank 2
+            // Process Rank 2
             if (ranks.length > 1) {
-              qualifiedTeams.push({ code: ranks[1][0], name: ranks[1][2], players: ranks[1][3] });
+              const t: Team = { id: Number(ranks[1][8]), code: ranks[1][0], name: ranks[1][2], players: ranks[1][3] };
+              teamLookup.set(t.id!, t);
+              qualifiedTeams.push(t);
             } else {
               qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
             }
-          });
-
-          setMatches(prev => {
-            const newMatches = [...prev];
-            let teamIdx = 0;
-            // Populate first 8 matches (Round of 16)
-            for (let i = 0; i < 8; i++) {
-              if (teamIdx < qualifiedTeams.length) {
-                newMatches[i].t1 = qualifiedTeams[teamIdx++];
-              }
-              if (teamIdx < qualifiedTeams.length) {
-                newMatches[i].t2 = qualifiedTeams[teamIdx++];
-              }
-            }
-            return newMatches;
           });
         }
+
+        // 3. Map DB Matches to Local State
+        setMatches(prev => {
+          const newMatches = [...prev];
+
+          // Helper to map Round/Seq to Index
+          const getIndex = (r: number, s: number) => {
+            if (r === 1) return s - 1; // 0-7
+            if (r === 2) return 8 + (s - 1); // 8-11
+            if (r === 3) return 12 + (s - 1); // 12-13
+            if (r === 4) return 14; // 14
+            return -1;
+          };
+
+          // Update from DB
+          dbMatches.forEach(dbm => {
+            const idx = getIndex(dbm.roundSequence, dbm.matchSequence);
+            if (idx !== -1 && idx < newMatches.length) {
+              const m = newMatches[idx];
+              m.dbId = dbm.id;
+              m.shuttlesUsed = dbm.shuttle || 0;
+
+              // Map Players
+              if (dbm.player1Id) m.t1 = teamLookup.get(dbm.player1Id) || { code: "-", name: dbm.player1?.teamName || dbm.player1?.player1Name || "-", players: "-" };
+              if (dbm.player2Id) m.t2 = teamLookup.get(dbm.player2Id) || { code: "-", name: dbm.player2?.teamName || dbm.player2?.player1Name || "-", players: "-" };
+
+              // Map Scores
+              if (dbm.score1 !== null && dbm.score2 !== null) {
+                // Parse sets if available string "21:10, 21:12"
+                // Simple parsing or default
+                const scoreObj = {
+                  totalA: dbm.score1, totalB: dbm.score2,
+                  set1A: 0, set1B: 0, set2A: 0, set2B: 0, set3A: 0, set3B: 0
+                };
+                if (dbm.sets) {
+                  const parts = dbm.sets.split(",").map((s: string) => s.trim());
+                  if (parts[0]) { const [a, b] = parts[0].split(/[:\-]/); scoreObj.set1A = Number(a); scoreObj.set1B = Number(b); }
+                  if (parts[1]) { const [a, b] = parts[1].split(/[:\-]/); scoreObj.set2A = Number(a); scoreObj.set2B = Number(b); }
+                  if (parts[2]) { const [a, b] = parts[2].split(/[:\-]/); scoreObj.set3A = Number(a); scoreObj.set3B = Number(b); }
+                }
+                m.scores = scoreObj;
+              }
+            }
+          });
+
+          return newMatches;
+        });
+
+        // 4. Initial Population & Persistence
+        const targetRound = isSmall ? 2 : 1;
+        const targetDbMatches = dbMatches.filter((m: any) => m.roundSequence === targetRound).sort((a: any, b: any) => a.matchSequence - b.matchSequence);
+        const matchCount = isSmall ? 4 : 8;
+
+        if (qualifiedTeams.length > 0 && targetDbMatches.length > 0) {
+          let teamIdx = 0;
+          const updates = [];
+
+          for (let i = 0; i < matchCount; i++) {
+            const dbm = targetDbMatches[i];
+            if (dbm && !dbm.player1Id && !dbm.player2Id) {
+              const t1 = teamIdx < qualifiedTeams.length ? qualifiedTeams[teamIdx++] : null;
+              const t2 = teamIdx < qualifiedTeams.length ? qualifiedTeams[teamIdx++] : null;
+
+              if (t1 || t2) {
+                updates.push(
+                  api.put(`/api/bracket-matches/${dbm.id}`, {
+                    player1Id: t1?.id,
+                    player2Id: t2?.id
+                  })
+                );
+                setMatches(prev => {
+                  const nm = [...prev];
+                  const stateIdx = (isSmall ? 8 : 0) + i;
+                  if (nm[stateIdx]) {
+                    if (t1) nm[stateIdx].t1 = t1;
+                    if (t2) nm[stateIdx].t2 = t2;
+                  }
+                  return nm;
+                });
+              }
+            } else {
+              teamIdx += 2;
+            }
+          }
+          if (updates.length > 0) {
+            await Promise.all(updates);
+            console.log("Initial seeding saved to DB.");
+          }
+        }
+
       } catch (e) {
         console.error("Error fetching bracket data:", e);
       } finally {
@@ -416,16 +510,16 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
     setIsModalOpen(true);
   };
 
-  const handleScoreUpdate = (matchId: number, scores: any, shuttles: number) => {
+  const handleScoreUpdate = async (matchId: number, scores: any, shuttles: number) => {
+    // 1. Update Local State for Immediate Feedback
     setMatches(prev => {
       const newMatches = [...prev];
       const match = newMatches[matchId];
       match.scores = scores;
       match.shuttlesUsed = shuttles;
 
-      // Winner Logic
+      // Winner Logic (Local)
       let s1Wins = 0, s2Wins = 0;
-
       if (scores.set1A > scores.set1B) s1Wins++; else if (scores.set1B > scores.set1A) s2Wins++;
       if (scores.set2A > scores.set2B) s1Wins++; else if (scores.set2B > scores.set2A) s2Wins++;
       if (scores.set3A > scores.set3B) s1Wins++; else if (scores.set3B > scores.set3A) s2Wins++;
@@ -459,13 +553,30 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
           const nextMatch = newMatches[nextMatchId];
           if (isSlot1) nextMatch.t1 = winner;
           else nextMatch.t2 = winner;
-          // Reset scores of next match if re-advancing (optional, prevents stale data)
-          // nextMatch.scores = ...
         }
       }
-
       return newMatches;
     });
+
+    // 2. Persist to Database
+    const currentMatch = matches[matchId];
+    if (currentMatch && currentMatch.dbId) {
+      try {
+        const setsStr = `${scores.set1A}:${scores.set1B}, ${scores.set2A}:${scores.set2B}, ${scores.set3A}:${scores.set3B}`;
+        await api.put(`/api/bracket-matches/${currentMatch.dbId}`, {
+          score1: scores.totalA,
+          score2: scores.totalB,
+          sets: setsStr,
+          shuttle: shuttles
+        });
+        console.log("Score saved to DB");
+      } catch (error) {
+        console.error("Failed to save score DB:", error);
+        alert("Warning: Score saved locally but failed to sync with server.");
+      }
+    } else {
+      console.warn("Match missing DB ID, cannot save.");
+    }
   };
 
   const handleDownload = async () => {
@@ -532,7 +643,7 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
       `}</style>
 
         {/* Captured Area Container */}
-        <div ref={bracketRef} className="w-fit min-w-[1500px] p-10" style={{ backgroundColor: "#f9f9f0" }}>
+        <div ref={bracketRef} className={`w-fit p-10 ${isSmallBracket ? 'min-w-[1100px]' : 'min-w-[1500px]'}`} style={{ backgroundColor: "#f9f9f0" }}>
 
           <div className="w-full flex justify-center mb-10">
             <h1 className="text-4xl font-extrabold drop-shadow-sm uppercase tracking-wider sticky left-0 right-0" style={{ color: "#1e3a8a" }}>
@@ -543,8 +654,8 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
           {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
 
           <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
-            <div className="flex justify-between w-[1400px] mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
-              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Round of 16</div>
+            <div className="flex gap-16 mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
+              {!isSmallBracket && <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Round of 16</div>}
               <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Quarter Finals</div>
               <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Semi Finals</div>
               <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "#facc15", color: "#713f12" }}>🏆 Final</div>
@@ -554,60 +665,71 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
             <div className="flex gap-16 relative"> {/* Reduced gap from 20 to 16 for new card size */}
 
               {/* Round of 16 (8 Matches) */}
-              <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
-                {matches.slice(0, 8).map((m, i) => (
-                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
-                ))}
+              {!isSmallBracket && (
+                <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
+                  {matches.slice(0, 8).map((m, i) => (
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                  ))}
 
-                {/* LINES - Recalculated for Card Width 300px */}
-                <div className="absolute inset-0 pointer-events-none -z-10">
-                  {/* R16 -> QF */}
-                  {/* Box Height ~100px? Adjusted logic. 
+                  {/* LINES - Recalculated for Card Width 300px */}
+                  <div className="absolute inset-0 pointer-events-none -z-10">
+                    {/* R16 -> QF */}
+                    {/* Box Height ~100px? Adjusted logic. 
                             If 1050 / 8 = ~131px spacing.
                             Center of box 1 ~65px. 
                         */}
-                  <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
-                    {/* Group 1 */}
-                    <div><Line top={80} left={300} length={20} angle={0} /><Line top={211} left={300} length={20} angle={0} /><Line top={80} left={320} length={131} angle={90} /><Line top={145} left={320} length={30} angle={0} /></div>
-                    {/* Group 2 */}
-                    <div><Line top={342} left={300} length={20} angle={0} /><Line top={473} left={300} length={20} angle={0} /><Line top={342} left={320} length={131} angle={90} /><Line top={407} left={320} length={30} angle={0} /></div>
-                    {/* Group 3 */}
-                    <div><Line top={604} left={300} length={20} angle={0} /><Line top={735} left={300} length={20} angle={0} /><Line top={604} left={320} length={131} angle={90} /><Line top={669} left={320} length={30} angle={0} /></div>
-                    {/* Group 4 */}
-                    <div><Line top={866} left={300} length={20} angle={0} /><Line top={997} left={300} length={20} angle={0} /><Line top={866} left={320} length={131} angle={90} /><Line top={931} left={320} length={30} angle={0} /></div>
+                    <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
+                      {/* Group 1 */}
+                      <div><Line top={55} left={300} length={32} angle={0} /><Line top={186} left={300} length={32} angle={0} /><Line top={55} left={332} length={131} angle={90} /><Line top={120} left={332} length={32} angle={0} /></div>
+                      {/* Group 2 */}
+                      <div><Line top={317} left={300} length={32} angle={0} /><Line top={448} left={300} length={32} angle={0} /><Line top={317} left={332} length={131} angle={90} /><Line top={382} left={332} length={32} angle={0} /></div>
+                      {/* Group 3 */}
+                      <div><Line top={579} left={300} length={32} angle={0} /><Line top={710} left={300} length={32} angle={0} /><Line top={579} left={332} length={131} angle={90} /><Line top={644} left={332} length={32} angle={0} /></div>
+                      {/* Group 4 */}
+                      <div><Line top={841} left={300} length={32} angle={0} /><Line top={972} left={300} length={32} angle={0} /><Line top={841} left={332} length={131} angle={90} /><Line top={906} left={332} length={32} angle={0} /></div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* QF (4 Matches) */}
-              <div className="flex flex-col justify-between h-[906px] mt-[65px] w-[300px] z-10">
+              <div
+                className="flex flex-col justify-between h-[906px] w-[300px] z-10"
+                style={{ marginTop: isSmallBracket ? '0px' : '65px' }}
+              >
                 {matches.slice(8, 12).map((m, i) => (
                   <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
                 ))}
-                <div className="absolute inset-0 pointer-events-none -z-10">
+                <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
                   <div style={{ position: 'relative', top: '-25px' }}>
                     {/* QF -> SF */}
-                    <div><Line top={145} left={650} length={20} angle={0} /><Line top={407} left={650} length={20} angle={0} /><Line top={145} left={670} length={262} angle={90} /><Line top={276} left={670} length={46} angle={0} /></div>
-                    <div><Line top={669} left={650} length={20} angle={0} /><Line top={931} left={650} length={20} angle={0} /><Line top={669} left={670} length={262} angle={90} /><Line top={800} left={670} length={46} angle={0} /></div>
+                    <div><Line top={120} left={664} length={32} angle={0} /><Line top={382} left={664} length={32} angle={0} /><Line top={120} left={696} length={262} angle={90} /><Line top={251} left={696} length={32} angle={0} /></div>
+                    <div><Line top={644} left={664} length={32} angle={0} /><Line top={906} left={664} length={32} angle={0} /><Line top={644} left={696} length={262} angle={90} /><Line top={775} left={696} length={32} angle={0} /></div>
                   </div>
                 </div>
               </div>
 
               {/* SF (2 Matches) */}
-              <div className="flex flex-col justify-between h-[644px] mt-[196px] w-[300px] z-10">
+              <div
+                className="flex flex-col justify-between h-[644px] w-[300px] z-10"
+                style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
+              >
                 {matches.slice(12, 14).map((m, i) => (
                   <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
                 ))}
-                <div className="absolute inset-0 pointer-events-none -z-10">
+                <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
                   <div style={{ position: 'relative', top: '-25px' }}>
                     {/* SF -> Final */}
-                    <div><Line top={276} left={1016} length={20} angle={0} /><Line top={800} left={1016} length={20} angle={0} /><Line top={276} left={1036} length={524} angle={90} /><Line top={538} left={1036} length={46} angle={0} /></div>
+                    <div><Line top={251} left={1028} length={32} angle={0} /><Line top={775} left={1028} length={32} angle={0} /><Line top={251} left={1060} length={524} angle={90} /><Line top={513} left={1060} length={32} angle={0} /></div>
                   </div>
                 </div>
               </div>
 
               {/* Final (1 Match) */}
-              <div className="flex flex-col justify-center h-[120px] mt-[458px] w-[300px] z-10">
+              <div
+                className="flex flex-col justify-center h-[120px] w-[300px] z-10"
+                style={{ marginTop: isSmallBracket ? '393px' : '458px' }}
+              >
                 {matches.slice(14, 15).map((m, i) => (
                   <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
                 ))}
