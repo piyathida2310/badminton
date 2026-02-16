@@ -458,42 +458,71 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
         const matchCount = isSmall ? 4 : 8;
 
         if (qualifiedTeams.length > 0 && targetDbMatches.length > 0) {
-          let teamIdx = 0;
           const updates = [];
+          const half = matchCount / 2;
 
           for (let i = 0; i < matchCount; i++) {
             const dbm = targetDbMatches[i];
-            if (dbm && !dbm.player1Id && !dbm.player2Id) {
-              const t1 = teamIdx < qualifiedTeams.length ? qualifiedTeams[teamIdx++] : null;
-              const t2 = teamIdx < qualifiedTeams.length ? qualifiedTeams[teamIdx++] : null;
 
-              if (t1 || t2) {
+            // Check if match needs population OR update (empty players or outdated)
+            const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
+
+            if (dbm && !hasScore) {
+              // Calculate Indices for Cross-Group Pairing
+              let t1Idx, t2Idx;
+              if (i < half) {
+                // Top Half
+                const gp = i;
+                const g1 = (gp * 2);
+                const g2 = (gp * 2 + 1);
+                t1Idx = g1 * 2;
+                t2Idx = g2 * 2 + 1;
+              } else {
+                // Bottom Half
+                const gp = i - half;
+                const g1 = (gp * 2);
+                const g2 = (gp * 2 + 1);
+                t1Idx = g2 * 2;
+                t2Idx = g1 * 2 + 1;
+              }
+
+              const t1 = qualifiedTeams[t1Idx] || null;
+              const t2 = qualifiedTeams[t2Idx] || null;
+
+              const currentP1 = dbm.player1Id;
+              const currentP2 = dbm.player2Id;
+              const newP1 = t1?.id;
+              const newP2 = t2?.id;
+
+              if (currentP1 !== newP1 || currentP2 !== newP2) {
                 updates.push(
                   api.put(`/api/bracket-matches/${dbm.id}`, {
-                    player1Id: t1?.id,
-                    player2Id: t2?.id
+                    player1Id: newP1,
+                    player2Id: newP2
                   })
                 );
+
                 setMatches(prev => {
                   const nm = [...prev];
                   const stateIdx = (isSmall ? 8 : 0) + i;
                   if (nm[stateIdx]) {
                     if (t1) nm[stateIdx].t1 = t1;
+                    else nm[stateIdx].t1 = { code: "-", name: "-", players: "-" };
+
                     if (t2) nm[stateIdx].t2 = t2;
+                    else nm[stateIdx].t2 = { code: "-", name: "-", players: "-" };
                   }
                   return nm;
                 });
               }
-            } else {
-              teamIdx += 2;
             }
           }
+
           if (updates.length > 0) {
             await Promise.all(updates);
-            console.log("Initial seeding saved to DB.");
+            console.log("Initial seeding updated in DB.");
           }
         }
-
       } catch (e) {
         console.error("Error fetching bracket data:", e);
       } finally {
