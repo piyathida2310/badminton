@@ -19,7 +19,7 @@ const classifyDetail = async (detail: string): Promise<{ action: GroupAction; de
     console.log(`   Input: "${detail}"`);
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",

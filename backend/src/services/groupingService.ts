@@ -10,7 +10,7 @@ export const organizeTournamentGroups = async (
     detail: string
 ) => {
     console.log("\n" + "#".repeat(60));
-    console.log("🏀 [GROUPING SERVICE] START");
+    console.log("[GROUPING SERVICE] START");
     console.log("#".repeat(60));
     console.log(`   Tournament ID: ${tournamentId}`);
     console.log(`   PlayType: ${playType}`);
@@ -41,7 +41,7 @@ export const organizeTournamentGroups = async (
     }
 
     // 1. Filter specific playType
-    console.log(`\n📊 [REGISTRATIONS] Total: ${tournament.registrations.length}`);
+    console.log(`\n[REGISTRATIONS] Total: ${tournament.registrations.length}`);
     const targetRegistrations = tournament.registrations.filter(
         (r) => r.playType === (playType as HandType)
     );
@@ -68,15 +68,15 @@ export const organizeTournamentGroups = async (
     } else {
         numGroups = Math.max(1, Math.floor(tournament.maxPlayers / 4));
     }
-    console.log(`\n🔢 [NUM GROUPS] maxPlayers=${tournament.maxPlayers} => numGroups=${numGroups}`);
+    console.log(`\n[NUM GROUPS] maxPlayers=${tournament.maxPlayers} => numGroups=${numGroups}`);
 
     // 5. Run AI
-    console.log("\n🚀 [CALLING AI] Sending players to AI for grouping...");
+    console.log("\n[CALLING AI] Sending players to AI for grouping...");
     const groupedIds = await groupPlayers(players, detail, numGroups);
-    console.log(`📩 [AI RETURNED] ${groupedIds.length} groups from AI`);
+    console.log(`[AI RETURNED] ${groupedIds.length} groups from AI`);
 
     // 6. Map to groupsMap & Failsafe
-    console.log("\n🗺️ [MAPPING] Mapping AI result to groups...");
+    console.log("\n[MAPPING] Mapping AI result to groups...");
     const groupsMap: { name: string; players: number[] }[] = Array.from(
         { length: numGroups },
         (_, i) => ({
@@ -89,12 +89,12 @@ export const organizeTournamentGroups = async (
         if (index < numGroups) {
             groupsMap[index].players = ids;
         } else {
-            console.log(`   ⚠️ Extra group ${index} merged into last group`);
+            console.log(`   Extra group ${index} merged into last group`);
             groupsMap[numGroups - 1].players.push(...ids);
         }
     });
 
-    console.log("\n📋 [GROUPS MAP] After mapping:");
+    console.log("\n[GROUPS MAP] After mapping:");
     groupsMap.forEach((g) => {
         console.log(`   Group ${g.name}: [${g.players.join(", ")}] (${g.players.length} players)`);
     });
@@ -107,9 +107,9 @@ export const organizeTournamentGroups = async (
         .map((p) => p.id);
 
     if (missingIds.length > 0) {
-        console.log(`\n⚠️ [SERVICE FAILSAFE] ${missingIds.length} missing players: [${missingIds.join(", ")}]`);
+        console.log(`\n[SERVICE FAILSAFE] ${missingIds.length} missing players: [${missingIds.join(", ")}]`);
     } else {
-        console.log("\n✅ [SERVICE FAILSAFE] No missing players!");
+        console.log("\n[SERVICE FAILSAFE] No missing players!");
     }
 
     missingIds.forEach((id) => {
@@ -123,7 +123,7 @@ export const organizeTournamentGroups = async (
                 targetGroupIndex = i;
             }
         }
-        console.log(`   ➡️ Adding ID ${id} to Group ${groupsMap[targetGroupIndex].name} (smallest group)`);
+        console.log(`   Adding ID ${id} to Group ${groupsMap[targetGroupIndex].name} (smallest group)`);
         groupsMap[targetGroupIndex].players.push(id);
     });
 
@@ -132,12 +132,12 @@ export const organizeTournamentGroups = async (
         const before = g.players.length;
         g.players = g.players.filter((id) => allInputIds.has(id));
         if (g.players.length < before) {
-            console.log(`   ❌ Group ${g.name}: removed ${before - g.players.length} invalid IDs`);
+            console.log(`   Group ${g.name}: removed ${before - g.players.length} invalid IDs`);
         }
     });
 
     // 7. Cleanup OLD Groups for this PlayType ONLY
-    console.log("\n🗑️ [DB CLEANUP] Deleting old groups for this playType...");
+    console.log("\n[DB CLEANUP] Deleting old groups for this playType...");
     const groupsToDelete = await prisma.group.findMany({
         where: {
             tournamentId,
@@ -164,11 +164,11 @@ export const organizeTournamentGroups = async (
         await prisma.group.deleteMany({
             where: { id: { in: groupIdsToDelete } },
         });
-        console.log("   ✅ Old groups cleaned up!");
+        console.log("   Old groups cleaned up!");
     }
 
     // 8. Create NEW Groups into DB
-    console.log("\n➕ [DB CREATE] Creating new groups in database...");
+    console.log("\n[DB CREATE] Creating new groups in database...");
     for (const groupData of groupsMap) {
         const groupName = `${playType} Group ${groupData.name}`;
 
@@ -178,7 +178,7 @@ export const organizeTournamentGroups = async (
                 tournamentId: tournamentId,
             },
         });
-        console.log(`   ✅ Created "${groupName}" (DB ID: ${newGroup.id}) with ${groupData.players.length} players: [${groupData.players.join(", ")}]`);
+        console.log(`   Created "${groupName}" (DB ID: ${newGroup.id}) with ${groupData.players.length} players: [${groupData.players.join(", ")}]`);
 
         if (groupData.players.length > 0) {
             await prisma.register.updateMany({
@@ -240,7 +240,7 @@ export const organizeTournamentGroups = async (
     });
 
     console.log("\n" + "#".repeat(60));
-    console.log("🏆 [GROUPING SERVICE] FINAL RESULT");
+    console.log("[GROUPING SERVICE] FINAL RESULT");
     console.log("#".repeat(60));
     console.log(`Total groups returned: ${enrichedGroups.length}`);
     enrichedGroups.forEach((g) => {
