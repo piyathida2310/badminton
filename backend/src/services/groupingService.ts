@@ -157,7 +157,7 @@ export const organizeTournamentGroups = async (
             data: { groupId: null },
         });
 
-        await prisma.match.deleteMany({
+        await prisma.groupMatch.deleteMany({
             where: { groupId: { in: groupIdsToDelete } },
         });
 
@@ -190,7 +190,7 @@ export const organizeTournamentGroups = async (
             let matchCount = 0;
             for (let i = 0; i < groupPlayers.length; i++) {
                 for (let j = i + 1; j < groupPlayers.length; j++) {
-                    await prisma.match.create({
+                    await prisma.groupMatch.create({
                         data: {
                             tournamentId,
                             groupId: newGroup.id,

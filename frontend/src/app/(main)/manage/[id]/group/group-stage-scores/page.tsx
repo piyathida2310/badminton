@@ -85,13 +85,12 @@ export default function GroupStageScoresPage() {
 
         const roundNameStr = row[1] as string;
 
-        await api.put(`/api/matches/${matchId}`, {
+        await api.put(`/api/group-matches/${matchId}`, {
           score1: s1,
           score2: s2,
           shuttle: shuttle,
           time: timeStr,
-          roundName: roundNameStr,
-          sets: setScore // Send the raw sets string
+          sets: setScore
         });
       });
 
