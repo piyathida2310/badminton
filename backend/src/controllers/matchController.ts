@@ -167,8 +167,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.totalScore.toString(),
                 t.won.toString(),
                 t.lost.toString(),
-                t.diff.toString(),
-                t.id.toString()
+                t.diff.toString()
             ]);
 
         rankData.sort((a, b) => {
@@ -710,6 +709,173 @@ export const getBracketMatches = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error("Get Bracket Matches Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// ==================== MATCH HISTORY (ALL MATCHES) ====================
+
+const HAND_TYPE_DISPLAY: Record<string, string> = {
+    BG: "BG", NB: "NB", N: "N", S: "S", P_MINUS: "P-", P_PLUS: "P+"
+};
+
+const MATCH_STATUS_MAP: Record<string, string> = {
+    PENDING: "รอแข่ง",
+    RUNNING: "กำลังแข่ง",
+    FINISHED: "แข่งสำเร็จ",
+    CANCELLED: "ยกเลิก",
+};
+
+export const getMatchHistory = async (req: Request, res: Response) => {
+    try {
+        const { tournamentId } = req.params;
+        const tId = Number(tournamentId);
+        if (!tId) return res.status(400).json({ message: "Invalid Tournament ID" });
+
+        const tournament = await prisma.tournament.findUnique({ where: { id: tId } });
+        if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+
+        const isDouble = tournament.playType === "DOUBLE";
+
+        // Fetch all group matches
+        const groupMatches = await prisma.groupMatch.findMany({
+            where: { tournamentId: tId },
+            include: {
+                player1: true,
+                player2: true,
+                group: true,
+            },
+            orderBy: [{ scheduledTime: "asc" }, { id: "asc" }],
+        });
+
+        // Fetch all bracket matches
+        const bracketMatches = await prisma.bracketMatch.findMany({
+            where: { tournamentId: tId },
+            include: {
+                player1: true,
+                player2: true,
+            },
+            orderBy: [{ roundSequence: "asc" }, { matchSequence: "asc" }, { id: "asc" }],
+        });
+
+        const results: any[] = [];
+
+        // Process Group Matches
+        for (const m of groupMatches) {
+            const handType = m.handType ? (HAND_TYPE_DISPLAY[m.handType] || m.handType) : "-";
+            const status = MATCH_STATUS_MAP[m.status] || m.status;
+            const groupName = m.group?.name || "-";
+            const roundName = m.roundName || "-";
+
+            const timeIn = m.scheduledTime
+                ? new Date(m.scheduledTime).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+                : "-";
+
+            // Player 1
+            const team1 = m.player1?.teamName || "-";
+            const player1A = m.player1?.player1Name || "-";
+            const player1B = isDouble ? (m.player1?.player2Name || undefined) : undefined;
+
+            // Player 2
+            const team2 = m.player2?.teamName || "-";
+            const player2A = m.player2?.player1Name || "-";
+            const player2B = isDouble ? (m.player2?.player2Name || undefined) : undefined;
+
+            const score = (m.score1 !== null && m.score2 !== null)
+                ? `${m.score1} : ${m.score2}`
+                : (m.sets || "-");
+
+            results.push({
+                id: m.id,
+                court: "-",
+                status,
+                matchType: isDouble ? "double" : "single",
+                timeIn,
+                timeOut: "-",
+                duration: "-",
+                type: handType,
+                round: roundName,
+                group: groupName,
+                team1,
+                player1A,
+                player1B,
+                vsGroup: "-",
+                team2,
+                player2A,
+                player2B,
+                score,
+                shuttle: m.shuttle ?? null,
+                stage: "group",
+            });
+        }
+
+        // Process Bracket Matches
+        const roundNameMap: Record<number, string> = {
+            1: "R16",
+            2: "QF",
+            3: "Semi-Final",
+            4: "Final",
+        };
+
+        for (const m of bracketMatches) {
+            const handType = m.handType ? (HAND_TYPE_DISPLAY[m.handType] || m.handType) : "-";
+            const status = MATCH_STATUS_MAP[m.status] || m.status;
+            const stageLabel = m.stage === "LOWER" ? "Lower" : m.stage === "GRAND_FINAL" ? "Grand Final" : "Upper";
+            const roundName = `${stageLabel} ${roundNameMap[m.roundSequence || 0] || `R${m.roundSequence}`}`;
+
+            const timeIn = m.scheduledTime
+                ? new Date(m.scheduledTime).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+                : "-";
+
+            // Player 1
+            const team1 = m.player1?.teamName || "-";
+            const player1A = m.player1?.player1Name || "-";
+            const player1B = isDouble ? (m.player1?.player2Name || undefined) : undefined;
+
+            // Player 2
+            const team2 = m.player2?.teamName || "-";
+            const player2A = m.player2?.player1Name || "-";
+            const player2B = isDouble ? (m.player2?.player2Name || undefined) : undefined;
+
+            const score = (m.score1 !== null && m.score2 !== null)
+                ? `${m.score1} : ${m.score2}`
+                : (m.sets || "-");
+
+            results.push({
+                id: m.id,
+                court: "-",
+                status,
+                matchType: isDouble ? "double" : "single",
+                timeIn,
+                timeOut: "-",
+                duration: "-",
+                type: handType,
+                round: roundName,
+                group: "-",
+                team1,
+                player1A,
+                player1B,
+                vsGroup: "-",
+                team2,
+                player2A,
+                player2B,
+                score,
+                shuttle: m.shuttle ?? null,
+                stage: stageLabel,
+            });
+        }
+
+        return res.status(200).json({
+            message: "Match history fetched successfully",
+            data: results,
+            meta: {
+                totalGroupMatches: groupMatches.length,
+                totalBracketMatches: bracketMatches.length,
+                total: results.length,
+            },
+        });
+    } catch (error) {
+        console.error("Get Match History Error:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };

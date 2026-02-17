@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle,
   Clock,
@@ -8,14 +8,15 @@ import {
   Filter,
   User,
   Users,
-  ArrowLeft,
+  XCircle,
+  Loader2,
 } from "lucide-react";
-import Link from "next/link";
+import api from "../src/lib/api";
 
 interface Match {
   id: number;
   court: string;
-  status: "รอแข่ง" | "กำลังแข่ง" | "แข่งสำเร็จ";
+  status: "รอแข่ง" | "กำลังแข่ง" | "แข่งสำเร็จ" | "ยกเลิก";
   matchType: "single" | "double";
   timeIn: string;
   timeOut: string;
@@ -30,79 +31,50 @@ interface Match {
   team2: string;
   player2A: string;
   player2B?: string;
+  score?: string;
+  stage?: string;
 }
 
-const mockData: Match[] = [
-  {
-    id: 269,
-    court: "A4",
-    status: "แข่งสำเร็จ",
-    matchType: "double",
-    timeIn: "20:39",
-    timeOut: "21:23",
-    duration: "00:44",
-    type: "N",
-    round: "Round1",
-    group: "N1A",
-    team1: "MASTERPIECE",
-    player1A: "ลดัสซน์",
-    player1B: "ภาคภูมิ",
-    vsGroup: "N2A",
-    team2: "โรจน์ทีม",
-    player2A: "อาทิตย์",
-    player2B: "วัชระ",
-  },
-  {
-    id: 270,
-    court: "A1",
-    status: "กำลังแข่ง",
-    matchType: "single",
-    timeIn: "20:04",
-    timeOut: "-",
-    duration: "-",
-    type: "S",
-    round: "Semi-Final",
-    group: "N1C",
-    team1: "YESMINTON",
-    player1A: "ศุภชัย",
-    vsGroup: "N1D",
-    team2: "Sky Smash",
-    player2A: "จิรศักดิ์",
-  },
-  {
-    id: 271,
-    court: "A3",
-    status: "รอแข่ง",
-    matchType: "double",
-    timeIn: "-",
-    timeOut: "-",
-    duration: "-",
-    type: "P+",
-    round: "Round1",
-    group: "N1E",
-    team1: "MUSE by แม่เปิ้ล",
-    player1A: "ญาณภัทร",
-    player1B: "สโรจน์",
-    vsGroup: "N1F",
-    team2: "กรุงเทพชาล์ส",
-    player2A: "ธนภัทร",
-    player2B: "เจษฎา",
-  },
-];
+interface MatchTableProps {
+  tournamentId: string | number;
+}
 
-export default function MatchTable() {
+export default function MatchTable({ tournamentId }: MatchTableProps) {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [filter, setFilter] = useState<
     "ทั้งหมด" | "รอแข่ง" | "กำลังแข่ง" | "แข่งสำเร็จ"
   >("ทั้งหมด");
 
+  useEffect(() => {
+    const fetchMatches = async () => {
+      if (!tournamentId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.get(`/api/match-history/${tournamentId}`);
+        const data: Match[] = res.data.data || [];
+        setMatches(data);
+      } catch (err: any) {
+        console.error("Failed to fetch match history:", err);
+        setError("ไม่สามารถโหลดข้อมูลแมตช์ได้");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMatches();
+  }, [tournamentId]);
+
   const filteredMatches =
     filter === "ทั้งหมด"
-      ? mockData
-      : mockData.filter((m) => m.status === filter);
+      ? matches
+      : matches.filter((m) => m.status === filter);
 
   const countLabel =
     filter === "ทั้งหมด"
-      ? `${mockData.length} แมตช์ทั้งหมด`
+      ? `${matches.length} แมตช์ทั้งหมด`
       : `${filteredMatches.length} แมตช์`;
 
   const renderStatusBadge = (status: string) => {
@@ -132,6 +104,14 @@ export default function MatchTable() {
           <CheckCircle size={12} /> {status}
         </span>
       );
+    if (status === "ยกเลิก")
+      return (
+        <span
+          className={`${base} border-gray-200 bg-gray-100/70 text-gray-600`}
+        >
+          <XCircle size={12} /> {status}
+        </span>
+      );
   };
 
   const renderPlayers = (
@@ -144,7 +124,7 @@ export default function MatchTable() {
         {type === "double" ? (
           <>
             <Users size={12} className="inline mr-1 text-pink-500" />
-            {playerA} / {playerB}
+            {playerA} / {playerB || "-"}
           </>
         ) : (
           <>
@@ -155,6 +135,31 @@ export default function MatchTable() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+        <Loader2 className="w-8 h-8 animate-spin mb-3 text-pink-500" />
+        <p className="text-sm font-medium">กำลังโหลดข้อมูลแมตช์...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16 text-red-500">
+        <p className="font-medium">{error}</p>
+      </div>
+    );
+  }
+
+  if (matches.length === 0) {
+    return (
+      <div className="text-center py-16 text-gray-500">
+        <p className="font-medium">ยังไม่มีแมตช์การแข่งขัน</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6 w-full">
@@ -172,10 +177,10 @@ export default function MatchTable() {
             onChange={(e) =>
               setFilter(
                 e.target.value as
-                  | "ทั้งหมด"
-                  | "รอแข่ง"
-                  | "กำลังแข่ง"
-                  | "แข่งสำเร็จ"
+                | "ทั้งหมด"
+                | "รอแข่ง"
+                | "กำลังแข่ง"
+                | "แข่งสำเร็จ"
               )
             }
             className="w-full appearance-none py-2 px-4 rounded-xl text-sm font-medium text-gray-700
@@ -205,17 +210,15 @@ export default function MatchTable() {
                   "แมทช์",
                   "ประเภท",
                   "รอบ",
-                  "Court",
                   "สถานะ",
                   "เวลาเข้า",
-                  "เวลาออก",
-                  "เวลาที่ใช้",
                   "กลุ่ม",
                   "ทีม A",
                   "ผู้เล่น A",
-                  "VS",
+                  "สกอร์",
                   "ทีม B",
                   "ผู้เล่น B",
+                  "ลูกแบด",
                 ].map((h, i) => (
                   <th
                     key={i}
@@ -229,21 +232,17 @@ export default function MatchTable() {
             <tbody>
               {filteredMatches.map((m, i) => (
                 <tr
-                  key={m.id}
-                  className={`transition-all duration-150 hover:bg-pink-50 ${
-                    i % 2 === 0 ? "bg-white" : "bg-amber-50/40"
-                  }`}
+                  key={`${m.stage}-${m.id}`}
+                  className={`transition-all duration-150 hover:bg-pink-50 ${i % 2 === 0 ? "bg-white" : "bg-amber-50/40"
+                    }`}
                 >
                   <td className="p-2 border border-gray-300">{m.id}</td>
                   <td className="p-2 border border-gray-300">{m.type}</td>
                   <td className="p-2 border border-gray-300">{m.round}</td>
-                  <td className="p-2 border border-gray-300">{m.court}</td>
                   <td className="p-2 border border-gray-300">
                     {renderStatusBadge(m.status)}
                   </td>
                   <td className="p-2 border border-gray-300">{m.timeIn}</td>
-                  <td className="p-2 border border-gray-300">{m.timeOut}</td>
-                  <td className="p-2 border border-gray-300">{m.duration}</td>
                   <td className="p-2 border border-gray-300">{m.group}</td>
                   <td className="p-2 border border-gray-300 font-medium">
                     {m.team1}
@@ -252,13 +251,16 @@ export default function MatchTable() {
                     {renderPlayers(m.matchType, m.player1A, m.player1B)}
                   </td>
                   <td className="p-2 border border-gray-300 font-bold text-gray-700">
-                    VS
+                    {m.score || "-"}
                   </td>
                   <td className="p-2 border border-gray-300 font-medium">
                     {m.team2}
                   </td>
                   <td className="p-2 border border-gray-300">
                     {renderPlayers(m.matchType, m.player2A, m.player2B)}
+                  </td>
+                  <td className="p-2 border border-gray-300">
+                    {m.shuttle !== undefined && m.shuttle !== null ? m.shuttle : "-"}
                   </td>
                 </tr>
               ))}
@@ -271,7 +273,7 @@ export default function MatchTable() {
       <div className="sm:hidden flex flex-col gap-4 mt-2">
         {filteredMatches.map((m) => (
           <div
-            key={m.id}
+            key={`${m.stage}-${m.id}`}
             className="bg-white/70 backdrop-blur-md border border-pink-100 shadow-md rounded-xl p-3 hover:shadow-lg transition-all"
           >
             <div className="flex justify-between items-center mb-2">
@@ -282,21 +284,30 @@ export default function MatchTable() {
             </div>
 
             <p className="text-gray-700 text-xs">
-              <span className="font-semibold">Court:</span> {m.court}
+              <span className="font-semibold">ประเภท:</span> {m.type}
             </p>
-            <p className="text-gray-700 text-xs mb-2">
-              <span className="font-semibold">เวลา:</span> {m.timeIn} - {m.timeOut}
+            <p className="text-gray-700 text-xs">
+              <span className="font-semibold">เวลา:</span> {m.timeIn}
             </p>
+            {m.score && m.score !== "-" && (
+              <p className="text-gray-700 text-xs">
+                <span className="font-semibold">สกอร์:</span> {m.score}
+              </p>
+            )}
 
             <div className="border-t border-dashed border-gray-300 mt-2 pt-2 text-xs">
               <p className="font-semibold text-gray-800">
-                {m.group} | {m.type} ({m.round})
+                {m.group !== "-" ? `${m.group} | ` : ""}{m.type} ({m.round})
               </p>
               <div className="mt-1">
+                <p className="text-gray-500 text-[10px] mb-0.5">ทีม: {m.team1}</p>
                 {renderPlayers(m.matchType, m.player1A, m.player1B)}
               </div>
               <p className="text-center font-bold text-gray-600 mt-1 mb-1">⚔️ VS ⚔️</p>
-              <div>{renderPlayers(m.matchType, m.player2A, m.player2B)}</div>
+              <div>
+                <p className="text-gray-500 text-[10px] mb-0.5">ทีม: {m.team2}</p>
+                {renderPlayers(m.matchType, m.player2A, m.player2B)}
+              </div>
             </div>
           </div>
         ))}

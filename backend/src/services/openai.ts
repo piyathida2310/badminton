@@ -139,7 +139,7 @@ const expandDetail = async (rawDetail: string, players: Player[], numGroups: num
 `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -209,7 +209,7 @@ OUTPUT: { "groups": [[id,id,id,id], [id,id,id,id], ...] }
       console.log(`\n[AI ATTEMPT ${attempt}/${MAX_RETRIES}]`);
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: playerList },
