@@ -345,12 +345,14 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
               name: registration.player1Name,
               phoneNumber: registration.phoneNumber,
               birthday: registration.player1Birthday,
+              gender: registration.player1Gender, // ✅ เพิ่มเพศ
             },
             isDouble
               ? {
                 name: registration.player2Name,
                 phoneNumber: registration.player2Phone,
                 birthday: registration.player2Birthday,
+                gender: registration.player2Gender, // ✅ เพิ่มเพศ
               }
               : undefined,
           ].filter(Boolean),

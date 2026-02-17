@@ -25,6 +25,7 @@ interface ApplicantResponse {
     name?: string | null;
     phoneNumber?: string | null;
     birthday?: string | null;
+    gender?: string | null; // ✅ เพิ่ม field
   }[];
   rank: string;
   rankLabel?: string | null;
@@ -48,6 +49,7 @@ interface Player {
   registrationId: number;
   team: string;
   names: string[];
+  genders: string[]; // ✅ เพิ่ม field
   rank: string;
   type: string;
   videoUrl?: string | null;
@@ -136,10 +138,20 @@ export default function RegisterStatusPage() {
         ? applicant.players.map((p) => p.name || fallbackName).filter(Boolean)
         : [fallbackName];
 
+    const playerGenders =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => {
+          if (p.gender === "MALE") return "ชาย";
+          if (p.gender === "FEMALE") return "หญิง";
+          return p.gender || "-";
+        })
+        : ["-"];
+
     return {
       registrationId: applicant.registrationId,
       team: applicant.teamName || applicant.managerName || fallbackName,
       names: playerNames,
+      genders: playerGenders,
       rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
       type: mapMatchTypeLabel(applicant.matchType),
       videoUrl: applicant.media?.videoUrl ?? null,
@@ -194,15 +206,15 @@ export default function RegisterStatusPage() {
         setTournamentRanks(ranks);
         setTournamentTypes(types);
         // ⭐ ตั้งค่า default เฉพาะครั้งแรกเท่านั้น เพื่อไม่ให้เด้งเวลาเปลี่ยนสถานะ
-setSelectedRank(prev => prev || (ranks.length > 0
-  ? mapHandTypeLabel(ranks[0])
-  : (applicants.length > 0 ? mapHandTypeLabel(applicants[0].rank) : "")
-));
+        setSelectedRank(prev => prev || (ranks.length > 0
+          ? mapHandTypeLabel(ranks[0])
+          : (applicants.length > 0 ? mapHandTypeLabel(applicants[0].rank) : "")
+        ));
 
-setSelectedType(prev => prev || (types.length > 0
-  ? types[0]
-  : (applicants.length > 0 ? mapMatchTypeLabel(applicants[0].matchType) : "")
-));
+        setSelectedType(prev => prev || (types.length > 0
+          ? types[0]
+          : (applicants.length > 0 ? mapMatchTypeLabel(applicants[0].matchType) : "")
+        ));
       } catch (err: any) {
         console.error("Failed to load applicants", err);
         let message =
@@ -415,6 +427,7 @@ setSelectedType(prev => prev || (types.length > 0
                 <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
                   <tr>
                     <th className="border p-2">ชื่อ–นามสกุล</th>
+                    <th className="border p-2">เพศ</th>
                     <th className="border p-2">ประเภทมือ</th>
                     <th className="border p-2">ประเภท</th>
                     <th className="border p-2">วิดีโอ</th>
@@ -442,6 +455,13 @@ setSelectedType(prev => prev || (types.length > 0
                           {p.names.map((n, idx) => (
                             <div key={idx} className="leading-relaxed">
                               {n}
+                            </div>
+                          ))}
+                        </td>
+                        <td className="border p-2">
+                          {p.genders.map((g, idx) => (
+                            <div key={idx} className="leading-relaxed">
+                              {g}
                             </div>
                           ))}
                         </td>
@@ -561,83 +581,87 @@ setSelectedType(prev => prev || (types.length > 0
       </div>
 
       {/* Modal วิดีโอ */}
-      {modalVideo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-xl p-4 w-[90%] md:w-[600px] shadow-xl">
-            <button
-              onClick={() => {
-                setModalVideo(null);
-                setSelectedPlayerIndex(null);
-                setVideoScore(0);
-              }}
-              className="absolute -top-4 -right-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg"
-            >
-              ✕
-            </button>
+      {
+        modalVideo && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="relative bg-white rounded-xl p-4 w-[90%] md:w-[600px] shadow-xl">
+              <button
+                onClick={() => {
+                  setModalVideo(null);
+                  setSelectedPlayerIndex(null);
+                  setVideoScore(0);
+                }}
+                className="absolute -top-4 -right-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg"
+              >
+                ✕
+              </button>
 
 
-            <div className="w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
-              <video
-                src={modalVideo}
-                controls
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            <div className="text-center">
-              <p className="mb-2 font-semibold text-pink-700">
-                ให้คะแนนวิดีโอ (1–10)
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-2">
-                {[...Array(10)].map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setVideoScore(idx + 1)}
-                    className={`w-8 h-8 rounded-full border ${videoScore === idx + 1
-                      ? "bg-pink-500 text-white"
-                      : "bg-white hover:bg-pink-100"
-                      }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                <video
+                  src={modalVideo}
+                  controls
+                  className="w-full h-full object-contain"
+                />
               </div>
 
-              <button
-                onClick={handleConfirmScore}
-                disabled={videoScore === 0}
-                className={`mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all ${videoScore > 0
-                  ? "bg-pink-500 hover:bg-pink-600"
-                  : "bg-gray-300 cursor-not-allowed"
-                  }`}
-              >
-                ตกลง
-              </button>
+              <div className="text-center">
+                <p className="mb-2 font-semibold text-pink-700">
+                  ให้คะแนนวิดีโอ (1–10)
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[...Array(10)].map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setVideoScore(idx + 1)}
+                      className={`w-8 h-8 rounded-full border ${videoScore === idx + 1
+                        ? "bg-pink-500 text-white"
+                        : "bg-white hover:bg-pink-100"
+                        }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleConfirmScore}
+                  disabled={videoScore === 0}
+                  className={`mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all ${videoScore > 0
+                    ? "bg-pink-500 hover:bg-pink-600"
+                    : "bg-gray-300 cursor-not-allowed"
+                    }`}
+                >
+                  ตกลง
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
 
       {/* Modal รูปภาพ */}
-      {modalImage && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-4 shadow-xl relative max-w-[90%] md:max-w-lg">
-            <button
-              onClick={() => setModalImage(null)}
-              className="absolute top-2 right-2 bg-gray-400 text-white rounded-full px-3 py-1"
-            >
-              ✕
-            </button>
-            <img
-              src={modalImage}
-              alt="slip"
-              className="rounded-lg w-full object-contain"
-            />
+      {
+        modalImage && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-4 shadow-xl relative max-w-[90%] md:max-w-lg">
+              <button
+                onClick={() => setModalImage(null)}
+                className="absolute top-2 right-2 bg-gray-400 text-white rounded-full px-3 py-1"
+              >
+                ✕
+              </button>
+              <img
+                src={modalImage}
+                alt="slip"
+                className="rounded-lg w-full object-contain"
+              />
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
