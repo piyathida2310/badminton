@@ -44,6 +44,28 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
     openRankDropdown: false,
   });
 
+  const formatRank = (rank: string) => {
+    switch (rank) {
+      case "P_MINUS":
+        return "P-";
+      case "P_PLUS":
+        return "P+";
+      default:
+        return rank;
+    }
+  };
+
+  const reverseFormatRank = (rank: string) => {
+    switch (rank) {
+      case "P-":
+        return "P_MINUS";
+      case "P+":
+        return "P_PLUS";
+      default:
+        return rank;
+    }
+  };
+
   // ============ popup ยืนยันบันทึก ===============
   const [confirmSave, setConfirmSave] = useState(false);
   const [saveType, setSaveType] = useState<"rule" | "compet" | null>(null);
@@ -108,11 +130,12 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
       // rank เป็น string เช่น "BG / NB"
       // ต้องแปลงกลับไปเป็น array
       const rankArray = compUI.rank.split(" / ").filter((r) => r.trim() !== "");
+      const dbRankArray = rankArray.map(reverseFormatRank);
 
       const payload = {
         time: compUI.time, // string เช่น "14:30"
         detail: compUI.detail, // ข้อความ
-        rank: rankArray, // array เช่น ["BG", "NB"]
+        rank: dbRankArray, // array เช่น ["BG", "NB"]
       };
 
       await axios.put(`/api/compet/${id}`, payload);
@@ -133,7 +156,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
           ...updatedComp[index],
           time: new Date(`1970-01-01T${compUI.time}:00`).toISOString(), // ทำให้ UI ใช้ได้ทันที
           detail: compUI.detail,
-          rank: rankArray,
+          rank: dbRankArray,
         };
 
         return { ...prev, competition: updatedComp };
@@ -468,7 +491,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                           time: new Date(item.time)
                             .toISOString()
                             .substring(11, 16), // <-- แก้ตรงนี้
-                          rank: item.rank.join(" / "),
+                          rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
                         });
@@ -528,7 +551,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                           time: new Date(item.time)
                             .toISOString()
                             .substring(11, 16),
-                          rank: item.rank.join(" / "),
+                          rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
                         });
@@ -591,7 +614,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                           )}
                         </div>
                       ) : (
-                        <>ระดับ {item.rank.join(" / ")}</>
+                        <>ระดับ {item.rank.map(formatRank).join(" / ")}</>
                       )}
                     </td>
 
@@ -603,7 +626,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                           time: new Date(item.time)
                             .toISOString()
                             .substring(11, 16),
-                          rank: item.rank.join(" / "),
+                          rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
                         });
