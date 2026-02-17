@@ -39,6 +39,11 @@ export default function TournamentGroupPage() {
         setTournamentTitle(tournament?.title || "");
         setTournamentStats(tournament);
 
+        // ✅ set matchType
+        if (tournament?.playType) {
+          setMatchType(tournament.playType.toLowerCase() as "single" | "double");
+        }
+
         // ✅ set available ranks & default selection
         let ranks: string[] = [];
         if (Array.isArray(tournament?.rank)) {
