@@ -91,7 +91,7 @@ const alertConfirm = (title: string, text?: string) =>
     showCancelButton: true,
     confirmButtonText: "ยืนยัน",
     cancelButtonText: "ยกเลิก",
-    reverseButtons: true, // ✅ ยืนยันอยู่ก่อน (ซ้าย)
+    reverseButtons: true, //  ยืนยันอยู่ก่อน (ซ้าย)
     focusConfirm: true,
   });
 
@@ -261,7 +261,7 @@ export default function StatusPage() {
       };
       reader.readAsDataURL(file);
 
-      // ✅ toast แจ้งว่าเลือกรูปแล้ว
+      //  toast แจ้งว่าเลือกรูปแล้ว
       toast.fire({ icon: "success", title: "เลือกรูปสลิปแล้ว" });
     }
   };
@@ -272,7 +272,7 @@ export default function StatusPage() {
       return;
     }
 
-    // ✅ Confirm ก่อนส่งสลิป
+    // Confirm ก่อนส่งสลิป
     const result = await alertConfirm("ยืนยันการส่งสลิป", "ต้องการอัปโหลดสลิปการชำระเงินใช่หรือไม่");
     if (!result.isConfirmed) return;
 
@@ -502,7 +502,7 @@ export default function StatusPage() {
                               )}
                             </td>
 
-                            {/* ✅ รวมสถานะการชำระเงินทั้งทีม */}
+                            {/*  รวมสถานะการชำระเงินทั้งทีม */}
                             <td className="p-2 border">
                               {(() => {
                                 const payments = team.members.map((m: any) => m.payment);

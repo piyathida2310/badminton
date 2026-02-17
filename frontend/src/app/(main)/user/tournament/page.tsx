@@ -82,11 +82,17 @@ export default function TournamentPage() {
         <>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {tournaments.map((t) => {
-              // ✅ Calculate if All Ranks are Full
+              //  Calculate if All Ranks are Full
               const ranks = t.rank && Array.isArray(t.rank) ? t.rank : [];
               const isAllFull = ranks.length > 0
                 ? ranks.every(r => (t.registrationStats?.[r] || 0) >= (t.maxPlayers || 0))
                 : (t.currentPlayers || 0) >= (t.maxPlayers || 0);
+
+              //  Check if registration is expired (Close at 00:00 of the tournament start day)
+              const tournamentDate = new Date(t.date);
+              tournamentDate.setHours(0, 0, 0, 0);
+              const now = new Date();
+              const isExpired = now >= tournamentDate;
 
               return (
                 <motion.div
@@ -133,7 +139,7 @@ export default function TournamentPage() {
                     </p>
 
                     {(() => {
-                      const isDisabled = t.canceled || isAllFull;
+                      const isDisabled = t.canceled || isAllFull || isExpired;
 
                       return (
                         <button
@@ -152,9 +158,11 @@ export default function TournamentPage() {
                         >
                           {t.canceled
                             ? "ไม่สามารถเข้าร่วมได้"
-                            : isAllFull
-                              ? "เต็มจำนวนทุกรุ่น"
-                              : "เข้าร่วมการแข่งขัน"}
+                            : isExpired
+                              ? "ปิดรับสมัคร"
+                              : isAllFull
+                                ? "เต็มจำนวนทุกรุ่น"
+                                : "เข้าร่วมการแข่งขัน"}
                         </button>
                       );
                     })()}
