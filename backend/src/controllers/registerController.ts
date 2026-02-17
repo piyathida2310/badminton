@@ -153,7 +153,8 @@ export const createRegistration = async (req: Request, res: Response) => {
         );
 
         // ✅ เก็บ URL ลง DB
-        videoUrl = buildPublicObjectUrl(videoName);
+        // videoUrl = buildPublicObjectUrl(videoName);
+        videoUrl = videoName; // New: Store only Key
       }
     }
 
@@ -567,8 +568,9 @@ export const uploadPaymentSlip = async (req: Request, res: Response) => {
           })
         );
 
-        // ✅ เก็บ URL ลง DB
-        slipUrl = buildPublicObjectUrl(slipName);
+        // ✅ เก็บ Key (filename) ลง DB เท่านั้น (เพื่อให้เหมือน posterImg)
+        // เดิม: slipUrl = buildPublicObjectUrl(slipName);
+        slipUrl = slipName;
       }
     }
 
