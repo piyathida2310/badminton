@@ -70,6 +70,12 @@ const MatchCard = ({
 
     if (s1Wins >= 2) winner = 'A';
     else if (s2Wins >= 2) winner = 'B';
+
+    // Fallback to total score if sets are even or empty
+    if (!winner && scores.totalA !== undefined && scores.totalB !== undefined) {
+      if (scores.totalA > scores.totalB) winner = 'A';
+      else if (scores.totalB > scores.totalA) winner = 'B';
+    }
   }
 
   // Helper to extract first name
@@ -901,8 +907,8 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
                 {/* Final (1 Match) */}
                 <div
-                  className="flex flex-col justify-center h-[120px] w-[300px] z-10"
-                  style={{ marginTop: isSmallBracket ? '393px' : '458px' }}
+                  className="flex flex-col justify-center h-[150px] w-[300px] z-10"
+                  style={{ marginTop: isSmallBracket ? '378px' : '443px' }}
                 >
                   {matches.slice(14, 15).map((m, i) => (
                     <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
