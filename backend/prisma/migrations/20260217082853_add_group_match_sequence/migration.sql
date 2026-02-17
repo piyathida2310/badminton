@@ -151,6 +151,7 @@ CREATE TABLE "GroupMatch" (
     "handType" "HandType",
     "roundName" TEXT,
     "player1Id" INTEGER,
+    "matchSequence" INTEGER,
     "player2Id" INTEGER,
     "winnerId" INTEGER,
     "score1" INTEGER,
