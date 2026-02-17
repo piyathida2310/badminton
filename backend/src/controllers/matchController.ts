@@ -1,6 +1,20 @@
 
 import { Request, Response } from "express";
 import { prisma } from "../services/prismaClient";
+import { HandType } from "@prisma/client";
+
+// Helper for HandType Mapping
+const mapHandType = (ht: string): HandType | undefined => {
+    switch (ht) {
+        case 'S': return 'S';
+        case 'N': return 'N';
+        case 'P-': return 'P_MINUS';
+        case 'P+': return 'P_PLUS';
+        case 'NB': return 'NB';
+        case 'BG': return 'BG';
+        default: return undefined;
+    }
+};
 
 // Helper to calculate points
 function getPoints(score1: number | null, score2: number | null, setScores: string = ""): [number, number] {
@@ -455,13 +469,22 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
 export const getBracketMatches = async (req: Request, res: Response) => {
     try {
         const { tournamentId } = req.params;
+        const handTypeStr = req.query.handType as string;
         const tId = Number(tournamentId);
 
         if (!tId) return res.status(400).json({ message: "Invalid Tournament ID" });
 
-        // 1. Check if matches exist
+        // Map HandType
+        const handType = handTypeStr ? mapHandType(handTypeStr) : undefined;
+
+        // 1. Check if matches exist (Filter by HandType if provided)
+        const whereClause: any = { tournamentId: tId };
+        if (handType) {
+            whereClause.handType = handType;
+        }
+
         const existingMatches = await prisma.bracketMatch.findMany({
-            where: { tournamentId: tId },
+            where: whereClause,
             orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
             include: {
                 player1: true,
@@ -471,15 +494,77 @@ export const getBracketMatches = async (req: Request, res: Response) => {
         });
 
         if (existingMatches.length > 0) {
+            // Check if we need to initialize Lower Bracket (Legacy Fix)
+            const tournament = await prisma.tournament.findUnique({ where: { id: tId } });
+
+            // Robust check for isLowerBracket
+            const rawLower = tournament?.isLowerBracket as any;
+            const isLowerEnabled = rawLower === true || rawLower === "true";
+
+            const hasLowerMatches = existingMatches.some(m => m.stage === 'LOWER');
+
+            if (isLowerEnabled && !hasLowerMatches) {
+                // Initialize Lower Bracket for 32 Teams (Standard)
+                // Structure: 8-4-2-1
+
+                const lowerMatches = [];
+
+                // L-Final (1)
+                const lFinal = await prisma.bracketMatch.create({
+                    data: { tournamentId: tId, roundSequence: 4, matchSequence: 1, stage: 'LOWER', handType: handType || null }
+                });
+
+                // L-SF (2)
+                const lSFs = [];
+                for (let i = 0; i < 2; i++) {
+                    const parent = lFinal;
+                    const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                    const m = await prisma.bracketMatch.create({
+                        data: { tournamentId: tId, roundSequence: 3, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                    });
+                    lSFs.push(m);
+                }
+
+                // L-QF (4)
+                const lQFs = [];
+                for (let i = 0; i < 4; i++) {
+                    const parent = lSFs[Math.floor(i / 2)];
+                    const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                    const m = await prisma.bracketMatch.create({
+                        data: { tournamentId: tId, roundSequence: 2, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                    });
+                    lQFs.push(m);
+                }
+
+                // L-R16 (8)
+                for (let i = 0; i < 8; i++) {
+                    const parent = lQFs[Math.floor(i / 2)];
+                    const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                    await prisma.bracketMatch.create({
+                        data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                    });
+                }
+
+                // Fetch again to include new matches (With HandType Filter)
+                const allMatches = await prisma.bracketMatch.findMany({
+                    where: whereClause,
+                    orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
+                    include: { player1: true, player2: true, winner: true }
+                });
+                return res.status(200).json({ data: allMatches });
+            }
+
             return res.status(200).json({ data: existingMatches });
         }
 
-        // 2. Initialize Bracket
+        // 2. Initialize Bracket (If NO matches found for this HandType)
         // Determine Size
         const tournament = await prisma.tournament.findUnique({ where: { id: tId } });
-        // Logic: If <= 16 teams, we expect 8 Qualifiers (Top 2 of 4 Groups) -> QF Start (4 matches).
-        // If > 16 (e.g. 32), we expect 16 Qualifiers (Top 2 of 8 Groups) -> R16 Start (8 matches).
         const isSmallBracket = (tournament?.maxPlayers || 32) <= 16;
+
+        // Check if lower bracket is enabled for this tournament
+        const rawLower = tournament?.isLowerBracket as any;
+        const isLowerEnabled = rawLower === true || rawLower === "true";
 
         // Structure: 
         // R4: Final (1 Match)
@@ -493,7 +578,8 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                 tournamentId: tId,
                 roundSequence: 4,
                 matchSequence: 1,
-                stage: 'GRAND_FINAL'
+                stage: 'GRAND_FINAL',
+                handType: handType || null
             }
         });
 
@@ -505,7 +591,8 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                 matchSequence: 1,
                 stage: 'UPPER',
                 winnerNextMatchId: final.id,
-                winnerNextMatchSlot: 'P1'
+                winnerNextMatchSlot: 'P1',
+                handType: handType || null
             }
         });
         const sf2 = await prisma.bracketMatch.create({
@@ -515,7 +602,8 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                 matchSequence: 2,
                 stage: 'UPPER',
                 winnerNextMatchId: final.id,
-                winnerNextMatchSlot: 'P2'
+                winnerNextMatchSlot: 'P2',
+                handType: handType || null
             }
         });
         const sfs = [sf1, sf2];
@@ -532,7 +620,8 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                     matchSequence: i + 1,
                     stage: 'UPPER',
                     winnerNextMatchId: parent.id,
-                    winnerNextMatchSlot: slot
+                    winnerNextMatchSlot: slot,
+                    handType: handType || null
                 }
             });
             qfs.push(qf);
@@ -551,16 +640,56 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                         matchSequence: i + 1,
                         stage: 'UPPER',
                         winnerNextMatchId: parent.id,
-                        winnerNextMatchSlot: slot
+                        winnerNextMatchSlot: slot,
+                        handType: handType || null
                     }
                 });
                 r16s.push(r16);
             }
         }
 
+        // Initialize Lower Bracket IF enabled (Recursive-ish but inline)
+        if (isLowerEnabled) {
+            // L-Final (1)
+            const lFinal = await prisma.bracketMatch.create({
+                data: { tournamentId: tId, roundSequence: 4, matchSequence: 1, stage: 'LOWER', handType: handType || null }
+            });
+
+            // L-SF (2)
+            const lSFs = [];
+            for (let i = 0; i < 2; i++) {
+                const parent = lFinal;
+                const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                const m = await prisma.bracketMatch.create({
+                    data: { tournamentId: tId, roundSequence: 3, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                });
+                lSFs.push(m);
+            }
+
+            // L-QF (4)
+            const lQFs = [];
+            for (let i = 0; i < 4; i++) {
+                const parent = lSFs[Math.floor(i / 2)];
+                const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                const m = await prisma.bracketMatch.create({
+                    data: { tournamentId: tId, roundSequence: 2, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                });
+                lQFs.push(m);
+            }
+
+            // L-R16 (8)
+            for (let i = 0; i < 8; i++) {
+                const parent = lQFs[Math.floor(i / 2)];
+                const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                await prisma.bracketMatch.create({
+                    data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                });
+            }
+        }
+
         // Fetch all newly created
         const allMatches = await prisma.bracketMatch.findMany({
-            where: { tournamentId: tId },
+            where: whereClause,
             orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
             include: {
                 player1: true,

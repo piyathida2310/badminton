@@ -36,5 +36,8 @@ export const tournamentSchema = z.object({
   ruleId: z.coerce.number().int("Rule ID ต้องเป็นตัวเลข"),
 
   // แปลง boolean จาก "true"/"false"
-  isLowerBracket: z.coerce.boolean().default(false),
+  isLowerBracket: z
+    .union([z.boolean(), z.string()])
+    .transform((val) => val === true || val === "true")
+    .default(false),
 });

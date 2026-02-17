@@ -35,6 +35,9 @@ interface MatchNode {
 interface ThirtyTwoBracketProps {
   level: string;
   tournamentId?: number;
+  rank?: string;
+  ranks?: string[];
+  onRankChange?: (rank: string) => void;
 }
 
 // --- Helper Components ---
@@ -96,24 +99,25 @@ const MatchCard = ({
         ) : null}
       </div>
 
-      <div className="p-2 flex flex-col gap-1">
+      <div className="p-2 flex flex-col gap-2"> {/* Increased gap from 1 to 2 */}
         {/* Team A */}
         <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'A' ? "#fef9c3" : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+            <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
+              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
                 {t1?.code || "-"}
               </span>
-              <span className="text-[11px] font-semibold truncate" style={{ color: "#1e293b" }}>
+              <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
                 {t1?.name || "-"}
               </span>
             </div>
-            <span className="text-[9px] pl-10 truncate" style={{ color: "#64748b" }}>
+            {/* Adjusted padding and added Line Height */}
+            <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
               {t1?.players || "Waiting..."}
             </span>
           </div>
           {hasScore && (
-            <div className="font-bold text-lg shrink-0" style={{ color: "#1e293b" }}>
+            <div className="font-bold text-lg shrink-0 leading-none" style={{ color: "#1e293b" }}>
               {scores?.totalA ?? 0}
             </div>
           )}
@@ -125,20 +129,20 @@ const MatchCard = ({
         {/* Team B */}
         <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'B' ? "#fef9c3" : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+            <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
+              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
                 {t2?.code || "-"}
               </span>
-              <span className="text-[11px] font-semibold truncate" style={{ color: "#1e293b" }}>
+              <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
                 {t2?.name || "-"}
               </span>
             </div>
-            <span className="text-[9px] pl-10 truncate" style={{ color: "#64748b" }}>
+            <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
               {t2?.players || "Waiting..."}
             </span>
           </div>
           {hasScore && (
-            <div className="font-bold text-lg shrink-0" style={{ color: "#1e293b" }}>
+            <div className="font-bold text-lg shrink-0 leading-none" style={{ color: "#1e293b" }}>
               {scores?.totalB ?? 0}
             </div>
           )}
@@ -294,6 +298,9 @@ const ScoreModal = ({
             </button>
           </div>
         </div>
+
+
+
       </div>
     </div>
   );
@@ -331,7 +338,7 @@ const Line = ({
 );
 
 /* 🏸 Tournament Bracket - Main Component */
-export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBracketProps) {
+export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onRankChange }: ThirtyTwoBracketProps) {
   const [matches, setMatches] = useState<MatchNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSmallBracket, setIsSmallBracket] = useState(false);
@@ -340,6 +347,9 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<MatchNode | undefined>(undefined);
+  const [lowerMatches, setLowerMatches] = useState<any[]>([]);
+  const [showLowerBracket, setShowLowerBracket] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
 
   useEffect(() => {
     // 8 + 4 + 2 + 1 = 15 matches total
@@ -363,11 +373,29 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
         ]);
 
         const tournament = tournamentRes.data.data;
-        const dbMatches: any[] = bracketRes.data.data || []; // Array of BracketMatch
+        const allDbMatches: any[] = bracketRes.data.data || [];
+
+        // Filter Top/Bottom Bracket
+        // User Request: If no lower bracket, don't show it.
+        // We split the matches here.
+        const dbMatches = allDbMatches.filter((m: any) => m.stage === 'UPPER' || m.stage === 'GRAND_FINAL');
+        const lowerDbMatches = allDbMatches.filter((m: any) => m.stage === 'LOWER');
+        setLowerMatches(lowerDbMatches);
 
         // Determine Size
+        // Determine Size & Type
         const isSmall = (tournament?.maxPlayers || 32) <= 16;
         setIsSmallBracket(isSmall);
+
+        // User Logic Final:
+        // isLowerBracket == true -> Show Lower Bracket
+        // isLowerBracket == false -> Hide Lower Bracket
+        // Robust check for string "false" or boolean false
+        const rawLower = tournament?.isLowerBracket;
+        const showLower = rawLower === true || rawLower === "true";
+        setShowLowerBracket(showLower);
+        setDebugInfo(`isLowerBracket in DB: ${JSON.stringify(rawLower)} (${typeof rawLower}) ShowLower: ${showLower}`);
+        console.log("Debug Bracket: isLowerBracket=", rawLower, "ShowLower=", showLower);
 
         // 2. Fetch Group Ranks to build Lookup Map
         const teamLookup = new Map<number, Team>();
@@ -419,7 +447,10 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
           };
 
           // Update from DB
-          dbMatches.forEach(dbm => {
+          // FIX: If level is Lower, use lowerDbMatches. Otherwise use Upper.
+          const targetMatches = (level === "ล่าง" || level === "Lower") ? lowerDbMatches : dbMatches;
+
+          targetMatches.forEach(dbm => {
             const idx = getIndex(dbm.roundSequence, dbm.matchSequence);
             if (idx !== -1 && idx < newMatches.length) {
               const m = newMatches[idx];
@@ -531,7 +562,7 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
     };
 
     loadData();
-  }, [tournamentId]);
+  }, [tournamentId, rank]);
 
 
   const handleMatchClick = (match: MatchNode) => {
@@ -612,9 +643,13 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
     if (bracketRef.current) {
       try {
         const canvas = await html2canvas(bracketRef.current, {
-          scale: 2,
-          backgroundColor: "#f9f9f0", // Hex safe
+          scale: 3, // Higher quality
+          backgroundColor: "#f9f9f0",
           useCORS: true,
+          width: bracketRef.current.scrollWidth,
+          height: bracketRef.current.scrollHeight,
+          windowWidth: bracketRef.current.scrollWidth + 100, // Reduce responsiveness issues
+          windowHeight: bracketRef.current.scrollHeight + 100,
         });
         const image = canvas.toDataURL("image/png");
         const link = document.createElement("a");
@@ -628,6 +663,46 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
     }
   };
 
+  // --- Drag to Scroll Logic ---
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    scrollContainerRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) scrollContainerRef.current.style.cursor = 'grab';
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) scrollContainerRef.current.style.cursor = 'grab';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll-fast factor
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // If this is the "Lower" bracket instance:
+  // 1. If disabled (!showLowerBracket), hide it.
+  // 2. If enabled BUT empty (and not loading), hide it too (Smart Hide).
+  if (level === "ล่าง" || level === "Lower") {
+    if (!showLowerBracket) return null;
+    if (!loading && lowerMatches.length === 0) return null;
+  }
+
   return (
     <div className="relative flex flex-col items-center">
 
@@ -639,134 +714,179 @@ export default function ThirtyTwoBracket({ level, tournamentId }: ThirtyTwoBrack
         onSave={handleScoreUpdate}
       />
 
-      {/* Toolbar */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md p-2 rounded-xl shadow-lg mb-4 mt-2 border border-blue-100 flex gap-4">
-        <button
-          onClick={handleDownload}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-all text-sm"
-        >
-          <Download size={16} /> Download Bracket
-        </button>
-      </div>
+      <button
+        onClick={handleDownload}
+        className="absolute top-4 right-10 z-50 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-all text-sm"
+      >
+        <Download size={16} /> Download Bracket
+      </button>
 
       {/* Scrollable Container (Viewport) */}
       <div
-        className="h-[1200px] w-full overflow-auto flex flex-col items-start py-10 relative custom-scrollbar"
+        ref={scrollContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        className="h-[1200px] w-full overflow-auto flex flex-col items-start py-10 relative custom-scrollbar cursor-grab active:cursor-grabbing"
         style={{ backgroundColor: "#f9f9f0" }}
       >
         <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          height: 8px;
-          width: 8px;
+          display: none;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1; 
+        .custom-scrollbar {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #888; 
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #555; 
-        }
+
       `}</style>
 
         {/* Captured Area Container */}
         <div ref={bracketRef} className={`w-fit p-10 ${isSmallBracket ? 'min-w-[1100px]' : 'min-w-[1500px]'}`} style={{ backgroundColor: "#f9f9f0" }}>
 
+
+
           <div className="w-full flex justify-center mb-10">
-            <h1 className="text-4xl font-extrabold drop-shadow-sm uppercase tracking-wider sticky left-0 right-0" style={{ color: "#1e3a8a" }}>
-              🏸 Tournament Bracket - {level}
+            {/* Header */}
+            <h1 className="text-3xl font-black uppercase tracking-widest mb-8 drop-shadow-sm flex flex-wrap justify-center items-center gap-4" style={{ color: "#1e3a8a" }}>
+              <div className="flex items-center gap-3">
+                <span>🏸</span> TOURNAMENT BRACKET - {level}
+              </div>
+
+              {/* Inline Rank Selector */}
+              {ranks && ranks.length > 0 && (
+                <div className="relative inline-block ml-2 group">
+                  <select
+                    value={rank}
+                    onChange={(e) => onRankChange && onRankChange(e.target.value)}
+                    className="appearance-none font-bold text-xl py-1 pl-4 pr-10 rounded-full cursor-pointer focus:outline-none transition-all shadow-sm"
+                    style={{
+                      backgroundColor: "#fef3c7", // amber-100
+                      borderColor: "#fbbf24", // amber-400
+                      borderWidth: "2px",
+                      color: "#b45309", // amber-700
+                    }}
+                  >
+                    {ranks.map(r => <option key={r} value={r}>CLASS {r}</option>)}
+                  </select>
+                  {/* Custom Arrow */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}> {/* amber-600 */}
+                    <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                  </div>
+                </div>
+              )}
             </h1>
           </div>
 
           {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
 
-          <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
-            <div className="flex gap-16 mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
-              {!isSmallBracket && <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Round of 16</div>}
-              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Quarter Finals</div>
-              <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Semi Finals</div>
-              <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "#facc15", color: "#713f12" }}>🏆 Final</div>
-            </div>
+          {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
 
-            {/* Bracket Layout - Compact */}
-            <div className="flex gap-16 relative"> {/* Reduced gap from 20 to 16 for new card size */}
+          {/* UPPER BRACKET SECTION (Show for BOTH Upper and Lower levels now) */}
+          {/* If level="ล่าง", we are showing Lower Bracket data in this same structure */}
+          {(level === "บน" || level === "Main" || level === "ล่าง" || level === "Lower" || !level) && (
+            <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
+              <div className="flex gap-16 mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
+                {!isSmallBracket && <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Round of 16</div>}
+                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Quarter Finals</div>
+                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>Semi Finals</div>
+                <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "#facc15", color: "#713f12" }}>🏆 Final</div>
+              </div>
 
-              {/* Round of 16 (8 Matches) */}
-              {!isSmallBracket && (
-                <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
-                  {matches.slice(0, 8).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
-                  ))}
+              {/* Bracket Layout - Compact */}
+              <div className="flex gap-16 relative"> {/* Reduced gap from 20 to 16 for new card size */}
 
-                  {/* LINES - Recalculated for Card Width 300px */}
-                  <div className="absolute inset-0 pointer-events-none -z-10">
-                    {/* R16 -> QF */}
-                    {/* Box Height ~100px? Adjusted logic. 
+                {/* Round of 16 (8 Matches) */}
+                {!isSmallBracket && (
+                  <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
+                    {matches.slice(0, 8).map((m, i) => (
+                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                    ))}
+
+                    {/* LINES - Recalculated for Card Width 300px */}
+                    <div className="absolute inset-0 pointer-events-none -z-10">
+                      {/* R16 -> QF */}
+                      {/* Box Height ~100px? Adjusted logic. 
                             If 1050 / 8 = ~131px spacing.
                             Center of box 1 ~65px. 
                         */}
-                    <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
-                      {/* Group 1 */}
-                      <div><Line top={55} left={300} length={32} angle={0} /><Line top={186} left={300} length={32} angle={0} /><Line top={55} left={332} length={131} angle={90} /><Line top={120} left={332} length={32} angle={0} /></div>
-                      {/* Group 2 */}
-                      <div><Line top={317} left={300} length={32} angle={0} /><Line top={448} left={300} length={32} angle={0} /><Line top={317} left={332} length={131} angle={90} /><Line top={382} left={332} length={32} angle={0} /></div>
-                      {/* Group 3 */}
-                      <div><Line top={579} left={300} length={32} angle={0} /><Line top={710} left={300} length={32} angle={0} /><Line top={579} left={332} length={131} angle={90} /><Line top={644} left={332} length={32} angle={0} /></div>
-                      {/* Group 4 */}
-                      <div><Line top={841} left={300} length={32} angle={0} /><Line top={972} left={300} length={32} angle={0} /><Line top={841} left={332} length={131} angle={90} /><Line top={906} left={332} length={32} angle={0} /></div>
+                      <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
+                        {/* Group 1 */}
+                        <div><Line top={55} left={300} length={32} angle={0} /><Line top={186} left={300} length={32} angle={0} /><Line top={55} left={332} length={131} angle={90} /><Line top={120} left={332} length={32} angle={0} /></div>
+                        {/* Group 2 */}
+                        <div><Line top={317} left={300} length={32} angle={0} /><Line top={448} left={300} length={32} angle={0} /><Line top={317} left={332} length={131} angle={90} /><Line top={382} left={332} length={32} angle={0} /></div>
+                        {/* Group 3 */}
+                        <div><Line top={579} left={300} length={32} angle={0} /><Line top={710} left={300} length={32} angle={0} /><Line top={579} left={332} length={131} angle={90} /><Line top={644} left={332} length={32} angle={0} /></div>
+                        {/* Group 4 */}
+                        <div><Line top={841} left={300} length={32} angle={0} /><Line top={972} left={300} length={32} angle={0} /><Line top={841} left={332} length={131} angle={90} /><Line top={906} left={332} length={32} angle={0} /></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* QF (4 Matches) */}
+                <div
+                  className="flex flex-col justify-between h-[906px] w-[300px] z-10"
+                  style={{ marginTop: isSmallBracket ? '0px' : '65px' }}
+                >
+                  {matches.slice(8, 12).map((m, i) => (
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                  ))}
+                  <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
+                    <div style={{ position: 'relative', top: '-25px' }}>
+                      {/* QF -> SF */}
+                      <div><Line top={120} left={664} length={32} angle={0} /><Line top={382} left={664} length={32} angle={0} /><Line top={120} left={696} length={262} angle={90} /><Line top={251} left={696} length={32} angle={0} /></div>
+                      <div><Line top={644} left={664} length={32} angle={0} /><Line top={906} left={664} length={32} angle={0} /><Line top={644} left={696} length={262} angle={90} /><Line top={775} left={696} length={32} angle={0} /></div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* QF (4 Matches) */}
-              <div
-                className="flex flex-col justify-between h-[906px] w-[300px] z-10"
-                style={{ marginTop: isSmallBracket ? '0px' : '65px' }}
-              >
-                {matches.slice(8, 12).map((m, i) => (
-                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
-                ))}
-                <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
-                  <div style={{ position: 'relative', top: '-25px' }}>
-                    {/* QF -> SF */}
-                    <div><Line top={120} left={664} length={32} angle={0} /><Line top={382} left={664} length={32} angle={0} /><Line top={120} left={696} length={262} angle={90} /><Line top={251} left={696} length={32} angle={0} /></div>
-                    <div><Line top={644} left={664} length={32} angle={0} /><Line top={906} left={664} length={32} angle={0} /><Line top={644} left={696} length={262} angle={90} /><Line top={775} left={696} length={32} angle={0} /></div>
+                {/* SF (2 Matches) */}
+                <div
+                  className="flex flex-col justify-between h-[644px] w-[300px] z-10"
+                  style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
+                >
+                  {matches.slice(12, 14).map((m, i) => (
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                  ))}
+                  <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
+                    <div style={{ position: 'relative', top: '-25px' }}>
+                      {/* SF -> Final */}
+                      <div><Line top={251} left={1028} length={32} angle={0} /><Line top={775} left={1028} length={32} angle={0} /><Line top={251} left={1060} length={524} angle={90} /><Line top={513} left={1060} length={32} angle={0} /></div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SF (2 Matches) */}
-              <div
-                className="flex flex-col justify-between h-[644px] w-[300px] z-10"
-                style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
-              >
-                {matches.slice(12, 14).map((m, i) => (
-                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
-                ))}
-                <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
-                  <div style={{ position: 'relative', top: '-25px' }}>
-                    {/* SF -> Final */}
-                    <div><Line top={251} left={1028} length={32} angle={0} /><Line top={775} left={1028} length={32} angle={0} /><Line top={251} left={1060} length={524} angle={90} /><Line top={513} left={1060} length={32} angle={0} /></div>
-                  </div>
+                {/* Final (1 Match) */}
+                <div
+                  className="flex flex-col justify-center h-[120px] w-[300px] z-10"
+                  style={{ marginTop: isSmallBracket ? '393px' : '458px' }}
+                >
+                  {matches.slice(14, 15).map((m, i) => (
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                  ))}
                 </div>
-              </div>
-
-              {/* Final (1 Match) */}
-              <div
-                className="flex flex-col justify-center h-[120px] w-[300px] z-10"
-                style={{ marginTop: isSmallBracket ? '393px' : '458px' }}
-              >
-                {matches.slice(14, 15).map((m, i) => (
-                  <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
-                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* Lower Bracket Placeholder (Hidden if empty) */}
+      {/* Lower Bracket Placeholder (Hidden if disabled) */}
+      {/* Lower Bracket Placeholder (Hidden if empty OR if we are showing the full Lower Bracket view) */}
+      {/* If level="ล่าง", we are already showing the bracket above, so hide this placeholder */}
+      {(showLowerBracket && (level === "Main" || !level)) && (
+        <div className="mt-20 w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400">
+          <h2 className="text-2xl font-bold text-gray-600 mb-4">สายล่าง (Lower Bracket)</h2>
+          {lowerMatches.length > 0 ? (
+            <p className="text-gray-500">Found {lowerMatches.length} matches in Lower Bracket. (Visualization Coming Soon)</p>
+          ) : (
+            <p className="text-gray-400 italic">No matches in Lower Bracket yet.</p>
+          )}
+        </div>
+      )}
+    </div >
   );
 }
