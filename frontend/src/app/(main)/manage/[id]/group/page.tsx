@@ -16,11 +16,11 @@ export default function TournamentGroupPage() {
   );
   const [selectedHandType, setSelectedHandType] = useState("BG");
 
-  // ✅ เก็บ title ของ tournament
+  //  เก็บ title ของ tournament
   const [tournamentTitle, setTournamentTitle] = useState<string>("");
-  // ✅ เก็บข้อมูล Stats เพื่อเช็คจำนวนคนก่อนจัด
+  //  เก็บข้อมูล Stats เพื่อเช็คจำนวนคนก่อนจัด
   const [tournamentStats, setTournamentStats] = useState<any>(null);
-  // ✅ เก็บประเภทมือที่ผู้จัดเลือกเปิด
+  //  เก็บประเภทมือที่ผู้จัดเลือกเปิด
   const [availableRanks, setAvailableRanks] = useState<string[]>([]);
 
   // state สำหรับควบคุมการกดปุ่ม "จัดแข่ง"
@@ -35,16 +35,16 @@ export default function TournamentGroupPage() {
         const res = await axios.get(`/api/tournament/${id}`);
         const tournament = res.data.data;
 
-        // ✅ set title
+        //  set title
         setTournamentTitle(tournament?.title || "");
         setTournamentStats(tournament);
 
-        // ✅ set matchType
+        //  set matchType
         if (tournament?.playType) {
           setMatchType(tournament.playType.toLowerCase() as "single" | "double");
         }
 
-        // ✅ set available ranks & default selection
+        //  set available ranks & default selection
         let ranks: string[] = [];
         if (Array.isArray(tournament?.rank)) {
           ranks = tournament.rank;
@@ -64,7 +64,7 @@ export default function TournamentGroupPage() {
           setSelectedHandType(ranks[0]);
         }
 
-        // ✅ set groups ถ้ามีอยู่แล้ว
+        //  set groups ถ้ามีอยู่แล้ว
         const existingGroups = tournament?.groups;
         if (existingGroups && existingGroups.length > 0) {
           setGroups(existingGroups);
@@ -86,7 +86,7 @@ export default function TournamentGroupPage() {
     (g.name && g.name.includes(selectedHandType))
   );
 
-  // ✅ เก็บรายละเอียดเพิ่มเติมสำหรับ AI
+  // เก็บรายละเอียดเพิ่มเติมสำหรับ AI
   const [detailInput, setDetailInput] = useState("");
 
   // ฟังก์ชันเมื่อกด "จัดแข่ง"
@@ -98,7 +98,7 @@ export default function TournamentGroupPage() {
       const res = await axios.post(
         `/api/tournament/managegroup/${id}`,
         {
-          detail: detailInput || "Balance skill levels", // ✅ ส่ง detail ที่ user พิมพ์
+          detail: detailInput || "Balance skill levels", //  ส่ง detail ที่ user พิมพ์
           playType: selectedHandType
         },
         { timeout: 120000 }
@@ -153,7 +153,7 @@ export default function TournamentGroupPage() {
           })}
         </p>
 
-        {/* ✅ Control Panel Card Layout */}
+        {/*  Control Panel Card Layout */}
         <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 sm:p-8 w-full max-w-2xl transform transition-all hover:scale-[1.01]">
           <div className="space-y-5">
             {/* Row 1: Hand Type Selector */}

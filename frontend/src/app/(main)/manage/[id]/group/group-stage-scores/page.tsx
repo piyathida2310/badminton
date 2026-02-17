@@ -9,14 +9,14 @@ import {
 } from "../../../../../../../components/groupComponents";
 import { GroupTableEditable } from "../../../../../../../components/groupTableEditable";
 import api from "../../../../../../lib/api";
-import Swal from "sweetalert2"; // ✅ เพิ่มแค่นี้เพื่อใช้แจ้งเตือน
+import Swal from "sweetalert2"; //  เพิ่มแค่นี้เพื่อใช้แจ้งเตือน
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
   const { id } = useParams();
 
-  // 🎨 ธีมสีแต่ละกลุ่ม
+  //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
     "Group A": { from: "#FFF8E1", to: "#FFE7B3", accent: "#F59E0B" },
     "Group B": { from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
@@ -24,7 +24,7 @@ export default function GroupStageScoresPage() {
     "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
   };
 
-  // ✅ Extract Theme Key (รองรับชื่อเช่น "BG Group A")
+  //  Extract Theme Key (รองรับชื่อเช่น "BG Group A")
   const match = groupName.match(/Group [A-D]/);
   const themeKey = match ? match[0] : "Group A";
   const theme = themeMap[themeKey] || { from: "#F3F4F6", to: "#E5E7EB", accent: "#6B7280" };
@@ -97,7 +97,7 @@ export default function GroupStageScoresPage() {
       await Promise.all(promises);
       await fetchData(); // Refresh data to update rankings
 
-      // ✅ เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
+      //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
       Swal.fire({
         icon: "success",
         title: "บันทึกเรียบร้อย",
@@ -106,7 +106,7 @@ export default function GroupStageScoresPage() {
     } catch (e) {
       console.error("Save error:", e);
 
-      // ✅ เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนผิดพลาด)
+      //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนผิดพลาด)
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาดในการบันทึก",
