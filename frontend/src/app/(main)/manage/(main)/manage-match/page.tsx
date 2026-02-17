@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import {tournament} from "../../../../../../interface/manage"
+import { tournament } from "../../../../../../interface/manage"
 
 // import component ที่แยกไว้
 import Form from "../../../../../../components/form";
@@ -84,14 +84,14 @@ export default function TournamentManagePage() {
   const [newRoundLevels, setNewRoundLevels] = useState<string[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
-const levelOptions = [
-  { label: "BG", value: "BG" },
-  { label: "NB", value: "NB" },
-  { label: "N", value: "N" },
-  { label: "S", value: "S" },
-  { label: "P-", value: "P_MINUS" },
-  { label: "P+", value: "P_PLUS" },
-];
+  const levelOptions = [
+    { label: "BG", value: "BG" },
+    { label: "NB", value: "NB" },
+    { label: "N", value: "N" },
+    { label: "S", value: "S" },
+    { label: "P-", value: "P_MINUS" },
+    { label: "P+", value: "P_PLUS" },
+  ];
 
   const gradient = useMemo(
     () => ({
@@ -148,7 +148,7 @@ const levelOptions = [
       qrCodeImg: qrFile,
       startDate: date,
       ruleId: null,
-      isLowerBracket: false,
+      isLowerBracket: bracketLines.includes("สายล่าง"),
     });
     if (isFormComplete) setPage("rules");
   };
