@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Upload } from "lucide-react";
 import api from "@/lib/api";
 import Swal from "sweetalert2";
@@ -50,6 +51,20 @@ const mapRank = (rank: string | undefined | null) => {
   }
 };
 
+const mapGender = (gender: string | null | undefined) => {
+  if (!gender) return "-";
+  switch (gender) {
+    case "MALE":
+      return "ชาย";
+    case "FEMALE":
+      return "หญิง";
+    case "OTHER":
+      return "อื่นๆ";
+    default:
+      return gender;
+  }
+};
+
 // -------------------- SweetAlert2 helpers --------------------
 const toast = Swal.mixin({
   toast: true,
@@ -81,6 +96,9 @@ const alertConfirm = (title: string, text?: string) =>
   });
 
 export default function StatusPage() {
+  const searchParams = useSearchParams();
+  const tournamentIdFromUrl = searchParams ? (searchParams.get("tournamentId") || searchParams.get("id")) : null;
+
   const [showPayment, setShowPayment] = useState(false);
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -96,6 +114,7 @@ export default function StatusPage() {
   });
 
   const [teams, setTeams] = useState<any[]>([]);
+  const [tournamentMeta, setTournamentMeta] = useState<any>(null);
 
   // Fetch data from API
   useEffect(() => {
@@ -110,6 +129,7 @@ export default function StatusPage() {
             {
               id: reg.id,
               name: reg.player1Name,
+              gender: reg.player1Gender,
               rank: mapRank(reg.playType?.trim()?.toUpperCase()),
               type: isDouble ? "คู่" : "เดี่ยว",
               register: mapStatus(reg.status),
@@ -121,6 +141,7 @@ export default function StatusPage() {
             members.push({
               id: `${reg.id}_2`,
               name: reg.player2Name,
+              gender: reg.player2Gender,
               rank: mapRank(reg.playType),
               type: "คู่",
               register: mapStatus(reg.status),
@@ -164,6 +185,28 @@ export default function StatusPage() {
 
     fetchRegistrations();
   }, []);
+
+  // Fetch Tournament Meta for Options
+  useEffect(() => {
+    if (tournamentIdFromUrl) {
+      api.get(`/api/tournament/${tournamentIdFromUrl}`)
+        .then((res) => {
+          const data = res.data.data;
+          if (typeof data.rank === "string") {
+            try {
+              data.rank = JSON.parse(data.rank);
+            } catch (e) { }
+          }
+          setTournamentMeta(data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch tournament meta:", err);
+          setTournamentMeta(null);
+        });
+    } else {
+      setTournamentMeta(null);
+    }
+  }, [tournamentIdFromUrl]);
 
   // Fetch QR and Slip when modal opens
   useEffect(() => {
@@ -249,12 +292,12 @@ export default function StatusPage() {
         prev.map((team) =>
           team.registrationId === currentRegistrationId
             ? {
-                ...team,
-                members: team.members.map((m: any) => ({
-                  ...m,
-                  payment: "รอยืนยัน",
-                })),
-              }
+              ...team,
+              members: team.members.map((m: any) => ({
+                ...m,
+                payment: "รอยืนยัน",
+              })),
+            }
             : team
         )
       );
@@ -273,17 +316,43 @@ export default function StatusPage() {
     }
   };
 
+  const teamsInView = useMemo(() => {
+    return teams.filter((team) => {
+      if (!tournamentIdFromUrl) return true;
+      return String(team.tournamentId) === String(tournamentIdFromUrl);
+    });
+  }, [teams, tournamentIdFromUrl]);
+
   const rankOptions = useMemo(() => {
+    if (tournamentIdFromUrl && tournamentMeta?.rank) {
+      const rawRanks = Array.isArray(tournamentMeta.rank) ? tournamentMeta.rank : [];
+      return rawRanks.map((r: string) => mapRank(r)).sort();
+    }
     const ranks = new Set<string>();
-    teams.forEach((team) => {
+    teamsInView.forEach((team) => {
       team.members.forEach((m: any) => {
         if (m.rank) ranks.add(m.rank);
       });
     });
     return Array.from(ranks).sort();
-  }, [teams]);
+  }, [teamsInView, tournamentMeta, tournamentIdFromUrl]);
 
-  const filteredTeams = teams
+  const typeOptions = useMemo(() => {
+    if (tournamentIdFromUrl && tournamentMeta?.playType) {
+      const pt = tournamentMeta.playType;
+      if (pt === "DOUBLE") return ["คู่"];
+      if (pt === "SINGLE") return ["เดี่ยว"];
+    }
+    const types = new Set<string>();
+    teamsInView.forEach((team) => {
+      team.members.forEach((m: any) => {
+        if (m.type) types.add(m.type);
+      });
+    });
+    return Array.from(types).sort();
+  }, [teamsInView, tournamentMeta, tournamentIdFromUrl]);
+
+  const filteredTeams = teamsInView
     .map((team) => ({
       ...team,
       members: team.members.filter((m: any) => {
@@ -320,7 +389,7 @@ export default function StatusPage() {
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
           >
             <option value="">ทั้งหมด</option>
-            {rankOptions.map((r) => (
+            {rankOptions.map((r: string) => (
               <option key={r} value={r}>
                 {r}
               </option>
@@ -336,7 +405,7 @@ export default function StatusPage() {
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
           >
             <option value="">ทั้งหมด</option>
-            {["คู่", "เดี่ยว"].map((t) => (
+            {typeOptions.map((t: string) => (
               <option key={t} value={t}>
                 {t}
               </option>
@@ -371,6 +440,7 @@ export default function StatusPage() {
                       <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
                         <tr>
                           <th className="p-3 border">ชื่อ–นามสกุล</th>
+                          <th className="p-3 border">เพศ</th>
                           <th className="p-3 border">ประเภทมือ</th>
                           <th className="p-3 border">ประเภท</th>
                           <th className="p-3 border">สถานะการสมัคร</th>
@@ -387,6 +457,11 @@ export default function StatusPage() {
                                 <div key={m.id}>{m.name}</div>
                               ))}
                             </td>
+                            <td className="p-3 border text-center leading-relaxed">
+                              {team.members.map((m: any) => (
+                                <div key={m.id}>{mapGender(m.gender)}</div>
+                              ))}
+                            </td>
                             <td className="p-2 border">{team.members[0].rank}</td>
                             <td className="p-2 border">{team.members[0].type}</td>
                             <td className="p-2 border">
@@ -395,17 +470,16 @@ export default function StatusPage() {
                                 const finalStatus = statuses.includes("รอยืนยัน")
                                   ? "รอยืนยัน"
                                   : statuses.includes("สมัครผ่าน")
-                                  ? "สมัครผ่าน"
-                                  : "ยกเลิก";
+                                    ? "สมัครผ่าน"
+                                    : "ยกเลิก";
                                 return (
                                   <span
-                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                      finalStatus === "สมัครผ่าน"
-                                        ? "bg-green-200 text-green-800"
-                                        : finalStatus === "รอยืนยัน"
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === "สมัครผ่าน"
+                                      ? "bg-green-200 text-green-800"
+                                      : finalStatus === "รอยืนยัน"
                                         ? "bg-amber-200 text-amber-800"
                                         : "bg-red-200 text-red-800"
-                                    }`}
+                                      }`}
                                   >
                                     {finalStatus}
                                   </span>
@@ -435,17 +509,16 @@ export default function StatusPage() {
                                 const finalPay = payments.includes("รอยืนยัน")
                                   ? "รอยืนยัน"
                                   : payments.includes("ชำระเงินสำเร็จ")
-                                  ? "ชำระเงินสำเร็จ"
-                                  : "—";
+                                    ? "ชำระเงินสำเร็จ"
+                                    : "—";
                                 return (
                                   <span
-                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                      finalPay === "รอยืนยัน"
-                                        ? "bg-yellow-200 text-yellow-800"
-                                        : finalPay === "ชำระเงินสำเร็จ"
+                                    className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalPay === "รอยืนยัน"
+                                      ? "bg-yellow-200 text-yellow-800"
+                                      : finalPay === "ชำระเงินสำเร็จ"
                                         ? "bg-emerald-200 text-emerald-800"
                                         : "text-gray-400"
-                                    }`}
+                                      }`}
                                   >
                                     {finalPay}
                                   </span>
@@ -458,17 +531,17 @@ export default function StatusPage() {
                           team.members.map((m: any) => (
                             <tr key={m.id} className="hover:bg-slate-50 transition-all">
                               <td className="p-2 border">{m.name}</td>
+                              <td className="p-2 border">{mapGender(m.gender)}</td>
                               <td className="p-2 border">{m.rank}</td>
                               <td className="p-2 border">{m.type}</td>
                               <td className="p-2 border">
                                 <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                    m.register === "สมัครผ่าน"
-                                      ? "bg-green-200 text-green-800"
-                                      : m.register === "รอยืนยัน"
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.register === "สมัครผ่าน"
+                                    ? "bg-green-200 text-green-800"
+                                    : m.register === "รอยืนยัน"
                                       ? "bg-amber-200 text-amber-800"
                                       : "bg-red-200 text-red-800"
-                                  }`}
+                                    }`}
                                 >
                                   {m.register}
                                 </span>
@@ -490,13 +563,12 @@ export default function StatusPage() {
                               </td>
                               <td className="p-2 border">
                                 <span
-                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                                    m.payment === "รอยืนยัน"
-                                      ? "bg-yellow-200 text-yellow-800"
-                                      : m.payment === "ชำระเงินสำเร็จ"
+                                  className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.payment === "รอยืนยัน"
+                                    ? "bg-yellow-200 text-yellow-800"
+                                    : m.payment === "ชำระเงินสำเร็จ"
                                       ? "bg-emerald-200 text-emerald-800"
                                       : "text-gray-400"
-                                  }`}
+                                    }`}
                                 >
                                   {m.payment}
                                 </span>
@@ -570,9 +642,8 @@ export default function StatusPage() {
                     </div>
                   ) : (
                     <label
-                      className={`flex flex-col items-center justify-center text-gray-500 ${
-                        isEditable ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-                      }`}
+                      className={`flex flex-col items-center justify-center text-gray-500 ${isEditable ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                        }`}
                     >
                       <Upload className="w-8 h-8 mb-2" />
                       <p className="text-sm text-center">{isEditable ? "อัปโหลดสลิปชำระเงิน" : "ไม่สามารถอัปโหลดได้"}</p>
@@ -596,9 +667,8 @@ export default function StatusPage() {
                   <button
                     onClick={confirmPayment}
                     disabled={uploading || !uploadedFile}
-                    className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${
-                      uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
-                    }`}
+                    className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                      }`}
                   >
                     {uploading ? "กำลังอัปโหลด..." : "เสร็จสิ้น"}
                   </button>
