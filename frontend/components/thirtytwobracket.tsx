@@ -400,12 +400,13 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         // 2. Fetch Group Ranks to build Lookup Map
         const teamLookup = new Map<number, Team>();
         const qualifiedTeams: Team[] = [];
+        const lowerQualifiedTeams: Team[] = [];
 
         if (tournament && tournament.groups) {
           const groups = tournament.groups;
           const rankPromises = groups.map((g: any) =>
             api.get(`/api/matches/${tournamentId}`, { params: { groupName: g.name } })
-              .then(r => ({ groupName: g.name, ranks: r.data.rank })) // rank includes ID at index 8 now
+              .then(r => ({ groupName: g.name, ranks: r.data.rank, isFinished: r.data.isFinished })) // Received isFinished from backend
               .catch(e => ({ groupName: g.name, ranks: [] }))
           );
 
@@ -414,21 +415,42 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
           results.forEach(res => {
             const ranks = res.ranks;
+            // Only advance if group is finished
+            const isFinished = res.isFinished === true;
+
             // Process Rank 1
-            if (ranks.length > 0) {
+            if (isFinished && ranks.length > 0) {
               const t: Team = { id: Number(ranks[0][8]), code: ranks[0][0], name: ranks[0][2], players: ranks[0][3] };
               teamLookup.set(t.id!, t);
               qualifiedTeams.push(t);
             } else {
-              qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
+              qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
             }
             // Process Rank 2
-            if (ranks.length > 1) {
+            if (isFinished && ranks.length > 1) {
               const t: Team = { id: Number(ranks[1][8]), code: ranks[1][0], name: ranks[1][2], players: ranks[1][3] };
               teamLookup.set(t.id!, t);
               qualifiedTeams.push(t);
             } else {
-              qualifiedTeams.push({ code: "BYE", name: "BYE", players: "-" });
+              qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
+            }
+
+            // Process Rank 3 (for Lower Bracket)
+            if (isFinished && ranks.length > 2) {
+              const t: Team = { id: Number(ranks[2][8]), code: ranks[2][0], name: ranks[2][2], players: ranks[2][3] };
+              teamLookup.set(t.id!, t);
+              lowerQualifiedTeams.push(t);
+            } else {
+              lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
+            }
+
+            // Process Rank 4 (for Lower Bracket)
+            if (isFinished && ranks.length > 3) {
+              const t: Team = { id: Number(ranks[3][8]), code: ranks[3][0], name: ranks[3][2], players: ranks[3][3] };
+              teamLookup.set(t.id!, t);
+              lowerQualifiedTeams.push(t);
+            } else {
+              lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
             }
           });
         }
@@ -483,76 +505,91 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           return newMatches;
         });
 
-        // 4. Initial Population & Persistence
+        // 4. Initial Population & Persistence (Upper)
         const targetRound = isSmall ? 2 : 1;
         const targetDbMatches = dbMatches.filter((m: any) => m.roundSequence === targetRound).sort((a: any, b: any) => a.matchSequence - b.matchSequence);
         const matchCount = isSmall ? 4 : 8;
 
-        if (qualifiedTeams.length > 0 && targetDbMatches.length > 0) {
+        // ONLY seed Upper if level is "บน" or equivalent
+        if ((level === "บน" || level === "Main" || !level) && qualifiedTeams.length > 0 && targetDbMatches.length > 0) {
           const updates = [];
           const half = matchCount / 2;
 
           for (let i = 0; i < matchCount; i++) {
             const dbm = targetDbMatches[i];
-
-            // Check if match needs population OR update (empty players or outdated)
             const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
 
             if (dbm && !hasScore) {
-              // Calculate Indices for Cross-Group Pairing
               let t1Idx, t2Idx;
               if (i < half) {
-                // Top Half
-                const gp = i;
-                const g1 = (gp * 2);
-                const g2 = (gp * 2 + 1);
-                t1Idx = g1 * 2;
-                t2Idx = g2 * 2 + 1;
+                const gp = i; t1Idx = gp * 4; t2Idx = (gp * 4 + 3);
               } else {
-                // Bottom Half
-                const gp = i - half;
-                const g1 = (gp * 2);
-                const g2 = (gp * 2 + 1);
-                t1Idx = g2 * 2;
-                t2Idx = g1 * 2 + 1;
+                const gp = i - half; t1Idx = (gp * 4 + 2); t2Idx = (gp * 4 + 1);
               }
+              // Wait, simplified indexing was: t1Idx = g1 * 2, t2Idx = g2 * 2 + 1
+              // Let's use the proven cross-group logic
+              let g1, g2;
+              if (i < half) { g1 = i * 2; g2 = i * 2 + 1; t1Idx = g1 * 2; t2Idx = g2 * 2 + 1; }
+              else { g1 = (i - half) * 2; g2 = (i - half) * 2 + 1; t1Idx = g2 * 2; t2Idx = g1 * 2 + 1; }
 
               const t1 = qualifiedTeams[t1Idx] || null;
               const t2 = qualifiedTeams[t2Idx] || null;
+              const newP1 = t1?.id; const newP2 = t2?.id;
 
-              const currentP1 = dbm.player1Id;
-              const currentP2 = dbm.player2Id;
-              const newP1 = t1?.id;
-              const newP2 = t2?.id;
-
-              if (currentP1 !== newP1 || currentP2 !== newP2) {
-                updates.push(
-                  api.put(`/api/bracket-matches/${dbm.id}`, {
-                    player1Id: newP1,
-                    player2Id: newP2
-                  })
-                );
-
+              if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
+                updates.push(api.put(`/api/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
                 setMatches(prev => {
                   const nm = [...prev];
                   const stateIdx = (isSmall ? 8 : 0) + i;
                   if (nm[stateIdx]) {
-                    if (t1) nm[stateIdx].t1 = t1;
-                    else nm[stateIdx].t1 = { code: "-", name: "-", players: "-" };
-
-                    if (t2) nm[stateIdx].t2 = t2;
-                    else nm[stateIdx].t2 = { code: "-", name: "-", players: "-" };
+                    nm[stateIdx].t1 = t1 || { code: "-", name: "-", players: "-" };
+                    nm[stateIdx].t2 = t2 || { code: "-", name: "-", players: "-" };
                   }
                   return nm;
                 });
               }
             }
           }
+          if (updates.length > 0) await Promise.all(updates);
+        }
 
-          if (updates.length > 0) {
-            await Promise.all(updates);
-            console.log("Initial seeding updated in DB.");
+        // 5. Initial Population & Persistence (Lower)
+        // ONLY seed Lower if level is "ล่าง"
+        if ((level === "ล่าง" || level === "Lower") && showLower && lowerQualifiedTeams.length > 0 && lowerDbMatches.length > 0) {
+          const updates = [];
+          const targetLowerRound = isSmall ? 2 : 1;
+          const targetLowerMatches = lowerDbMatches.filter((m: any) => m.roundSequence === targetLowerRound).sort((a: any, b: any) => a.matchSequence - b.matchSequence);
+          const lowerMatchCount = isSmall ? 4 : 8;
+          const half = lowerMatchCount / 2;
+
+          for (let i = 0; i < lowerMatchCount; i++) {
+            const dbm = targetLowerMatches[i];
+            const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
+
+            if (dbm && !hasScore) {
+              let g1, g2, t1Idx, t2Idx;
+              if (i < half) { g1 = i * 2; g2 = i * 2 + 1; t1Idx = g1 * 2; t2Idx = g2 * 2 + 1; }
+              else { g1 = (i - half) * 2; g2 = (i - half) * 2 + 1; t1Idx = g2 * 2; t2Idx = g1 * 2 + 1; }
+
+              const t1 = lowerQualifiedTeams[t1Idx] || null;
+              const t2 = lowerQualifiedTeams[t2Idx] || null;
+              const newP1 = t1?.id; const newP2 = t2?.id;
+
+              if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
+                updates.push(api.put(`/api/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
+                setMatches(prev => {
+                  const nm = [...prev];
+                  const stateIdx = (isSmall ? 8 : 0) + i;
+                  if (nm[stateIdx]) {
+                    nm[stateIdx].t1 = t1 || { code: "-", name: "-", players: "-" };
+                    nm[stateIdx].t2 = t2 || { code: "-", name: "-", players: "-" };
+                  }
+                  return nm;
+                });
+              }
+            }
           }
+          if (updates.length > 0) await Promise.all(updates);
         }
       } catch (e) {
         console.error("Error fetching bracket data:", e);
@@ -768,7 +805,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       color: "#b45309", // amber-700
                     }}
                   >
-                    {ranks.map(r => <option key={r} value={r}>CLASS {r}</option>)}
+                    {ranks.map(r => <option key={r} value={r}>ประเภทมือ {r}</option>)}
                   </select>
                   {/* Custom Arrow */}
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}> {/* amber-600 */}

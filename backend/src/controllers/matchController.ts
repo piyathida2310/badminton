@@ -313,9 +313,14 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             ];
         });
 
+        // Check if group is finished
+        // A group is finished if there are no pending matches AND all organized matches have scores/status
+        const isFinished = pendingMatches.length === 0 && organizedMatches.every(m => m.status === 'FINISHED' || (m.score1 !== null && m.score2 !== null));
+
         return res.status(200).json({
             rank: rankData,
-            matches: matchData
+            matches: matchData,
+            isFinished: isFinished // ✅ New Flag
         });
 
     } catch (error) {
@@ -504,17 +509,17 @@ export const getBracketMatches = async (req: Request, res: Response) => {
             const hasLowerMatches = existingMatches.some(m => m.stage === 'LOWER');
 
             if (isLowerEnabled && !hasLowerMatches) {
-                // Initialize Lower Bracket for 32 Teams (Standard)
-                // Structure: 8-4-2-1
-
+                // Initialize Lower Bracket
+                // Respect tournament size
+                const isSmall = (tournament?.maxPlayers || 32) <= 16;
                 const lowerMatches = [];
 
-                // L-Final (1)
+                // L-Final (Round 4)
                 const lFinal = await prisma.bracketMatch.create({
                     data: { tournamentId: tId, roundSequence: 4, matchSequence: 1, stage: 'LOWER', handType: handType || null }
                 });
 
-                // L-SF (2)
+                // L-SF (Round 3)
                 const lSFs = [];
                 for (let i = 0; i < 2; i++) {
                     const parent = lFinal;
@@ -525,7 +530,7 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                     lSFs.push(m);
                 }
 
-                // L-QF (4)
+                // L-QF (Round 2)
                 const lQFs = [];
                 for (let i = 0; i < 4; i++) {
                     const parent = lSFs[Math.floor(i / 2)];
@@ -536,14 +541,17 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                     lQFs.push(m);
                 }
 
-                // L-R16 (8)
-                for (let i = 0; i < 8; i++) {
-                    const parent = lQFs[Math.floor(i / 2)];
-                    const slot = (i % 2 === 0) ? 'P1' : 'P2';
-                    await prisma.bracketMatch.create({
-                        data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
-                    });
+                // L-R16 (Round 1) - ONLY if Not Small
+                if (!isSmall) {
+                    for (let i = 0; i < 8; i++) {
+                        const parent = lQFs[Math.floor(i / 2)];
+                        const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                        await prisma.bracketMatch.create({
+                            data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                        });
+                    }
                 }
+
 
                 // Fetch again to include new matches (With HandType Filter)
                 const allMatches = await prisma.bracketMatch.findMany({
