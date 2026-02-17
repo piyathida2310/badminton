@@ -69,26 +69,30 @@ export function GroupTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
-            <tr
-              key={i}
-              className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
-                } hover:bg-gray-100/60 transition`}
-            >
-              {r.map((v, j) => (
-                <td
-                  key={j}
-                  className={`border border-gray-200 px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
-                    } ${headers[j] === "SET"
-                      ? "whitespace-nowrap font-mono min-w-[80px]"
-                      : ""
-                    }`}
-                >
-                  {v}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {rows.map((r, i) => {
+            // Only show as many columns as there are headers (hide extra data like IDs)
+            const visibleCells = r.slice(0, headers.length);
+            return (
+              <tr
+                key={i}
+                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
+                  } hover:bg-gray-100/60 transition`}
+              >
+                {visibleCells.map((v, j) => (
+                  <td
+                    key={j}
+                    className={`border border-gray-200 px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
+                      } ${headers[j] === "SET"
+                        ? "whitespace-nowrap font-mono min-w-[80px]"
+                        : ""
+                      }`}
+                  >
+                    {v}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

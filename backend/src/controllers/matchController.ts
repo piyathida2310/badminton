@@ -167,7 +167,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.totalScore.toString(),
                 t.won.toString(),
                 t.lost.toString(),
-                t.diff.toString()
+                t.diff.toString(),
+                t.id.toString()
             ]);
 
         rankData.sort((a, b) => {
