@@ -805,7 +805,11 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       color: "#b45309", // amber-700
                     }}
                   >
-                    {ranks.map(r => <option key={r} value={r}>ประเภทมือ {r}</option>)}
+                    {ranks.map(r => (
+                      <option key={r} value={r}>
+                        ประเภทมือ {r === "P_PLUS" ? "P+" : r === "P_MINUS" ? "P-" : r}
+                      </option>
+                    ))}
                   </select>
                   {/* Custom Arrow */}
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}> {/* amber-600 */}
