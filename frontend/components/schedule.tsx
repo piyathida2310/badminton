@@ -51,6 +51,17 @@ export default function Schedule({
     });
   };
 
+  const formatRank = (rank: string) => {
+    switch (rank) {
+      case "P_MINUS":
+        return "P-";
+      case "P_PLUS":
+        return "P+";
+      default:
+        return rank;
+    }
+  };
+
   //  โหลดข้อมูลทั้งหมด
   const fetCompet = async () => {
     try {
@@ -66,46 +77,46 @@ export default function Schedule({
   }, [tournamentID]);
 
   //  บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
- const handleSubmitCom = async () => {
-  try {
-    const payload = {
-      time: safeTime,
-      detail: safeDesc,
-      rank: Array.isArray(safeLevels) ? safeLevels : [safeLevels],
-      tournamentId: tournamentID,
-    };
+  const handleSubmitCom = async () => {
+    try {
+      const payload = {
+        time: safeTime,
+        detail: safeDesc,
+        rank: Array.isArray(safeLevels) ? safeLevels : [safeLevels],
+        tournamentId: tournamentID,
+      };
 
-    //  หาเวลาที่ซ้ำ (เฉพาะตอนเพิ่ม)
-    const duplicate = compet.find(
-      (c) =>
-        formatTime(c.time) === safeTime &&
-        c.tournamentId === tournamentID
-    );
+      //  หาเวลาที่ซ้ำ (เฉพาะตอนเพิ่ม)
+      const duplicate = compet.find(
+        (c) =>
+          formatTime(c.time) === safeTime &&
+          c.tournamentId === tournamentID
+      );
 
-    if (editingCompetID !== null) {
-      // แก้ไขจากปุ่ม "แก้ไข"
-      await axios.put(`/api/compet/${editingCompetID}`, payload);
-    } else if (duplicate) {
-      // เวลาเหมือน → เขียนทับ
-      await axios.put(`/api/compet/${duplicate.id}`, payload);
-    } else {
-      // เพิ่มใหม่
-      await axios.post("/api/compet", payload);
+      if (editingCompetID !== null) {
+        // แก้ไขจากปุ่ม "แก้ไข"
+        await axios.put(`/api/compet/${editingCompetID}`, payload);
+      } else if (duplicate) {
+        // เวลาเหมือน → เขียนทับ
+        await axios.put(`/api/compet/${duplicate.id}`, payload);
+      } else {
+        // เพิ่มใหม่
+        await axios.post("/api/compet", payload);
+      }
+
+      await fetCompet();
+      setShowAddModal(false);
+
+      // reset state
+      setEditIndex(null);
+      setEditingCompetID(null);
+      setNewRoundTime("");
+      setNewRoundDesc("");
+      setNewRoundLevels([]);
+    } catch (error) {
+      console.log(error);
     }
-
-    await fetCompet();
-    setShowAddModal(false);
-
-    // reset state
-    setEditIndex(null);
-    setEditingCompetID(null);
-    setNewRoundTime("");
-    setNewRoundDesc("");
-    setNewRoundLevels([]);
-  } catch (error) {
-    console.log(error);
-  }
-};
+  };
 
   return (
     <>
@@ -189,7 +200,7 @@ export default function Schedule({
                           key={i}
                           className="px-2.5 py-0.5 rounded-full text-[13px] bg-[#f1f9c1] border"
                         >
-                          {lv}
+                          {formatRank(lv)}
                         </span>
                       ))}
                     </div>
@@ -290,7 +301,7 @@ export default function Schedule({
 
                       return (
                         <button
-                          key={value} // ✔ key เป็น string ชัดเจน
+                          key={value} //  key เป็น string ชัดเจน
                           type="button"
                           onClick={() =>
                             setNewRoundLevels((prev: string[]) =>
@@ -300,11 +311,10 @@ export default function Schedule({
                             )
                           }
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border 
-        ${
-          safeLevels.includes(value)
-            ? "bg-pink-200 border-pink-300"
-            : "bg-white border-gray-300"
-        }`}
+        ${safeLevels.includes(value)
+                              ? "bg-pink-200 border-pink-300"
+                              : "bg-white border-gray-300"
+                            }`}
                         >
                           {label}
                         </button>
