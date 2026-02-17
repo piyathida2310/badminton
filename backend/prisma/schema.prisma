@@ -238,6 +238,7 @@ model GroupMatch {
   roundName     String?     // "R1", "R2", "R3"
 
   player1Id     Int?
+  matchSequence Int?        // ลำดับแมตช์ (1, 2, 3...)
   player2Id     Int?
   winnerId      Int?
 

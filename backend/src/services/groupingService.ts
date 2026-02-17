@@ -188,21 +188,56 @@ export const organizeTournamentGroups = async (
 
             const groupPlayers = groupData.players;
             let matchCount = 0;
-            for (let i = 0; i < groupPlayers.length; i++) {
-                for (let j = i + 1; j < groupPlayers.length; j++) {
-                    await prisma.groupMatch.create({
-                        data: {
-                            tournamentId,
-                            groupId: newGroup.id,
-                            player1Id: groupPlayers[i],
-                            player2Id: groupPlayers[j],
-                            handType: playType as HandType,
-                            status: "PENDING",
-                            scheduledTime: tournament.startDate,
-                        },
-                    });
-                    matchCount++;
+
+            // Get Current Max Match Sequence
+            const lastMatch = await prisma.groupMatch.findFirst({
+                where: { tournamentId },
+                orderBy: { matchSequence: 'desc' },
+                select: { matchSequence: true }
+            });
+            let currentSeq = (lastMatch?.matchSequence || 0) + 1;
+
+            // Round Robin Algorithm
+            let rotation = [...groupPlayers];
+            if (rotation.length % 2 !== 0) {
+                rotation.push(-1); // Dummy player for odd number of teams
+            }
+
+            const numTeams = rotation.length;
+            const numRounds = numTeams - 1;
+            const half = numTeams / 2;
+
+            for (let r = 0; r < numRounds; r++) {
+                const roundName = `R${r + 1}`;
+
+                for (let i = 0; i < half; i++) {
+                    const p1 = rotation[i];
+                    const p2 = rotation[numTeams - 1 - i];
+
+                    if (p1 !== -1 && p2 !== -1) {
+                        await prisma.groupMatch.create({
+                            data: {
+                                tournamentId,
+                                groupId: newGroup.id,
+                                player1Id: p1,
+                                player2Id: p2,
+                                handType: playType as HandType,
+                                status: "PENDING",
+                                scheduledTime: tournament.startDate,
+                                roundName: roundName,
+                                matchSequence: currentSeq++, // ✅ Save Sequence
+                            },
+                        });
+                        matchCount++;
+                    }
                 }
+
+                // Rotate teams (keep first fixed)
+                const fixed = rotation[0];
+                const moving = rotation.slice(1);
+                const last = moving.pop();
+                if (last !== undefined) moving.unshift(last);
+                rotation = [fixed, ...moving];
             }
             console.log(`      → Created ${matchCount} matches for this group`);
         }
