@@ -278,13 +278,13 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">ทั้งหมด</option>
-                <option value="double">ประเภทคู่</option>
-                <option value="single">ประเภทเดี่ยว</option>
+                <option value="double">คู่</option>
+                <option value="single">เดี่ยว</option>
               </select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="rank-filter" className="font-medium text-gray-800">มือ:</label>
+              <label htmlFor="rank-filter" className="font-medium text-gray-800">ประเภทมือ:</label>
               <select
                 id="rank-filter"
                 value={selectedRank}
