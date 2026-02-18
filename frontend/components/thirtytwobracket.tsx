@@ -42,6 +42,46 @@ interface ThirtyTwoBracketProps {
 }
 
 // --- Helper Components ---
+const RankBadge = ({ rank }: { rank: string }) => {
+  const is1st = rank === "1st";
+  const is2nd = rank === "2nd";
+  const is3rd = rank === "3rd";
+
+  let background = "#f3f4f6"; // bg-gray-100
+  let color = "#1f2937"; // text-gray-800
+  let borderColor = "#e5e7eb"; // border-gray-200
+  let icon = "🏆";
+  let label = rank.toUpperCase();
+
+  if (is1st) {
+    background = "linear-gradient(to right, #10b981, #059669)"; // emerald-500 to emerald-600
+    color = "#ffffff";
+    borderColor = "#047857"; // emerald-700
+    icon = "🥇";
+    label = "ชนะเลิศ";
+  } else if (is2nd) {
+    background = "linear-gradient(to right, #94a3b8, #64748b)"; // slate-400 to slate-500
+    color = "#ffffff";
+    borderColor = "#475569"; // slate-600
+    icon = "🥈";
+    label = "2nd";
+  } else if (is3rd) {
+    background = "linear-gradient(to right, #d97706, #92400e)"; // amber-600 to amber-800
+    color = "#ffffff";
+    borderColor = "#78350f"; // amber-900
+    icon = "🥉";
+    label = "3rd";
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm border animate-rank-pulse whitespace-nowrap"
+      style={{ background, color, borderColor }}
+    >
+      <span>{icon}</span> {label}
+    </span>
+  );
+};
 
 // 1. Simplified Match Card
 const MatchCard = ({
@@ -50,12 +90,16 @@ const MatchCard = ({
   matchNumber,
   onClick,
   isOrganizer,
+  p1Rank,
+  p2Rank,
 }: {
   matchId: number;
   match?: MatchNode;
   matchNumber?: number;
   onClick: () => void;
   isOrganizer?: boolean;
+  p1Rank?: string;
+  p2Rank?: string;
 }) => {
   const t1 = match?.t1;
   const t2 = match?.t2;
@@ -112,7 +156,7 @@ const MatchCard = ({
 
       <div className="p-2 flex flex-col gap-2"> {/* Increased gap from 1 to 2 */}
         {/* Team A */}
-        <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'A' ? "#fef9c3" : "transparent" }}>
+        <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'A' ? (p1Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
               <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
@@ -121,6 +165,10 @@ const MatchCard = ({
               <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
                 {t1?.name || "-"}
               </span>
+              {p1Rank && <RankBadge rank={p1Rank} />}
+              {winner === 'A' && p1Rank === '1st' && (
+                <span className="text-[9px] font-extrabold uppercase tracking-tighter" style={{ color: "#059669" }}>CHAMPION</span>
+              )}
             </div>
             {/* Adjusted padding and added Line Height */}
             <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
@@ -138,7 +186,7 @@ const MatchCard = ({
         <div className="h-[1px] w-full" style={{ backgroundColor: "#f1f5f9" }} />
 
         {/* Team B */}
-        <div className="flex justify-between items-center p-1 rounded" style={{ backgroundColor: winner === 'B' ? "#fef9c3" : "transparent" }}>
+        <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'B' ? (p2Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
               <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
@@ -147,6 +195,10 @@ const MatchCard = ({
               <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
                 {t2?.name || "-"}
               </span>
+              {p2Rank && <RankBadge rank={p2Rank} />}
+              {winner === 'B' && p2Rank === '1st' && (
+                <span className="text-[9px] font-extrabold uppercase tracking-tighter" style={{ color: "#059669" }}>CHAMPION</span>
+              )}
             </div>
             <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
               {t2?.players || "Waiting..."}
@@ -827,6 +879,14 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           scrollbar-width: none; /* Firefox */
         }
 
+        @keyframes rank-pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.9; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-rank-pulse {
+          animation: rank-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
       `}</style>
 
         {/* Captured Area Container */}
@@ -949,9 +1009,26 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   className="flex flex-col justify-between h-[644px] w-[300px] z-10"
                   style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
                 >
-                  {matches.slice(12, 14).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
-                  ))}
+                  {matches.slice(12, 14).map((m, i) => {
+                    const scores = m.scores;
+                    let p1R, p2R;
+                    if (scores && (scores.totalA > 0 || scores.totalB > 0)) {
+                      if (scores.totalA < scores.totalB) p1R = "3rd";
+                      else if (scores.totalB < scores.totalA) p2R = "3rd";
+                    }
+                    return (
+                      <MatchCard
+                        key={m.id}
+                        matchId={m.id}
+                        matchNumber={m.id + 1}
+                        match={m}
+                        onClick={() => handleMatchClick(m)}
+                        isOrganizer={isOrganizer}
+                        p1Rank={p1R}
+                        p2Rank={p2R}
+                      />
+                    );
+                  })}
                   <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
                     <div style={{ position: 'relative', top: '-25px' }}>
                       {/* SF -> Final */}
@@ -965,9 +1042,31 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   className="flex flex-col justify-center h-[150px] w-[300px] z-10"
                   style={{ marginTop: isSmallBracket ? '378px' : '443px' }}
                 >
-                  {matches.slice(14, 15).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
-                  ))}
+                  {matches.slice(14, 15).map((m, i) => {
+                    const scores = m.scores;
+                    let p1R, p2R;
+                    if (scores && (scores.totalA > 0 || scores.totalB > 0)) {
+                      if (scores.totalA > scores.totalB) {
+                        p1R = "1st";
+                        p2R = "2nd";
+                      } else if (scores.totalB > scores.totalA) {
+                        p1R = "2nd";
+                        p2R = "1st";
+                      }
+                    }
+                    return (
+                      <MatchCard
+                        key={m.id}
+                        matchId={m.id}
+                        matchNumber={m.id + 1}
+                        match={m}
+                        onClick={() => handleMatchClick(m)}
+                        isOrganizer={isOrganizer}
+                        p1Rank={p1R}
+                        p2Rank={p2R}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
