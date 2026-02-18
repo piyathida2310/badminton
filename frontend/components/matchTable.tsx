@@ -33,6 +33,7 @@ interface Match {
   player2B?: string;
   score?: string;
   stage?: string;
+  shuttle?: number;
 }
 
 interface MatchTableProps {

@@ -185,6 +185,8 @@ export const getTournament = async (req: Request, res: Response) => {
       competition: data.competition,
       rule: data.rule,
       groups: formattedGroups,
+      organizerId: data.organizerId,
+      isOrganizer: Number(req.user?.sub) === data.organizerId,
     };
 
     return res.status(200).json({

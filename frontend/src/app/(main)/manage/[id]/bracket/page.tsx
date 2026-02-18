@@ -10,6 +10,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
   const [round, setRound] = useState<number>(32); // Default 32
   const [ranks, setRanks] = useState<string[]>([]);
   const [selectedRank, setSelectedRank] = useState<string>("");
+  const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
   // Unwrap params using React.use()
   const unwrappedParams = use(params);
 
@@ -31,6 +32,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
             // Logic kept for reference, but currently forced to 32
           }
         }
+        setIsOrganizer(data.isOrganizer || false);
       } catch (error) {
         console.error("Failed to fetch tournament size", error);
       }
@@ -52,6 +54,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
           rank={selectedRank}
           ranks={ranks}
           onRankChange={setSelectedRank}
+          isOrganizer={isOrganizer}
         />
         <ThirtyTwoBracket
           key={`lower-${selectedRank}`}
@@ -60,6 +63,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
           rank={selectedRank}
           ranks={ranks}
           onRankChange={setSelectedRank}
+          isOrganizer={isOrganizer}
         />
       </div>
     </div>

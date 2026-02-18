@@ -216,14 +216,19 @@ export default function RegisterStatusPage() {
           : (applicants.length > 0 ? mapMatchTypeLabel(applicants[0].matchType) : "")
         ));
       } catch (err: any) {
-        console.error("Failed to load applicants", err);
+        // Only log error if not 403
+        if (err?.response?.status !== 403) {
+          console.error("Failed to load applicants", err);
+        }
+
         let message =
           err?.response?.data?.message ||
           "ไม่สามารถโหลดรายชื่อผู้สมัครได้ โปรดลองใหม่อีกครั้ง";
 
         if (
           err?.response?.status === 403 ||
-          message.includes("Forbidden: only the tournament organizer can view applicants")
+          message.includes("Forbidden") ||
+          message.includes("permissions")
         ) {
           message = "คุณไม่สามารถดูข้อมูลนี้ได้ เนื่องจากไม่ใช่รายการแข่งขันของคุณ";
         }
@@ -392,7 +397,12 @@ export default function RegisterStatusPage() {
       )}
 
       {error && (
-        <div className="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-center">
+        <div
+          className={`max-w-4xl mx-auto mb-6 px-4 py-3 rounded-xl text-center border ${error.includes("คุณไม่สามารถ")
+            ? "bg-slate-50 border-slate-200 text-slate-500"
+            : "bg-red-50 border-red-200 text-red-700"
+            }`}
+        >
           {error}
         </div>
       )}

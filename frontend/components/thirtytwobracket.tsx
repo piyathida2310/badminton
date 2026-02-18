@@ -38,6 +38,7 @@ interface ThirtyTwoBracketProps {
   rank?: string;
   ranks?: string[];
   onRankChange?: (rank: string) => void;
+  isOrganizer?: boolean;
 }
 
 // --- Helper Components ---
@@ -344,7 +345,7 @@ const Line = ({
 );
 
 /* 🏸 Tournament Bracket - Main Component */
-export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onRankChange }: ThirtyTwoBracketProps) {
+export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onRankChange, isOrganizer }: ThirtyTwoBracketProps) {
   const [matches, setMatches] = useState<MatchNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSmallBracket, setIsSmallBracket] = useState(false);
@@ -648,6 +649,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
   const handleMatchClick = (match: MatchNode) => {
+    if (!isOrganizer) return;
     setSelectedMatch(match);
     setIsModalOpen(true);
   };
