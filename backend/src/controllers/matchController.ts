@@ -2,6 +2,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../services/prismaClient";
 import { HandType } from "@prisma/client";
+import crypto from "crypto";
+import { signGetObjectUrl, uploadFileToS3 } from "../services/storageService";
+import { refreshTournamentSummary } from "./summaryController";
 
 // Helper for HandType Mapping
 const mapHandType = (ht: string): HandType | undefined => {
@@ -469,6 +472,14 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
                 data: {
                     [slotField]: winnerId
                 }
+            });
+        }
+
+        // 🏆 Refresh Tournament Summary if it's a critical match (Semi-Final or Final)
+        // We do it asynchronously to not block the response
+        if (match.roundSequence >= 3) {
+            refreshTournamentSummary(match.tournamentId).catch(err => {
+                console.error("Async Summary Refresh Error:", err);
             });
         }
 

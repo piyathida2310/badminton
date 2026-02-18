@@ -37,7 +37,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   const initialTournamentId = Number(unwrappedParams.id);
 
   const [currentId, setCurrentId] = useState(initialTournamentId);
-  const [tournaments, setTournaments] = useState<{ id: number; name: string }[]>([]);
+  const [tournaments, setTournaments] = useState<{ id: number; title: string }[]>([]);
   const [tournamentName, setTournamentName] = useState("");
   const [allResults, setAllResults] = useState<SectionData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const res = await api.get("/api/tournament");
+        const res = await api.get("/api/tournament?limit=100");
         setTournaments(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch tournaments", err);
@@ -66,13 +66,66 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
       try {
         const tRes = await api.get(`/api/tournament/${currentId}`);
         const tData = tRes.data.data;
-        setTournamentName(tData.name || "รายการแข่งขัน");
+        setTournamentName(tData.title || "รายการแข่งขัน");
         if (tData.rank) setAvailableRanks(tData.rank);
 
-        // Fetch ALL matches across all ranks
+        // 🏆 1. Try to fetch Persisted Summary Data (Faster & Persistent)
+        const sRes = await api.get(`/api/summary/${currentId}`);
+        const summaryData: any[] = sRes.data.data || [];
+
+        if (summaryData.length > 0) {
+          console.log(`[Results Summary] Found ${summaryData.length} persisted records.`);
+
+          const groupedMap = new Map<string, Match[]>();
+          summaryData.forEach(item => {
+            const reg = item.register;
+            if (!reg) return;
+            const rankKey = reg.playType || "BG";
+            const isLower = item.position >= 4;
+            const stageLabel = isLower ? "สายล่าง" : "สายบน";
+            const groupKey = `${rankKey}-${stageLabel}`;
+
+            if (!groupedMap.has(groupKey)) groupedMap.set(groupKey, []);
+
+            // Adjust position label for Lower bracket
+            const posLabel = item.position === 1 || item.position === 4 ? "ชนะเลิศ" :
+              item.position === 2 || item.position === 5 ? "รองชนะเลิศอันดับ 1" :
+                "รองชนะเลิศอันดับ 2";
+
+            const rankLabel = item.position === 1 || item.position === 4 ? "1st" :
+              item.position === 2 || item.position === 5 ? "2nd" :
+                "3rd";
+
+            groupedMap.get(groupKey)!.push({
+              position: posLabel,
+              rank: rankLabel,
+              code: `${rankKey}${item.position}`,
+              team: reg.teamName || reg.player1Name || "-",
+              player1: reg.player1Name || "-",
+              player2: reg.player2Name,
+              shuttle: String(item.shuttleUsed || 0)
+            });
+          });
+
+          const sections: SectionData[] = [];
+          groupedMap.forEach((matches, groupKey) => {
+            const [rankKey, stageLabel] = groupKey.split("-");
+            sections.push({
+              title: `${rankKey} ${stageLabel}`,
+              color: RANK_COLORS[rankKey] || "from-gray-100 to-slate-100",
+              type: matches.some(m => m.player2) ? "double" : "single",
+              matches: matches
+            });
+          });
+          setAllResults(sections);
+          setLoading(false);
+          return;
+        }
+
+        // 🏆 2. Fallback: Dynamic Calculation from Matches (For existing data or pending results)
+        console.log("[Results Summary] No persisted summary found. Falling back to dynamic calculation.");
         const bRes = await api.get(`/api/bracket-matches/${currentId}?all=true`);
         const allMatches: any[] = bRes.data.data || [];
-        console.log(`[Results DEBUG] Tournament ID: ${currentId}, Matches Count: ${allMatches.length}`);
 
         const groupedMap = new Map<string, any[]>();
         allMatches.forEach(m => {
@@ -82,97 +135,54 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
         });
 
         const sections: SectionData[] = [];
-
         groupedMap.forEach((matches, rankKey) => {
-          console.group(`[Results DEBUG] Processing Rank: ${rankKey}`);
           const podiumMatches: Match[] = [];
-
-          // 🏆 สำคัญมาก: ต้องแยกสายบน (UPPER/GRAND_FINAL) ออกจากสายล่าง (LOWER) 
-          // เพราะเลขรอบ (RoundSequence) อาจจะซ้ำกันได้ครับ
           const upperMatches = matches.filter(m => m.stage !== 'LOWER');
-
-          if (upperMatches.length === 0) {
-            console.warn(`No upper matches found for ${rankKey}`);
-            console.groupEnd();
-            return;
-          }
+          if (upperMatches.length === 0) return;
 
           const maxRound = Math.max(...upperMatches.map(m => m.roundSequence || 0));
-          console.log(`Max Upper Round detected: ${maxRound}`);
 
-          // 🏆 1. หาแมตช์รอบชิง (Final) ในสายบน/Grand Final เท่านั้น
           const finalCandidate =
             upperMatches.find(m => m.stage === 'GRAND_FINAL') ||
             upperMatches.find(m => m.roundSequence === maxRound && m.matchSequence === 1);
 
           if (finalCandidate) {
             const f = finalCandidate;
-            console.log(`Found Final candidate: ID=${f.id}, Stage=${f.stage}, Score=${f.score1}-${f.score2}`, f);
-
-            // ตรวจสอบว่าแมตช์ต้องจบแล้ว (Status เป็น FINISHED หรือมีคะแนนลงไว้ทั้งสองฝั่ง)
             const isDone = f.status === "FINISHED" || (f.score1 !== null && f.score2 !== null);
-
             if (isDone) {
               let winner = null, runnerUp = null;
-
-              // 1. ลองดึงจาก winner object โดยตรง (Backend ส่งมาให้แล้ว)
               if (f.winner) {
                 winner = f.winner;
                 runnerUp = (f.winnerId == f.player1Id) ? f.player2 : f.player1;
-                console.log("Winner identified from winner object");
-              }
-              // 2. ถ้า winner object ไม่มี ลองดึงจาก winnerId
-              else if (f.winnerId) {
-                if (f.winnerId == f.player1Id) {
-                  winner = f.player1; runnerUp = f.player2;
-                } else if (f.winnerId == f.player2Id) {
-                  winner = f.player2; runnerUp = f.player1;
-                }
-                console.log("Winner identified from winnerId");
-              }
-              // 3. ถ้าไม่มีทั้งคู่ ลองคำนวณจากคะแนน (Visual Consensus)
-              else if (f.score1 !== null && f.score2 !== null) {
-                if (f.score1 > f.score2) {
-                  winner = f.player1; runnerUp = f.player2;
-                } else if (f.score2 > f.score1) {
-                  winner = f.player2; runnerUp = f.player1;
-                }
-                console.log("Winner identified from Score fallback");
+              } else if (f.winnerId) {
+                if (f.winnerId == f.player1Id) { winner = f.player1; runnerUp = f.player2; }
+                else if (f.winnerId == f.player2Id) { winner = f.player2; runnerUp = f.player1; }
+              } else if (f.score1 !== null && f.score2 !== null) {
+                if (f.score1 > f.score2) { winner = f.player1; runnerUp = f.player2; }
+                else if (f.score2 > f.score1) { winner = f.player2; runnerUp = f.player1; }
               }
 
               if (winner) {
                 podiumMatches.push({
-                  position: "ชนะเลิศ",
-                  rank: "1st",
-                  code: `${rankKey}1ST`,
+                  position: "ชนะเลิศ", rank: "1st", code: `${rankKey}1ST`,
                   team: winner.teamName || winner.player1Name || "-",
-                  player1: winner.player1Name || "-",
-                  player2: winner.player2Name,
+                  player1: winner.player1Name || "-", player2: winner.player2Name,
                   shuttle: String(f.shuttle || 0)
                 });
               }
-
               if (runnerUp) {
                 podiumMatches.push({
-                  position: "รองชนะเลิศอันดับ 1",
-                  rank: "2nd",
-                  code: `${rankKey}2ND`,
+                  position: "รองชนะเลิศอันดับ 1", rank: "2nd", code: `${rankKey}2ND`,
                   team: runnerUp.teamName || runnerUp.player1Name || "-",
-                  player1: runnerUp.player1Name || "-",
-                  player2: runnerUp.player2Name,
+                  player1: runnerUp.player1Name || "-", player2: runnerUp.player2Name,
                   shuttle: String(f.shuttle || 0)
                 });
               }
-            } else {
-              console.log("Final candidate found but not done yet (No score or not FINISHED)");
             }
           }
 
-          // 🏆 2. หาแมตช์รองชนะเลิศอันดับ 2 (3rd Place)
-          // คือผู้แพ้จากรอบรองชนะเลิศ (Semi-Final) ในสายบน
           const semiRound = Math.max(1, maxRound - 1);
           const semis = upperMatches.filter(m => m.roundSequence === semiRound);
-
           semis.forEach((sm) => {
             const isSemiDone = sm.status === "FINISHED" || (sm.score1 !== null && sm.score2 !== null);
             if (isSemiDone) {
@@ -182,15 +192,11 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
               } else if (sm.score1 !== null && sm.score2 !== null) {
                 loser = sm.score1 > sm.score2 ? sm.player2 : sm.player1;
               }
-
               if (loser) {
                 podiumMatches.push({
-                  position: `รองชนะเลิศอันดับ 2`,
-                  rank: "3rd",
-                  code: `${rankKey}3RD`,
+                  position: `รองชนะเลิศอันดับ 2`, rank: "3rd", code: `${rankKey}3RD`,
                   team: loser.teamName || loser.player1Name || "-",
-                  player1: loser.player1Name || "-",
-                  player2: loser.player2Name,
+                  player1: loser.player1Name || "-", player2: loser.player2Name,
                   shuttle: String(sm.shuttle || 0)
                 });
               }
@@ -205,7 +211,6 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
               matches: podiumMatches
             });
           }
-          console.groupEnd();
         });
 
         setAllResults(sections);
@@ -248,8 +253,6 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
         </h1>
 
         <div className="mt-4 text-gray-700 leading-relaxed space-y-1">
-          <p className="font-semibold text-lg text-gray-800">{tournamentName}</p>
-          <p>รายการแข่งขันแบดมินตัน</p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
@@ -261,7 +264,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
                 {tournaments.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                  <option key={t.id} value={t.id}>{t.title}</option>
                 ))}
               </select>
             </div>
