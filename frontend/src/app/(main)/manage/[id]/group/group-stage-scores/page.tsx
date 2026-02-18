@@ -34,6 +34,22 @@ export default function GroupStageScoresPage() {
     rank: [],
     matches: [],
   });
+  const [isOrganizer, setIsOrganizer] = useState(false);
+
+  useEffect(() => {
+    const fetchTournamentData = async () => {
+      try {
+        const res = await api.get(`/api/tournament/${id}`);
+        // Assuming the API returns isOrganizer based on your previous changes
+        if (res.data.data) {
+          setIsOrganizer(res.data.data.isOrganizer || false);
+        }
+      } catch (err) {
+        console.error("Error checking organizer status:", err);
+      }
+    };
+    if (id) fetchTournamentData();
+  }, [id]);
 
   const fetchData = async () => {
     if (!id || !groupName) return;
@@ -55,6 +71,8 @@ export default function GroupStageScoresPage() {
   }, [id, groupName]);
 
   const handleSave = async (updatedMatches: any[][]) => {
+    if (!isOrganizer) return; // Prevent saving if not organizer
+
     try {
       const promises = updatedMatches.map(async (row) => {
         const matchId = row[13];
@@ -83,7 +101,7 @@ export default function GroupStageScoresPage() {
         let s1 = hasValidScore ? totalS1 : undefined;
         let s2 = hasValidScore ? totalS2 : undefined;
 
-        const roundNameStr = row[1] as string;
+        // ... (rest of logic same)
 
         await api.put(`/api/group-matches/${matchId}`, {
           score1: s1,
@@ -139,6 +157,7 @@ export default function GroupStageScoresPage() {
           headers={["เวลา", "รอบ", "แมตช์", "ทีม", "__MERGE__", "ผู้เล่น", "P", "SET", "P", "ทีม", "__MERGE__", "ผู้เล่น", "ลูกแบต"]}
           rows={selected.matches}
           onSave={handleSave}
+          isAdmin={isOrganizer}
         />
       </div>
     </div>

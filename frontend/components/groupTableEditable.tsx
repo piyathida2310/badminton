@@ -6,11 +6,13 @@ export function GroupTableEditable({
   headers,
   rows,
   onSave,
+  isAdmin,
 }: {
   title: string;
   headers: string[];
   rows: any[][];
   onSave?: (data: any[][]) => void;
+  isAdmin?: boolean;
 }) {
   console.log("GroupTableEditable rows prop changed:", rows);
   const [data, setData] = useState(rows);
@@ -22,6 +24,7 @@ export function GroupTableEditable({
   }, [rows]);
 
   const handleSetChange = (rowIndex: number, setIdx: number, side: number, value: string) => {
+    if (!isAdmin) return;
     if (value !== "" && parseInt(value) < 0) return;
 
     const newData = [...data];
@@ -56,6 +59,7 @@ export function GroupTableEditable({
   };
 
   const handleSimpleChange = (rowIndex: number, colIndex: number, value: string) => {
+    if (!isAdmin) return;
     // Prevent negative numbers for "ลูกแบต" or any numeric field
     if (headers[colIndex] === "ลูกแบต" && value !== "" && parseInt(value) < 0) return;
 
@@ -70,21 +74,23 @@ export function GroupTableEditable({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-center sm:text-left">
         <h3 className="font-bold text-lg text-gray-800">{title}</h3>
         <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
-          <button
-            onClick={() => {
-              if (editing && onSave) {
-                onSave(data);
-              }
-              setEditing(!editing);
-            }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200
+          {isAdmin && (
+            <button
+              onClick={() => {
+                if (editing && onSave) {
+                  onSave(data);
+                }
+                setEditing(!editing);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200
             ${editing
-                ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
-                : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
-              }`}
-          >
-            {editing ? "บันทึก" : "แก้ไข"}
-          </button>
+                  ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
+                  : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
+                }`}
+            >
+              {editing ? "บันทึก" : "แก้ไข"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -127,7 +133,7 @@ export function GroupTableEditable({
                       }`}
                   >
                     {headers[j] === "SET" ? (
-                      editing ? (
+                      editing && isAdmin ? (
                         (() => {
                           const sets = v.includes(",") ? v.split(",") : [v];
                           if (sets.length < 2) sets.push(" : ");
@@ -170,7 +176,7 @@ export function GroupTableEditable({
                           );
                         })()
                       )
-                    ) : headers[j] === "ลูกแบต" || headers[j] === "เวลา" ? (
+                    ) : (headers[j] === "ลูกแบต" || headers[j] === "เวลา") && (editing && isAdmin) ? (
                       <input
                         type={headers[j] === "เวลา" ? "time" : "number"}
                         min={headers[j] !== "เวลา" ? 0 : undefined}
