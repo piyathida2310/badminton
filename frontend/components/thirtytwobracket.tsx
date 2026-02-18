@@ -49,11 +49,13 @@ const MatchCard = ({
   match,
   matchNumber,
   onClick,
+  isOrganizer,
 }: {
   matchId: number;
   match?: MatchNode;
   matchNumber?: number;
   onClick: () => void;
+  isOrganizer?: boolean;
 }) => {
   const t1 = match?.t1;
   const t2 = match?.t2;
@@ -84,9 +86,9 @@ const MatchCard = ({
 
   return (
     <div
-      onClick={onClick}
-      className="relative w-[300px] rounded-xl shadow-md border 
-                 hover:shadow-xl hover:scale-105 transition-all cursor-pointer overflow-hidden group"
+      onClick={isOrganizer ? onClick : undefined}
+      className={`relative w-[300px] rounded-xl shadow-md border overflow-hidden group transition-all 
+                 ${isOrganizer ? "hover:shadow-xl hover:scale-105 cursor-pointer" : "cursor-default"}`}
       style={{
         backgroundColor: "#ffffff",
         borderColor: "#cbd5e1", // slate-300
@@ -94,17 +96,19 @@ const MatchCard = ({
       }}
     >
       {/* Header / Match Info */}
-      <div
+      < div
         className="flex justify-between items-center px-3 py-1 border-b"
         style={{ backgroundColor: "#f1f5f9", borderColor: "#e2e8f0" }} // slate-100, slate-200
       >
         <span className="text-[10px] font-bold" style={{ color: "#64748b" }}>Match #{matchNumber}</span>
-        {match?.shuttlesUsed ? (
-          <span className="text-[10px] font-medium flex items-center gap-1" style={{ color: "#475569" }}>
-            🏸 {match.shuttlesUsed}
-          </span>
-        ) : null}
-      </div>
+        {
+          match?.shuttlesUsed ? (
+            <span className="text-[10px] font-medium flex items-center gap-1" style={{ color: "#475569" }}>
+              🏸 {match.shuttlesUsed}
+            </span>
+          ) : null
+        }
+      </div >
 
       <div className="p-2 flex flex-col gap-2"> {/* Increased gap from 1 to 2 */}
         {/* Team A */}
@@ -157,10 +161,14 @@ const MatchCard = ({
       </div>
 
       {/* Hover Overlay Hint */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none" style={{ backgroundColor: "rgba(0,0,0,0.05)" }}>
-        <span className="text-xs px-2 py-1 rounded shadow font-medium" style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#334155" }}>Click to Edit Score</span>
-      </div>
-    </div>
+      {
+        isOrganizer && (
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none" style={{ backgroundColor: "rgba(0,0,0,0.05)" }}>
+            <span className="text-xs px-2 py-1 rounded shadow font-medium" style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#334155" }}>Click to Edit Score</span>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
@@ -895,7 +903,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                 {!isSmallBracket && (
                   <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
                     {matches.slice(0, 8).map((m, i) => (
-                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                     ))}
 
                     {/* LINES - Recalculated for Card Width 300px */}
@@ -925,7 +933,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   style={{ marginTop: isSmallBracket ? '0px' : '65px' }}
                 >
                   {matches.slice(8, 12).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
                   <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
                     <div style={{ position: 'relative', top: '-25px' }}>
@@ -942,7 +950,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
                 >
                   {matches.slice(12, 14).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
                   <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
                     <div style={{ position: 'relative', top: '-25px' }}>
@@ -958,7 +966,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   style={{ marginTop: isSmallBracket ? '378px' : '443px' }}
                 >
                   {matches.slice(14, 15).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} />
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
                 </div>
               </div>
