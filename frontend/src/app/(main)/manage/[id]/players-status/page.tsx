@@ -475,7 +475,7 @@ export default function RegisterStatusPage() {
                               setSelectedPlayerIndex(safeIndex);
                             }}
                             disabled={!hasVideo || p.status === "PASSED" || p.status === "FAILED"}
-                            className={`px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                            className={`whitespace-nowrap px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
                             ดูวิดีโอ
