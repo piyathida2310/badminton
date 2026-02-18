@@ -790,7 +790,14 @@ export const getMatchHistory = async (req: Request, res: Response) => {
         // Process Group Matches
         for (const m of groupMatches) {
             const handType = m.handType ? (HAND_TYPE_DISPLAY[m.handType] || m.handType) : "-";
-            const status = MATCH_STATUS_MAP[m.status] || m.status;
+            let status = MATCH_STATUS_MAP[m.status] || m.status;
+
+            if (m.status === 'PENDING' && m.scheduledTime) {
+                const sTime = new Date(m.scheduledTime);
+                if (sTime <= new Date()) {
+                    status = MATCH_STATUS_MAP['RUNNING'];
+                }
+            }
             const groupName = m.group?.name || "-";
             const roundName = m.roundName || "-";
 
@@ -846,7 +853,14 @@ export const getMatchHistory = async (req: Request, res: Response) => {
 
         for (const m of bracketMatches) {
             const handType = m.handType ? (HAND_TYPE_DISPLAY[m.handType] || m.handType) : "-";
-            const status = MATCH_STATUS_MAP[m.status] || m.status;
+            let status = MATCH_STATUS_MAP[m.status] || m.status;
+
+            if (m.status === 'PENDING' && m.scheduledTime) {
+                const sTime = new Date(m.scheduledTime);
+                if (sTime <= new Date()) {
+                    status = MATCH_STATUS_MAP['RUNNING'];
+                }
+            }
             const stageLabel = m.stage === "LOWER" ? "Lower" : m.stage === "GRAND_FINAL" ? "Grand Final" : "Upper";
             const roundName = `${stageLabel} ${roundNameMap[m.roundSequence || 0] || `R${m.roundSequence}`}`;
 

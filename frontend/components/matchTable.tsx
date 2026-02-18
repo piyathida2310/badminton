@@ -244,7 +244,9 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
                     {renderStatusBadge(m.status)}
                   </td>
                   <td className="p-2 border border-gray-300">{m.timeIn}</td>
-                  <td className="p-2 border border-gray-300">{m.group}</td>
+                  <td className="p-2 border border-gray-300">
+                    {m.group.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}
+                  </td>
                   <td className="p-2 border border-gray-300 font-medium">
                     {m.team1}
                   </td>
@@ -298,7 +300,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
 
             <div className="border-t border-dashed border-gray-300 mt-2 pt-2 text-xs">
               <p className="font-semibold text-gray-800">
-                {m.group !== "-" ? `${m.group} | ` : ""}{m.type} ({m.round})
+                {m.group !== "-" ? `${m.group.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} | ` : ""}{m.type} ({m.round})
               </p>
               <div className="mt-1">
                 <p className="text-gray-500 text-[10px] mb-0.5">ทีม: {m.team1}</p>
