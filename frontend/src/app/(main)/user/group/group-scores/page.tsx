@@ -66,7 +66,7 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target="/user/group" />
 
-        <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} - ตารางการแข่งขัน`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         {loading ? (

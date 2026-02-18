@@ -40,7 +40,7 @@ export default function GroupStageScoresPage() {
     const fetchTournamentData = async () => {
       try {
         const res = await api.get(`/api/tournament/${id}`);
-        // Assuming the API returns isOrganizer based on your previous changes
+        
         if (res.data.data) {
           setIsOrganizer(res.data.data.isOrganizer || false);
         }
@@ -71,19 +71,19 @@ export default function GroupStageScoresPage() {
   }, [id, groupName]);
 
   const handleSave = async (updatedMatches: any[][]) => {
-    if (!isOrganizer) return; // Prevent saving if not organizer
+    if (!isOrganizer) return; 
 
     try {
       const promises = updatedMatches.map(async (row) => {
         const matchId = row[13];
         if (!matchId) return;
 
-        const setScore = row[7] as string; // Index 7 is Set String
-        const shuttle = row[12];           // Index 12 is Shuttle
+        const setScore = row[7] as string; 
+        const shuttle = row[12];           
 
         const timeStr = row[0] as string;
 
-        // Parse & Sum scores from all sets
+        
         let totalS1 = 0;
         let totalS2 = 0;
         let hasValidScore = false;
@@ -101,8 +101,7 @@ export default function GroupStageScoresPage() {
         let s1 = hasValidScore ? totalS1 : undefined;
         let s2 = hasValidScore ? totalS2 : undefined;
 
-        // ... (rest of logic same)
-
+       
         await api.put(`/api/group-matches/${matchId}`, {
           score1: s1,
           score2: s2,
@@ -113,7 +112,7 @@ export default function GroupStageScoresPage() {
       });
 
       await Promise.all(promises);
-      await fetchData(); // Refresh data to update rankings
+      await fetchData(); 
 
       //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
       Swal.fire({
@@ -143,7 +142,7 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target={`/manage/${id}/group`} />
 
-        <SectionTitle text={`${groupName} - ตารางการแข่งขัน`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} - ตารางการแข่งขัน`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         <GroupTable
