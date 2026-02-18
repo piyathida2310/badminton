@@ -371,15 +371,33 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
     const loadData = async () => {
       setLoading(true);
+
+      // ✅ 1. ล้างข้อมูลเก่าออกก่อนเริ่มดึงใหม่ เพื่อป้องกันข้อมูลมือเดิมค้าง
+      const freshMatches: MatchNode[] = [];
+      for (let i = 0; i < 15; i++) freshMatches.push({ id: i });
+      setMatches(freshMatches);
+
       try {
-        // 1. Fetch Tournament Info and Bracket Matches (Parallel)
+        // ✅ 2. Fetch Tournament Info and Bracket Matches (ส่ง rank ไปด้วย)
         const [tournamentRes, bracketRes] = await Promise.all([
           api.get(`/api/tournament/${tournamentId}`),
-          api.get(`/api/bracket-matches/${tournamentId}`)
+          api.get(`/api/bracket-matches/${tournamentId}`, { params: { handType: rank } })
         ]);
 
         const tournament = tournamentRes.data.data;
         const allDbMatches: any[] = bracketRes.data.data || [];
+
+        console.log(`[Bracket DEBUG] Loading Rank: ${rank}, Matches Found: ${allDbMatches.length}`);
+        if (allDbMatches.length > 0) {
+          console.log(`[Bracket DEBUG] First Match HandType in DB: ${allDbMatches[0].handType}`);
+        }
+
+        // ✅ Determine Size & Type (ทำก่อน Early Return เพื่อให้ Layout ถูกต้อง)
+        const isSmall = (tournament?.maxPlayers || 32) <= 16;
+        setIsSmallBracket(isSmall);
+
+        // ✅ เราจะไม่ Early Return แล้ว เพื่อให้ระบบทำกระบวนการดึงทีมต่อ 
+        // ถ้าไม่มีแมตช์ใน DB มันจะโชว์เป็น "รอผล" ตามโครงสร้างสายปกติ
 
         // Filter Top/Bottom Bracket
         // User Request: If no lower bracket, don't show it.
@@ -388,10 +406,6 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         const lowerDbMatches = allDbMatches.filter((m: any) => m.stage === 'LOWER');
         setLowerMatches(lowerDbMatches);
 
-        // Determine Size
-        // Determine Size & Type
-        const isSmall = (tournament?.maxPlayers || 32) <= 16;
-        setIsSmallBracket(isSmall);
 
         // User Logic Final:
         // isLowerBracket == true -> Show Lower Bracket
@@ -409,61 +423,75 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         const lowerQualifiedTeams: Team[] = [];
 
         if (tournament && tournament.groups) {
+          // ✅ Revert: ดึงทุกกลุ่มตามปกติ (ป้องกันเคส registers ไม่โผล่มาในก้อนแรก)
           const groups = tournament.groups;
+
           const rankPromises = groups.map((g: any) =>
             api.get(`/api/matches/${tournamentId}`, { params: { groupName: g.name } })
-              .then(r => ({ groupName: g.name, ranks: r.data.rank, isFinished: r.data.isFinished })) // Received isFinished from backend
-              .catch(e => ({ groupName: g.name, ranks: [] }))
+              .then(r => ({ groupName: g.name, ranks: r.data.rank, isFinished: r.data.isFinished, handType: r.data.handType }))
+              // Received isFinished from backend
+              .catch(e => ({ groupName: g.name, ranks: [], handType: "" }))
           );
 
           const results = await Promise.all(rankPromises);
-          results.sort((a, b) => a.groupName.localeCompare(b.groupName));
+          // ✅ ใช้ natural sort เพื่อให้เรียง G1, G2, G10 ได้ถูกต้อง (แทนที่จะเป็น G1, G10, G2)
+          results.sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { numeric: true, sensitivity: 'base' }));
 
-          results.forEach(res => {
-            const ranks = res.ranks;
-            // Only advance if group is finished
+          // ✅ Reset lookup and qualified lists to ensure a fresh build
+          teamLookup.clear();
+          qualifiedTeams.length = 0;
+          lowerQualifiedTeams.length = 0;
+
+          results.forEach((res: any) => {
+            const allRanks = res.ranks || [];
             const isFinished = res.isFinished === true;
 
-            // Process Rank 1
-            if (isFinished && ranks.length > 0) {
-              const t: Team = { id: Number(ranks[0][8]), code: ranks[0][0], name: ranks[0][2], players: ranks[0][3] };
-              teamLookup.set(t.id!, t);
-              qualifiedTeams.push(t);
+            // ✅ ตรวจสอบประเภทมืออย่างเข้มงวด
+            const groupRank = res.handType || "";
+            const isTargetRank = (groupRank === rank) || (groupRank === "" && rank === "BG");
+
+            // ✅ Stable Indexing: ทุกกลุ่มต้อง Push 2 ช่องเสมอ (เพื่อให้ Index ของ G1, G2, G3... นิ่ง)
+            if (isFinished && allRanks.length > 0 && isTargetRank) {
+              const t1: Team = { id: Number(allRanks[0][8]), code: allRanks[0][0], name: allRanks[0][2], players: allRanks[0][3] };
+              teamLookup.set(t1.id!, t1);
+              qualifiedTeams.push(t1);
+
+              if (allRanks.length > 1) {
+                const t2: Team = { id: Number(allRanks[1][8]), code: allRanks[1][0], name: allRanks[1][2], players: allRanks[1][3] };
+                teamLookup.set(t2.id!, t2);
+                qualifiedTeams.push(t2);
+              } else {
+                qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
+              }
             } else {
+              // ถ้าไม่ใช่ Target Rank หรือยังไม่เสร็จ ให้ใส่ Placeholder ไว้เพื่อไม่ให้ Index เลื่อน
               qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
-            }
-            // Process Rank 2
-            if (isFinished && ranks.length > 1) {
-              const t: Team = { id: Number(ranks[1][8]), code: ranks[1][0], name: ranks[1][2], players: ranks[1][3] };
-              teamLookup.set(t.id!, t);
-              qualifiedTeams.push(t);
-            } else {
               qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
             }
 
-            // Process Rank 3 (for Lower Bracket)
-            if (isFinished && ranks.length > 2) {
-              const t: Team = { id: Number(ranks[2][8]), code: ranks[2][0], name: ranks[2][2], players: ranks[2][3] };
-              teamLookup.set(t.id!, t);
-              lowerQualifiedTeams.push(t);
+            // Lower bracket seeding (Stable Indexing)
+            if (isFinished && allRanks.length > 2 && isTargetRank) {
+              const t3: Team = { id: Number(allRanks[2][8]), code: allRanks[2][0], name: allRanks[2][2], players: allRanks[2][3] };
+              teamLookup.set(t3.id!, t3);
+              lowerQualifiedTeams.push(t3);
+
+              if (allRanks.length > 3) {
+                const t4: Team = { id: Number(allRanks[3][8]), code: allRanks[3][0], name: allRanks[3][2], players: allRanks[3][3] };
+                teamLookup.set(t4.id!, t4);
+                lowerQualifiedTeams.push(t4);
+              } else {
+                lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
+              }
             } else {
               lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
-            }
-
-            // Process Rank 4 (for Lower Bracket)
-            if (isFinished && ranks.length > 3) {
-              const t: Team = { id: Number(ranks[3][8]), code: ranks[3][0], name: ranks[3][2], players: ranks[3][3] };
-              teamLookup.set(t.id!, t);
-              lowerQualifiedTeams.push(t);
-            } else {
               lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
             }
           });
         }
 
-        // 3. Map DB Matches to Local State
-        setMatches(prev => {
-          const newMatches = [...prev];
+        // 3. Map DB Matches to Local State (ใช้ freshMatches เริ่มต้น)
+        setMatches(() => {
+          const newMatches = [...freshMatches];
 
           // Helper to map Round/Seq to Index
           const getIndex = (r: number, s: number) => {
@@ -526,17 +554,20 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
 
             if (dbm && !hasScore) {
+              // ✅ Correct Cross-Group Seeding (Winner G1 vs Runner-up G2)
+              // Group Pair (GP): Match 1&2 use G1&G2, Match 3&4 use G3&G4
+              const gp = Math.floor(i / 2);
               let t1Idx, t2Idx;
-              if (i < half) {
-                const gp = i; t1Idx = gp * 4; t2Idx = (gp * 4 + 3);
+
+              if (i % 2 === 0) {
+                // Match A of pair: Winner G1 vs Runner-up G2
+                t1Idx = (gp * 2) * 2;       // G(2n+1) R1
+                t2Idx = (gp * 2 + 1) * 2 + 1; // G(2n+2) R2
               } else {
-                const gp = i - half; t1Idx = (gp * 4 + 2); t2Idx = (gp * 4 + 1);
+                // Match B of pair: Winner G2 vs Runner-up G1
+                t1Idx = (gp * 2 + 1) * 2;     // G(2n+2) R1
+                t2Idx = (gp * 2) * 2 + 1;     // G(2n+1) R2
               }
-              // Wait, simplified indexing was: t1Idx = g1 * 2, t2Idx = g2 * 2 + 1
-              // Let's use the proven cross-group logic
-              let g1, g2;
-              if (i < half) { g1 = i * 2; g2 = i * 2 + 1; t1Idx = g1 * 2; t2Idx = g2 * 2 + 1; }
-              else { g1 = (i - half) * 2; g2 = (i - half) * 2 + 1; t1Idx = g2 * 2; t2Idx = g1 * 2 + 1; }
 
               const t1 = qualifiedTeams[t1Idx] || null;
               const t2 = qualifiedTeams[t2Idx] || null;
@@ -573,9 +604,17 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
 
             if (dbm && !hasScore) {
-              let g1, g2, t1Idx, t2Idx;
-              if (i < half) { g1 = i * 2; g2 = i * 2 + 1; t1Idx = g1 * 2; t2Idx = g2 * 2 + 1; }
-              else { g1 = (i - half) * 2; g2 = (i - half) * 2 + 1; t1Idx = g2 * 2; t2Idx = g1 * 2 + 1; }
+              // ✅ Correct Lower Cross-Group Seeding (Rank 3 G1 vs Rank 4 G2)
+              const gp = Math.floor(i / 2);
+              let t1Idx, t2Idx;
+
+              if (i % 2 === 0) {
+                t1Idx = (gp * 2) * 2;       // G(2n+1) R3
+                t2Idx = (gp * 2 + 1) * 2 + 1; // G(2n+2) R4
+              } else {
+                t1Idx = (gp * 2 + 1) * 2;     // G(2n+2) R3
+                t2Idx = (gp * 2) * 2 + 1;     // G(2n+1) R4
+              }
 
               const t1 = lowerQualifiedTeams[t1Idx] || null;
               const t2 = lowerQualifiedTeams[t2Idx] || null;
@@ -757,12 +796,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         onSave={handleScoreUpdate}
       />
 
-      <button
-        onClick={handleDownload}
-        className="absolute top-4 right-10 z-50 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-all text-sm"
-      >
-        <Download size={16} /> Download Bracket
-      </button>
+
 
       {/* Scrollable Container (Viewport) */}
       <div
@@ -797,38 +831,49 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                 <span>🏸</span> TOURNAMENT BRACKET - {level}
               </div>
 
-              {/* Inline Rank Selector */}
-              {ranks && ranks.length > 0 && (
-                <div className="relative inline-block ml-2 group">
-                  <select
-                    value={rank}
-                    onChange={(e) => onRankChange && onRankChange(e.target.value)}
-                    className="appearance-none font-bold text-xl py-1 pl-4 pr-10 rounded-full cursor-pointer focus:outline-none transition-all shadow-sm"
-                    style={{
-                      backgroundColor: "#fef3c7", // amber-100
-                      borderColor: "#fbbf24", // amber-400
-                      borderWidth: "2px",
-                      color: "#b45309", // amber-700
-                    }}
-                  >
-                    {ranks.map(r => (
-                      <option key={r} value={r}>
-                        ประเภทมือ {r === "P_PLUS" ? "P+" : r === "P_MINUS" ? "P-" : r}
-                      </option>
-                    ))}
-                  </select>
-                  {/* Custom Arrow */}
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}> {/* amber-600 */}
-                    <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+              {/* Inline Rank Selector + Download Button */}
+              <div className="flex items-center gap-4">
+                {ranks && ranks.length > 0 && (
+                  <div className="relative inline-block group">
+                    <select
+                      value={rank}
+                      onChange={(e) => onRankChange && onRankChange(e.target.value)}
+                      className="appearance-none font-bold text-xl py-1 pl-4 pr-10 rounded-full cursor-pointer focus:outline-none transition-all shadow-sm"
+                      style={{
+                        backgroundColor: "#fef3c7", // amber-100
+                        borderColor: "#fbbf24", // amber-400
+                        borderWidth: "2px",
+                        color: "#b45309", // amber-700
+                      }}
+                    >
+                      {ranks.map(r => (
+                        <option key={r} value={r}>
+                          ประเภทมือ {r === "P_PLUS" ? "P+" : r === "P_MINUS" ? "P-" : r}
+                        </option>
+                      ))}
+                    </select>
+                    {/* Custom Arrow for select */}
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}>
+                      <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Static Download Button - Placed after Rank Selector */}
+                <button
+                  onClick={handleDownload}
+                  data-html2canvas-ignore="true"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold shadow-md transition-all text-sm active:scale-95"
+                >
+                  <Download size={16} /> Download
+                </button>
+              </div>
             </h1>
           </div>
 
           {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
 
-          {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>Loading Tournament Data...</div>}
+
 
           {/* UPPER BRACKET SECTION (Show for BOTH Upper and Lower levels now) */}
           {/* If level="ล่าง", we are showing Lower Bracket data in this same structure */}
@@ -918,22 +963,24 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             </div>
           )}
         </div>
-      </div>
+      </div >
 
       {/* Lower Bracket Placeholder (Hidden if empty) */}
       {/* Lower Bracket Placeholder (Hidden if disabled) */}
       {/* Lower Bracket Placeholder (Hidden if empty OR if we are showing the full Lower Bracket view) */}
       {/* If level="ล่าง", we are already showing the bracket above, so hide this placeholder */}
-      {(showLowerBracket && (level === "Main" || !level)) && (
-        <div className="mt-20 w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">สายล่าง (Lower Bracket)</h2>
-          {lowerMatches.length > 0 ? (
-            <p className="text-gray-500">Found {lowerMatches.length} matches in Lower Bracket. (Visualization Coming Soon)</p>
-          ) : (
-            <p className="text-gray-400 italic">No matches in Lower Bracket yet.</p>
-          )}
-        </div>
-      )}
+      {
+        (showLowerBracket && (level === "Main" || !level)) && (
+          <div className="mt-20 w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400">
+            <h2 className="text-2xl font-bold text-gray-600 mb-4">สายล่าง (Lower Bracket)</h2>
+            {lowerMatches.length > 0 ? (
+              <p className="text-gray-500">Found {lowerMatches.length} matches in Lower Bracket. (Visualization Coming Soon)</p>
+            ) : (
+              <p className="text-gray-400 italic">No matches in Lower Bracket yet.</p>
+            )}
+          </div>
+        )
+      }
     </div >
   );
 }

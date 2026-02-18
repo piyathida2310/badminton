@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, use } from "react";
 import { useEffect } from "react";
-import SixteenBracket from "../../../../../../components/sixteenbracket";
-import TwentyFourBracket from "../../../../../../components/twentyfourbracket";
+// import SixteenBracket from "../../../../../../components/sixteenbracket";
+// import TwentyFourBracket from "../../../../../../components/twentyfourbracket";
 import ThirtyTwoBracket from "../../../../../../components/thirtytwobracket";
 import api from "../../../../../lib/api";
 
@@ -46,6 +46,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
 
       <div className="pb-10">
         <ThirtyTwoBracket
+          key={`upper-${selectedRank}`}
           level="บน"
           tournamentId={Number(unwrappedParams.id)}
           rank={selectedRank}
@@ -53,6 +54,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
           onRankChange={setSelectedRank}
         />
         <ThirtyTwoBracket
+          key={`lower-${selectedRank}`}
           level="ล่าง"
           tournamentId={Number(unwrappedParams.id)}
           rank={selectedRank}
