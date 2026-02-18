@@ -18,6 +18,7 @@ import competitionRouter from './routes/competitionRoutes'
 import userRouter from './routes/userRoutes'
 import registerRouter from './routes/registerRoutes'
 import matchRouter from './routes/matchRoutes'
+import summaryRouter from './routes/summaryRoutes'
 import { ensureOpenAIConnection } from './config/openAI';
 
 dotenv.config({
@@ -50,6 +51,7 @@ async function bootstrap(): Promise<void> {
   app.use('/api/users', userRouter);
   app.use('/api', registerRouter);
   app.use('/api', matchRouter);
+  app.use('/api', summaryRouter);
 
 
 
