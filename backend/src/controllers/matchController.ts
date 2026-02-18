@@ -317,10 +317,19 @@ export const getGroupDetails = async (req: Request, res: Response) => {
         // A group is finished if there are no pending matches AND all organized matches have scores/status
         const isFinished = pendingMatches.length === 0 && organizedMatches.every(m => m.status === 'FINISHED' || (m.score1 !== null && m.score2 !== null));
 
+        // ✅ Find the handType for this group's members
+        let groupHandType = group.registers?.[0]?.playType || null;
+
+        // Legacy Fallback: If no handType in registers, check group matches
+        if (!groupHandType && group.groupMatches?.length > 0) {
+            groupHandType = group.groupMatches[0].handType || null;
+        }
+
         return res.status(200).json({
             rank: rankData,
             matches: matchData,
-            isFinished: isFinished // ✅ New Flag
+            handType: groupHandType,
+            isFinished: isFinished
         });
 
     } catch (error) {
@@ -480,23 +489,29 @@ export const getBracketMatches = async (req: Request, res: Response) => {
         if (!tId) return res.status(400).json({ message: "Invalid Tournament ID" });
 
         // Map HandType
-        const handType = handTypeStr ? mapHandType(handTypeStr) : undefined;
+        const handType = handTypeStr ? mapHandType(handTypeStr) : null;
+        const fetchAll = req.query.all === 'true';
 
-        // 1. Check if matches exist (Filter by HandType if provided)
-        const whereClause: any = { tournamentId: tId };
-        if (handType) {
+        // 1. Check if matches exist (Filter by HandType if provided AND not fetching all)
+        let whereClause: any = { tournamentId: tId };
+        if (!fetchAll) {
             whereClause.handType = handType;
         }
 
-        const existingMatches = await prisma.bracketMatch.findMany({
+        let existingMatches = await prisma.bracketMatch.findMany({
             where: whereClause,
             orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
-            include: {
-                player1: true,
-                player2: true,
-                winner: true
-            }
+            include: { player1: true, player2: true, winner: true }
         });
+
+        // ✅ Safe BG Fallback: If viewing BG and nothing found, check for NULL entries (Legacy Data)
+        if (existingMatches.length === 0 && handType === 'BG' && !fetchAll) {
+            existingMatches = await prisma.bracketMatch.findMany({
+                where: { tournamentId: tId, handType: null },
+                orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
+                include: { player1: true, player2: true, winner: true }
+            });
+        }
 
         if (existingMatches.length > 0) {
             // Check if we need to initialize Lower Bracket (Legacy Fix)
