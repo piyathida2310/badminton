@@ -15,6 +15,17 @@ export const organizeTournamentGroups = async (
     console.log(`   Tournament ID: ${tournamentId}`);
     console.log(`   PlayType: ${playType}`);
     console.log(`   Detail: "${detail}"`);
+
+    // Fix: Map display string (P+, P-) to Prisma Enum Key (P_PLUS, P_MINUS)
+    let prismaHandType: HandType;
+    if (playType === "P+") {
+        prismaHandType = HandType.P_PLUS;
+    } else if (playType === "P-") {
+        prismaHandType = HandType.P_MINUS;
+    } else {
+        prismaHandType = playType as HandType;
+    }
+    console.log(`   [MAPPING] Input "${playType}" => Enum "${prismaHandType}"`);
     const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
         include: {
@@ -43,7 +54,7 @@ export const organizeTournamentGroups = async (
     // 1. Filter specific playType
     console.log(`\n[REGISTRATIONS] Total: ${tournament.registrations.length}`);
     const targetRegistrations = tournament.registrations.filter(
-        (r) => r.playType === (playType as HandType)
+        (r) => r.playType === prismaHandType
     );
     console.log(`   Filtered for ${playType}: ${targetRegistrations.length} registrations`);
     targetRegistrations.forEach((r) => {
@@ -142,7 +153,7 @@ export const organizeTournamentGroups = async (
         where: {
             tournamentId,
             registers: {
-                some: { playType: playType as HandType },
+                some: { playType: prismaHandType },
             },
         },
         select: { id: true },
@@ -221,7 +232,7 @@ export const organizeTournamentGroups = async (
                                 groupId: newGroup.id,
                                 player1Id: p1,
                                 player2Id: p2,
-                                handType: playType as HandType,
+                                handType: prismaHandType,
                                 status: "PENDING",
                                 scheduledTime: tournament.startDate,
                                 roundName: roundName,
