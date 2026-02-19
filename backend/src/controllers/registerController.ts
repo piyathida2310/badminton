@@ -25,13 +25,13 @@ const MATCH_TYPE_LABELS: Record<string, string> = {
   DOUBLE: "คู่",
 };
 
-// ✅ สร้าง URL ถาวรสำหรับเก็บลง DB
+//  สร้าง URL ถาวรสำหรับเก็บลง DB
 function buildPublicObjectUrl(key: string) {
   const base = MINIO_ENDPOINT.replace(/\/+$/, "");
   return `${base}/${BUCKET}/${encodeURIComponent(key)}`;
 }
 
-// ✅ ดึง key ออกจากค่าที่ "อาจเป็น URL หรือ key เดิม"
+//  ดึง key ออกจากค่าที่ "อาจเป็น URL หรือ key เดิม"
 function extractKeyFromMaybeUrl(value?: string | null) {
   if (!value) return null;
 
@@ -47,7 +47,7 @@ function extractKeyFromMaybeUrl(value?: string | null) {
   return value;
 }
 
-// ✅ ทำ presigned url (รองรับทั้ง DB เก็บเป็น URL หรือ key เดิม)
+//  ทำ presigned url (รองรับทั้ง DB เก็บเป็น URL หรือ key เดิม)
 const getSignedUrlOrNull = async (objectValue?: string | null) => {
   if (!objectValue) return null;
 
@@ -118,7 +118,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       where: {
         tournamentId: parsedTournamentId,
         status: { not: "FAILED" },
-        playType: playType // ✅ Count specific playType (category) only
+        playType: playType // Count specific playType (category) only
       },
     });
 
@@ -126,7 +126,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       return res.status(400).json({ message: `Registration is full for category ${playType}` });
     }
 
-    // ✅ videoUrl ใน DB จะเก็บเป็น URL ถาวร
+    //  videoUrl ใน DB จะเก็บเป็น URL ถาวร
     let videoUrl: string | null = null;
 
     if (req.files && typeof req.files === "object") {
@@ -152,7 +152,7 @@ export const createRegistration = async (req: Request, res: Response) => {
           })
         );
 
-        // ✅ เก็บ URL ลง DB
+        //  เก็บ URL ลง DB
         // videoUrl = buildPublicObjectUrl(videoName);
         videoUrl = videoName; // New: Store only Key
       }
@@ -166,7 +166,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       teamName,
       playType,
       phoneNumber: player1Phone,
-      videoUrl, // ✅ URL
+      videoUrl, //  URL
       status: "WAITING",
       managerName,
       player1Name,
@@ -213,7 +213,7 @@ export const getRegistrationsByTournament = async (req: Request, res: Response) 
       orderBy: { id: "desc" },
     });
 
-    // ✅ ใส่ signed url ให้พร้อมใช้ (ถ้าหน้าไหนต้องแสดง)
+    //  ใส่ signed url ให้พร้อมใช้ (ถ้าหน้าไหนต้องแสดง)
     const enriched = await Promise.all(
       registrations.map(async (r) => {
         const videoSignedUrl = await getSignedUrlOrNull(r.videoUrl);
@@ -326,7 +326,7 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
 
     const applicants = await Promise.all(
       registrations.map(async (registration) => {
-        // ✅ ส่ง signed เป็นหลัก (รูป/วิดีโอมาชัวร์)
+        //  ส่ง signed เป็นหลัก (รูป/วิดีโอมาชัวร์)
         const videoSignedUrl = await getSignedUrlOrNull(registration.videoUrl);
         const slipSignedUrl = await getSignedUrlOrNull(registration.payment?.slipImg);
 
@@ -345,14 +345,14 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
               name: registration.player1Name,
               phoneNumber: registration.phoneNumber,
               birthday: registration.player1Birthday,
-              gender: registration.player1Gender, // ✅ เพิ่มเพศ
+              gender: registration.player1Gender, // เพิ่มเพศ
             },
             isDouble
               ? {
                 name: registration.player2Name,
                 phoneNumber: registration.player2Phone,
                 birthday: registration.player2Birthday,
-                gender: registration.player2Gender, // ✅ เพิ่มเพศ
+                gender: registration.player2Gender, //เพิ่มเพศ
               }
               : undefined,
           ].filter(Boolean),
@@ -368,13 +368,13 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
           payment: registration.payment
             ? {
               status: registration.payment.status,
-              // ✅ เอา signed เป็น slipUrl หลัก
+              // เอา signed เป็น slipUrl หลัก
               slipUrl: slipSignedUrl ?? registration.payment.slipImg ?? null,
               slipPublicUrl: registration.payment.slipImg ?? null,
             }
             : null,
           media: {
-            // ✅ เอา signed เป็น videoUrl หลัก
+            // เอา signed เป็น videoUrl หลัก
             videoUrl: videoSignedUrl ?? registration.videoUrl ?? null,
             videoPublicUrl: registration.videoUrl ?? null,
           },
@@ -570,7 +570,7 @@ export const uploadPaymentSlip = async (req: Request, res: Response) => {
           })
         );
 
-        // ✅ เก็บ Key (filename) ลง DB เท่านั้น (เพื่อให้เหมือน posterImg)
+        // เก็บ Key (filename) ลง DB เท่านั้น (เพื่อให้เหมือน posterImg)
         // เดิม: slipUrl = buildPublicObjectUrl(slipName);
         slipUrl = slipName;
       }
@@ -642,7 +642,7 @@ export const getPaymentSlip = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Payment slip fetched successfully",
-      // ✅ สำคัญ: ให้ frontend ใช้ signed เป็นหลัก (รูปมาชัวร์)
+      //  สำคัญ: ให้ frontend ใช้ signed เป็นหลัก (รูปมาชัวร์)
       url: signedUrl ?? publicUrl,
       publicUrl,
       signedUrl,

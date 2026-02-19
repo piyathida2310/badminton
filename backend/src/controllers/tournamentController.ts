@@ -120,7 +120,7 @@ export const getTournament = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Tournament not found" });
     }
 
-    // ✅ Get stats by playType
+    //  Get stats by playType
     const registrationStats = await prisma.register.groupBy({
       by: ["playType"],
       where: {
@@ -137,7 +137,7 @@ export const getTournament = async (req: Request, res: Response) => {
       return acc;
     }, {} as Record<string, number>);
 
-    // ✅ สร้าง presigned URL จาก key (DB) แล้วส่งให้ FE ใช้ได้ทันที
+    //  สร้าง presigned URL จาก key (DB) แล้วส่งให้ FE ใช้ได้ทันที
     const [posterUrl, qrUrl] = await Promise.all([
       signGetObjectUrl(data.posterImg),
       signGetObjectUrl(data.qrCodeImg),
@@ -172,9 +172,9 @@ export const getTournament = async (req: Request, res: Response) => {
       shuttlePrice: data.shuttlePrice,
       maxPlayers: data.maxPlayers,
       currentPlayers: data._count.registrations,
-      registrationStats: statsByHand, // ✅ Add stats breakdown
+      registrationStats: statsByHand, // Add stats breakdown
 
-      // ✅ เปลี่ยนเป็น presigned URL
+      //  เปลี่ยนเป็น presigned URL
       image: posterUrl,
       qrCodeImg: qrUrl,
 
@@ -233,7 +233,7 @@ export const getTournaments = async (req: Request, res: Response) => {
       },
     });
 
-    // ✅ ทำเป็น async เพราะต้อง sign url ให้แต่ละรายการ
+    // ทำเป็น async เพราะต้อง sign url ให้แต่ละรายการ
     const iconsWithUrl = await Promise.all(
       data.map(async (tournament) => {
         const [posterUrl, qrUrl, registrationStats] = await Promise.all([
@@ -265,7 +265,7 @@ export const getTournaments = async (req: Request, res: Response) => {
           currentPlayers: tournament._count.registrations,
           registrationStats: statsByHand,
 
-          // ✅ เปลี่ยนเป็น presigned URL
+          // เปลี่ยนเป็น presigned URL
           image: posterUrl,
           qrCodeImg: qrUrl,
 
@@ -420,7 +420,7 @@ export const managegroup = async (req: Request, res: Response) => {
   try {
     const tournamentId = Number(req.params.id);
     const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม";
-    const playType = req.body.playType; // ✅ รับค่า playType
+    const playType = req.body.playType; //  รับค่า playType
 
     if (!playType) {
       return res
