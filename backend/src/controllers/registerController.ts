@@ -25,13 +25,13 @@ const MATCH_TYPE_LABELS: Record<string, string> = {
   DOUBLE: "คู่",
 };
 
-// ✅ สร้าง URL ถาวรสำหรับเก็บลง DB
+//  สร้าง URL ถาวรสำหรับเก็บลง DB
 function buildPublicObjectUrl(key: string) {
   const base = MINIO_ENDPOINT.replace(/\/+$/, "");
   return `${base}/${BUCKET}/${encodeURIComponent(key)}`;
 }
 
-// ✅ ดึง key ออกจากค่าที่ "อาจเป็น URL หรือ key เดิม"
+//  ดึง key ออกจากค่าที่ "อาจเป็น URL หรือ key เดิม"
 function extractKeyFromMaybeUrl(value?: string | null) {
   if (!value) return null;
 
@@ -47,7 +47,7 @@ function extractKeyFromMaybeUrl(value?: string | null) {
   return value;
 }
 
-// ✅ ทำ presigned url (รองรับทั้ง DB เก็บเป็น URL หรือ key เดิม)
+//  ทำ presigned url (รองรับทั้ง DB เก็บเป็น URL หรือ key เดิม)
 const getSignedUrlOrNull = async (objectValue?: string | null) => {
   if (!objectValue) return null;
 
@@ -118,7 +118,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       where: {
         tournamentId: parsedTournamentId,
         status: { not: "FAILED" },
-        playType: playType // ✅ Count specific playType (category) only
+        playType: playType // Count specific playType (category) only
       },
     });
 
@@ -126,7 +126,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       return res.status(400).json({ message: `Registration is full for category ${playType}` });
     }
 
-    // ✅ videoUrl ใน DB จะเก็บเป็น URL ถาวร
+    //  videoUrl ใน DB จะเก็บเป็น URL ถาวร
     let videoUrl: string | null = null;
 
     if (req.files && typeof req.files === "object") {
@@ -152,7 +152,7 @@ export const createRegistration = async (req: Request, res: Response) => {
           })
         );
 
-        // ✅ เก็บ URL ลง DB
+        //  เก็บ URL ลง DB
         // videoUrl = buildPublicObjectUrl(videoName);
         videoUrl = videoName; // New: Store only Key
       }
@@ -166,7 +166,7 @@ export const createRegistration = async (req: Request, res: Response) => {
       teamName,
       playType,
       phoneNumber: player1Phone,
-      videoUrl, // ✅ URL
+      videoUrl, //  URL
       status: "WAITING",
       managerName,
       player1Name,
@@ -213,7 +213,7 @@ export const getRegistrationsByTournament = async (req: Request, res: Response) 
       orderBy: { id: "desc" },
     });
 
-    // ✅ ใส่ signed url ให้พร้อมใช้ (ถ้าหน้าไหนต้องแสดง)
+    //  ใส่ signed url ให้พร้อมใช้ (ถ้าหน้าไหนต้องแสดง)
     const enriched = await Promise.all(
       registrations.map(async (r) => {
         const videoSignedUrl = await getSignedUrlOrNull(r.videoUrl);
@@ -248,7 +248,7 @@ export const getUserRegistrations = async (req: Request, res: Response) => {
 
     const registrations = await prisma.register.findMany({
       where: { userId },
-      include: { tournament: true, payment: true },
+      include: { tournament: true, payment: true, cancellation: true },
       orderBy: { id: "desc" },
     });
 
@@ -256,8 +256,15 @@ export const getUserRegistrations = async (req: Request, res: Response) => {
       registrations.map(async (r) => {
         const videoSignedUrl = await getSignedUrlOrNull(r.videoUrl);
         const slipSignedUrl = await getSignedUrlOrNull(r.payment?.slipImg);
+        // สร้าง signed URL สำหรับ QR Code / Refund Slip จากตาราง CancellationRequest
+        const cancellation = r.cancellation ? {
+          ...r.cancellation,
+          qrCodeUrl: await getSignedUrlOrNull(r.cancellation.qrCode),
+          refundSlipUrl: await getSignedUrlOrNull(r.cancellation.refundSlip),
+        } : null;
         return {
           ...r,
+          cancellation,
           media: { videoUrl: videoSignedUrl ?? r.videoUrl ?? null },
           paymentMedia: { slipUrl: slipSignedUrl ?? r.payment?.slipImg ?? null },
         };
@@ -320,13 +327,14 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
           },
         },
         payment: true,
+        cancellation: true,
       },
       orderBy: { id: "desc" },
     });
 
     const applicants = await Promise.all(
       registrations.map(async (registration) => {
-        // ✅ ส่ง signed เป็นหลัก (รูป/วิดีโอมาชัวร์)
+        //  ส่ง signed เป็นหลัก (รูป/วิดีโอมาชัวร์)
         const videoSignedUrl = await getSignedUrlOrNull(registration.videoUrl);
         const slipSignedUrl = await getSignedUrlOrNull(registration.payment?.slipImg);
 
@@ -345,14 +353,14 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
               name: registration.player1Name,
               phoneNumber: registration.phoneNumber,
               birthday: registration.player1Birthday,
-              gender: registration.player1Gender, // ✅ เพิ่มเพศ
+              gender: registration.player1Gender, // เพิ่มเพศ
             },
             isDouble
               ? {
                 name: registration.player2Name,
                 phoneNumber: registration.player2Phone,
                 birthday: registration.player2Birthday,
-                gender: registration.player2Gender, // ✅ เพิ่มเพศ
+                gender: registration.player2Gender, //เพิ่มเพศ
               }
               : undefined,
           ].filter(Boolean),
@@ -368,16 +376,24 @@ export const getTournamentApplicantsForOrganizer = async (req: Request, res: Res
           payment: registration.payment
             ? {
               status: registration.payment.status,
-              // ✅ เอา signed เป็น slipUrl หลัก
+              // เอา signed เป็น slipUrl หลัก
               slipUrl: slipSignedUrl ?? registration.payment.slipImg ?? null,
               slipPublicUrl: registration.payment.slipImg ?? null,
             }
             : null,
           media: {
-            // ✅ เอา signed เป็น videoUrl หลัก
+            // เอา signed เป็น videoUrl หลัก
             videoUrl: videoSignedUrl ?? registration.videoUrl ?? null,
             videoPublicUrl: registration.videoUrl ?? null,
           },
+          // ข้อมูลการยกเลิก/คืนเงิน จากตาราง CancellationRequest
+          cancellationStatus: registration.cancellation?.status ?? null,
+          cancelReason: registration.cancellation?.reason ?? null,
+          refundBankName: registration.cancellation?.bankName ?? null,
+          refundAccountNum: registration.cancellation?.accountNum ?? null,
+          refundAccountName: registration.cancellation?.accountName ?? null,
+          refundQrUrl: await getSignedUrlOrNull(registration.cancellation?.qrCode ?? null),
+          refundSlipUrl: await getSignedUrlOrNull(registration.cancellation?.refundSlip ?? null),
         };
       })
     );
@@ -570,7 +586,7 @@ export const uploadPaymentSlip = async (req: Request, res: Response) => {
           })
         );
 
-        // ✅ เก็บ Key (filename) ลง DB เท่านั้น (เพื่อให้เหมือน posterImg)
+        // เก็บ Key (filename) ลง DB เท่านั้น (เพื่อให้เหมือน posterImg)
         // เดิม: slipUrl = buildPublicObjectUrl(slipName);
         slipUrl = slipName;
       }
@@ -642,7 +658,7 @@ export const getPaymentSlip = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Payment slip fetched successfully",
-      // ✅ สำคัญ: ให้ frontend ใช้ signed เป็นหลัก (รูปมาชัวร์)
+      //  สำคัญ: ให้ frontend ใช้ signed เป็นหลัก (รูปมาชัวร์)
       url: signedUrl ?? publicUrl,
       publicUrl,
       signedUrl,
@@ -653,5 +669,126 @@ export const getPaymentSlip = async (req: Request, res: Response) => {
       message: "Internal server error",
       error: error instanceof Error ? error.message : error,
     });
+  }
+};
+
+// ================================
+// 9) POST /registration/:registrationId/cancel
+// ================================
+export const requestCancellation = async (req: Request, res: Response) => {
+  try {
+    const { registrationId } = req.params;
+    const { reason, bankName, accountNum, accountName } = req.body;
+    const parsedId = Number(registrationId);
+    if (Number.isNaN(parsedId)) {
+      return res.status(400).json({ message: "Invalid registration ID" });
+    }
+
+    const registration = await prisma.register.findUnique({
+      where: { id: parsedId },
+      include: { payment: true, cancellation: true },
+    });
+    if (!registration) return res.status(404).json({ message: "Registration not found" });
+    if (registration.cancellation) return res.status(400).json({ message: "คำขอยกเลิกมีอยู่แล้ว" });
+
+    const userId = getUserId(req);
+    if (registration.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+    const isPaid = registration.payment?.status === "CONFIRMED";
+
+    // สร้าง record ในตาราง CancellationRequest
+    const cancellation = await prisma.cancellationRequest.create({
+      data: {
+        registerId: parsedId,
+        status: "REQUESTED",
+      },
+    });
+
+    // ถ้ายังไม่จ่ายเงิน ให้ยกเลิกทันที
+    if (!isPaid) {
+      await prisma.register.update({ where: { id: parsedId }, data: { status: "FAILED" } });
+    }
+
+    return res.status(200).json({ message: "ส่งคำขอยกเลิกสำเร็จ", data: cancellation });
+  } catch (error) {
+    console.error("Request Cancellation Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ================================
+// 10) GET /tournament/:tournamentId/cancellations
+// ================================
+export const getTournamentCancellations = async (req: Request, res: Response) => {
+  try {
+    const { tournamentId } = req.params;
+    const organizerId = getUserId(req);
+    const tournament = await prisma.tournament.findUnique({ where: { id: Number(tournamentId) } });
+    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+    if (tournament.organizerId !== organizerId) return res.status(403).json({ message: "Forbidden" });
+
+    const cancellations = await prisma.cancellationRequest.findMany({
+      where: { register: { tournamentId: Number(tournamentId) } },
+      include: { register: { include: { user: true, payment: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const enriched = await Promise.all(cancellations.map(async (c) => {
+      const qrUrl = await getSignedUrlOrNull(c.qrCode);
+      const slipUrl = await getSignedUrlOrNull(c.refundSlip);
+      return { ...c, refundQrUrl: qrUrl, refundSlipUrl: slipUrl };
+    }));
+
+    return res.status(200).json({ data: enriched });
+  } catch (error) {
+    console.error("Get Cancellations Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ================================
+// 11) PATCH /registration/:registrationId/refund
+// ================================
+export const processRefund = async (req: Request, res: Response) => {
+  try {
+    const { registrationId } = req.params;
+    const { status } = req.body;
+    const parsedId = Number(registrationId);
+
+    const registration = await prisma.register.findUnique({
+      where: { id: parsedId },
+      include: { tournament: true, cancellation: true },
+    });
+    if (!registration) return res.status(404).json({ message: "Registration not found" });
+
+    // ถ้ายังไม่มี CancellationRequest สร้างอัตโนมัติ (กรณีข้อมูลเก่า)
+    if (!registration.cancellation) {
+      await prisma.cancellationRequest.create({
+        data: { registerId: parsedId, status: "REQUESTED" },
+      });
+    }
+
+    const organizerId = getUserId(req);
+    if (registration.tournament.organizerId !== organizerId) return res.status(403).json({ message: "Forbidden" });
+
+    if (!["REFUNDED", "REJECTED"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    // อัปเดตตาราง CancellationRequest
+    const updatedCancellation = await prisma.cancellationRequest.update({
+      where: { registerId: parsedId },
+      data: { status },
+    });
+
+    // ถ้าคืนเงินแล้ว ให้ยกเลิกการสมัคร
+    if (status === "REFUNDED") {
+      await prisma.register.update({ where: { id: parsedId }, data: { status: "FAILED" } });
+    }
+
+    return res.status(200).json({ message: "อัปเดตสถานะสำเร็จ", data: updatedCancellation });
+  } catch (error) {
+    console.error("Process Refund Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

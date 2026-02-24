@@ -31,7 +31,7 @@ export const refreshTournamentSummary = async (tournamentId: number) => {
         const newSummaries: any[] = [];
 
         for (const [rank, rankMatches] of rankGroups.entries()) {
-            // 🏆 1. UPPER BRACKET (Position 1, 2, 3)
+            //  1. UPPER BRACKET (Position 1, 2, 3)
             const upperMatches = rankMatches.filter(m => m.stage === 'UPPER' || m.stage === 'GRAND_FINAL');
             if (upperMatches.length > 0) {
                 const maxRound = Math.max(...upperMatches.map(m => m.roundSequence || 0));
@@ -60,7 +60,7 @@ export const refreshTournamentSummary = async (tournamentId: number) => {
                 });
             }
 
-            // 🏆 2. LOWER BRACKET (Position 4, 5, 6)
+            //  2. LOWER BRACKET (Position 4, 5, 6)
             const lowerMatches = rankMatches.filter(m => m.stage === 'LOWER');
             if (lowerMatches.length > 0) {
                 const maxLowerRound = Math.max(...lowerMatches.map(m => m.roundSequence || 0));
@@ -117,7 +117,7 @@ export const getTournamentSummary = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Invalid tournamentId" });
         }
 
-        // 🏆 Automatically refresh summary before returning it
+        //  Automatically refresh summary before returning it
         // This ensures the data is always up-to-date when the page is loaded
         await refreshTournamentSummary(tId);
 

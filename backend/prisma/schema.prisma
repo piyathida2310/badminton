@@ -51,6 +51,12 @@ enum MatchStatus {
   CANCELLED
 }
 
+enum CancellationStatus {
+  REQUESTED
+  REFUNDED
+  REJECTED
+}
+
 // New Enums for Bracket & Gender
 enum MatchStage {
   UPPER
@@ -180,6 +186,7 @@ model Register {
   player2Phone    String?
   player2Birthday DateTime?
 
+
   // Foreign key สำหรับ Group
   groupId Int? 
   group   Group? @relation(fields: [groupId], references: [id])
@@ -188,6 +195,7 @@ model Register {
   user       User       @relation(fields: [userId], references: [id])
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   payment    Payment?
+  cancellation CancellationRequest?
 
   // สำหรับ relation กับ GroupMatch
   groupMatchesAsPlayer1 GroupMatch[] @relation("GroupPlayer1")
@@ -201,6 +209,23 @@ model Register {
 
   // สำหรับ relation กับ Summary (ถ้ามี)
   summaries Summary[] @relation("SummaryRegister")
+}
+
+// ---------- CANCELLATION REQUEST ----------
+model CancellationRequest {
+  id              Int                @id @default(autoincrement())
+  registerId      Int                @unique
+  reason          String?
+  status          CancellationStatus @default(REQUESTED)
+  bankName        String?
+  accountNum      String?
+  accountName     String?
+  qrCode          String?
+  refundSlip      String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  register Register @relation(fields: [registerId], references: [id])
 }
 
 // ---------- PAYMENT ----------

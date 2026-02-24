@@ -20,6 +20,9 @@ CREATE TYPE "EvaluationStatus" AS ENUM ('WAITING', 'PASSED', 'FAILED');
 CREATE TYPE "MatchStatus" AS ENUM ('PENDING', 'RUNNING', 'FINISHED', 'CANCELLED');
 
 -- CreateEnum
+CREATE TYPE "CancellationStatus" AS ENUM ('REQUESTED', 'REFUNDED', 'REJECTED');
+
+-- CreateEnum
 CREATE TYPE "MatchStage" AS ENUM ('UPPER', 'LOWER', 'GRAND_FINAL', 'THIRD_PLACE');
 
 -- CreateEnum
@@ -119,6 +122,23 @@ CREATE TABLE "Register" (
     "groupId" INTEGER,
 
     CONSTRAINT "Register_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CancellationRequest" (
+    "id" SERIAL NOT NULL,
+    "registerId" INTEGER NOT NULL,
+    "reason" TEXT,
+    "status" "CancellationStatus" NOT NULL DEFAULT 'REQUESTED',
+    "bankName" TEXT,
+    "accountNum" TEXT,
+    "accountName" TEXT,
+    "qrCode" TEXT,
+    "refundSlip" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CancellationRequest_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -225,6 +245,9 @@ CREATE UNIQUE INDEX "User_gmail_key" ON "User"("gmail");
 CREATE UNIQUE INDEX "User_clerk_id_key" ON "User"("clerk_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "CancellationRequest_registerId_key" ON "CancellationRequest"("registerId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Payment_registerId_key" ON "Payment"("registerId");
 
 -- CreateIndex
@@ -253,6 +276,9 @@ ALTER TABLE "Register" ADD CONSTRAINT "Register_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "Register" ADD CONSTRAINT "Register_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CancellationRequest" ADD CONSTRAINT "CancellationRequest_registerId_fkey" FOREIGN KEY ("registerId") REFERENCES "Register"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_registerId_fkey" FOREIGN KEY ("registerId") REFERENCES "Register"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

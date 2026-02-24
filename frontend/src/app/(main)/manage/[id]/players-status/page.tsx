@@ -1,10 +1,12 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import Swal from "sweetalert2";
 import api from "../../../../../lib/api";
 
 type EvaluationStatus = "WAITING" | "PASSED" | "FAILED";
 type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED";
+type CancellationStatus = "REQUESTED" | "REFUNDED" | "REJECTED" | null;
 
 interface ApplicantResponse {
   registrationId: number;
@@ -43,6 +45,12 @@ interface ApplicantResponse {
   media?: {
     videoUrl?: string | null;
   } | null;
+  cancellationStatus?: CancellationStatus;
+  cancelReason?: string | null;
+  refundQrUrl?: string | null;
+  refundBankName?: string | null;
+  refundAccountNum?: string | null;
+  refundAccountName?: string | null;
 }
 
 interface Player {
@@ -58,6 +66,12 @@ interface Player {
   paymentStatus: PaymentStatus;
   score?: number | null;
   comment?: string;
+  cancellationStatus?: CancellationStatus;
+  cancelReason?: string | null;
+  refundQrUrl?: string | null;
+  refundBankName?: string | null;
+  refundAccountNum?: string | null;
+  refundAccountName?: string | null;
 }
 
 const evaluationStatusLabel: Record<EvaluationStatus, string> = {
@@ -114,6 +128,9 @@ export default function RegisterStatusPage() {
   );
   const [videoScore, setVideoScore] = useState<number>(0);
 
+  // Refund state
+  const [refunding, setRefunding] = useState(false);
+
   const rankOptions = useMemo(() => {
     if (tournamentRanks.length > 0) return tournamentRanks.map(r => mapHandTypeLabel(r));
     const options = Array.from(new Set(players.map((p) => p.rank).filter(Boolean)));
@@ -160,6 +177,12 @@ export default function RegisterStatusPage() {
       paymentStatus: applicant.status?.evaluation === "FAILED" ? "REJECTED" : (applicant.payment?.status ?? "PENDING"),
       score: applicant.status?.score ?? undefined,
       comment: applicant.status?.comment ?? "",
+      cancellationStatus: (applicant as any).cancellationStatus ?? null,
+      cancelReason: (applicant as any).cancelReason ?? null,
+      refundQrUrl: (applicant as any).refundQrUrl ?? null,
+      refundBankName: (applicant as any).refundBankName ?? null,
+      refundAccountNum: (applicant as any).refundAccountNum ?? null,
+      refundAccountName: (applicant as any).refundAccountName ?? null,
     };
   };
 
@@ -337,6 +360,46 @@ export default function RegisterStatusPage() {
     }
   };
 
+  // === Refund / Reject Handler ===
+  const handleRefundAction = async (playerIndex: number, action: "REFUNDED" | "REJECTED") => {
+    const player = players[playerIndex];
+    if (!player) return;
+
+    const label = action === "REFUNDED" ? "คืนเงิน" : "ไม่คืนเงิน";
+    const confirmResult = await Swal.fire({
+      title: `ยืนยัน${label}?`,
+      text: `คุณต้องการ${label}ให้ทีม ${player.team} ใช่หรือไม่`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: action === "REFUNDED" ? "#22c55e" : "#ef4444",
+      confirmButtonText: `ยืนยัน${label}`,
+      cancelButtonText: "ย้อนกลับ",
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    setRefunding(true);
+    try {
+      await api.patch(`/api/registration/${player.registrationId}/refund`, { status: action });
+
+      setPlayers(prev => {
+        const updated = [...prev];
+        updated[playerIndex] = {
+          ...updated[playerIndex],
+          cancellationStatus: action,
+          status: action === "REFUNDED" ? "FAILED" as EvaluationStatus : updated[playerIndex].status,
+        };
+        return updated;
+      });
+
+      await Swal.fire({ title: "สำเร็จ", text: `${label}เรียบร้อยแล้ว`, icon: "success", timer: 1500, showConfirmButton: false });
+    } catch (error) {
+      console.error("Refund Error:", error);
+      await Swal.fire({ title: "ผิดพลาด", text: "ไม่สามารถดำเนินการได้ กรุณาลองใหม่", icon: "error" });
+    } finally {
+      setRefunding(false);
+    }
+  };
+
   const filteredPlayers = players.filter((p) => {
     const rankMatch = !selectedRank || p.rank === selectedRank;
     const typeMatch = !selectedType || p.type === selectedType;
@@ -446,6 +509,7 @@ export default function RegisterStatusPage() {
                     <th className="border p-2">สถานะ</th>
                     <th className="border p-2">รูปภาพการชำระเงิน</th>
                     <th className="border p-2">สถานะการชำระเงิน</th>
+                    <th className="border p-2">การยกเลิก/คืนเงิน</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -459,7 +523,12 @@ export default function RegisterStatusPage() {
                     return (
                       <tr
                         key={p.registrationId}
-                        className="even:bg-slate-50 odd:bg-[#F8FAFF] hover:bg-[#E9F5FF] transition-all"
+                        className={`transition-all ${p.cancellationStatus === "REQUESTED"
+                          ? "bg-red-50 hover:bg-red-100 border-l-4 border-l-red-400"
+                          : p.cancellationStatus === "REFUNDED"
+                            ? "bg-gray-100 opacity-60"
+                            : "even:bg-slate-50 odd:bg-[#F8FAFF] hover:bg-[#E9F5FF]"
+                          }`}
                       >
                         <td className="border p-2">
                           {p.names.map((n, idx) => (
@@ -580,6 +649,37 @@ export default function RegisterStatusPage() {
                             )}
                           </div>
                         </td>
+
+                        {/* สถานะการยกเลิก/คืนเงิน */}
+                        <td className="border p-2">
+                          {p.cancellationStatus === "REQUESTED" ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-red-600 font-bold text-xs">ขอยกเลิก</span>
+                              <div className="flex gap-1 mt-1">
+                                <button
+                                  onClick={() => handleRefundAction(safeIndex, "REFUNDED")}
+                                  disabled={refunding}
+                                  className="px-2 py-1 bg-green-500 text-white rounded-lg text-[10px] font-semibold hover:bg-green-600 shadow-sm disabled:opacity-50"
+                                >
+                                  คืนเงิน
+                                </button>
+                                <button
+                                  onClick={() => handleRefundAction(safeIndex, "REJECTED")}
+                                  disabled={refunding}
+                                  className="px-2 py-1 bg-gray-500 text-white rounded-lg text-[10px] font-semibold hover:bg-gray-600 shadow-sm disabled:opacity-50"
+                                >
+                                  ไม่คืนเงิน
+                                </button>
+                              </div>
+                            </div>
+                          ) : p.cancellationStatus === "REFUNDED" ? (
+                            <span className="text-green-600 font-bold text-xs">คืนเงินแล้ว</span>
+                          ) : p.cancellationStatus === "REJECTED" ? (
+                            <span className="text-red-600 font-bold text-xs">ไม่คืนเงิน</span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -655,7 +755,7 @@ export default function RegisterStatusPage() {
       {/* Modal รูปภาพ */}
       {
         modalImage && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
             <div className="bg-white rounded-xl p-4 shadow-xl relative max-w-[90%] md:max-w-lg">
               <button
                 onClick={() => setModalImage(null)}
@@ -672,6 +772,8 @@ export default function RegisterStatusPage() {
           </div>
         )
       }
+
+
     </div >
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Upload } from "lucide-react";
+import { Upload, XCircle } from "lucide-react";
 import api from "@/lib/api";
 import Swal from "sweetalert2";
 
@@ -108,6 +108,9 @@ export default function StatusPage() {
   const [modalQrCodeUrl, setModalQrCodeUrl] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
 
+  // Cancellation State
+  const [cancelling, setCancelling] = useState(false);
+
   const [filter, setFilter] = useState({
     rank: "",
     type: "",
@@ -132,8 +135,9 @@ export default function StatusPage() {
               gender: reg.player1Gender,
               rank: mapRank(reg.playType?.trim()?.toUpperCase()),
               type: isDouble ? "คู่" : "เดี่ยว",
-              register: mapStatus(reg.status),
-              payment: reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              register: reg.cancellation?.status === "REQUESTED" ? "รอคืนเงิน" : reg.cancellation?.status === "REFUNDED" ? "ยกเลิก" : mapStatus(reg.status),
+              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              cancellationStatus: reg.cancellation?.status ?? null,
             },
           ];
 
@@ -144,8 +148,9 @@ export default function StatusPage() {
               gender: reg.player2Gender,
               rank: mapRank(reg.playType),
               type: "คู่",
-              register: mapStatus(reg.status),
-              payment: reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              register: reg.cancellation?.status === "REQUESTED" ? "รอคืนเงิน" : reg.cancellation?.status === "REFUNDED" ? "ยกเลิก" : mapStatus(reg.status),
+              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              cancellationStatus: reg.cancellation?.status ?? null,
             });
           }
 
@@ -316,6 +321,37 @@ export default function StatusPage() {
     }
   };
 
+  // === Cancellation Handler ===
+  const handleCancelRegistration = async (regId: number) => {
+    const result = await Swal.fire({
+      title: "ยืนยันการยกเลิก?",
+      text: "คุณต้องการยกเลิกการสมัครใช่หรือไม่",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: "ยืนยันยกเลิก",
+      cancelButtonText: "ย้อนกลับ",
+    });
+    if (!result.isConfirmed) return;
+
+    setCancelling(true);
+    try {
+      await api.post(`/api/registration/${regId}/cancel`);
+      await alertSuccess("ยกเลิกสำเร็จ", "รอผู้จัดดำเนินการ");
+
+      setTeams(prev => prev.map(t =>
+        t.registrationId === regId
+          ? { ...t, members: t.members.map((m: any) => ({ ...m, cancellationStatus: "REQUESTED", register: "รอดำเนินการ" })) }
+          : t
+      ));
+    } catch (error) {
+      console.error("Cancel Error:", error);
+      await alertError("ไม่สามารถยกเลิกได้", "กรุณาลองใหม่");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const teamsInView = useMemo(() => {
     return teams.filter((team) => {
       if (!tournamentIdFromUrl) return true;
@@ -446,6 +482,7 @@ export default function StatusPage() {
                           <th className="p-3 border">สถานะการสมัคร</th>
                           <th className="p-3 border">ชำระเงิน</th>
                           <th className="p-3 border">สถานะการชำระเงิน</th>
+                          <th className="p-3 border">จัดการ</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -525,6 +562,19 @@ export default function StatusPage() {
                                 );
                               })()}
                             </td>
+                            <td className="p-2 border">
+                              {team.members[0].cancellationStatus === "REQUESTED" ? (
+                                <span className="text-amber-600 font-semibold text-xs">รอดำเนินการ</span>
+                              ) : team.members[0].cancellationStatus === "REFUNDED" ? (
+                                <span className="text-green-600 font-semibold text-xs">คืนเงินแล้ว</span>
+                              ) : team.members[0].cancellationStatus === "REJECTED" ? (
+                                <span className="text-red-600 font-semibold text-xs">ไม่คืนเงิน</span>
+                              ) : team.members[0].register !== "ยกเลิก" ? (
+                                <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} title="ยกเลิกการสมัคร" className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50">
+                                  <XCircle className="w-5 h-5 mx-auto" />
+                                </button>
+                              ) : null}
+                            </td>
                           </tr>
                         ) : (
                           /* เดี่ยว */
@@ -572,6 +622,19 @@ export default function StatusPage() {
                                 >
                                   {m.payment}
                                 </span>
+                              </td>
+                              <td className="p-2 border">
+                                {m.cancellationStatus === "REQUESTED" ? (
+                                  <span className="text-amber-600 font-semibold text-xs">รอดำเนินการ</span>
+                                ) : m.cancellationStatus === "REFUNDED" ? (
+                                  <span className="text-green-600 font-semibold text-xs">คืนเงินแล้ว</span>
+                                ) : m.cancellationStatus === "REJECTED" ? (
+                                  <span className="text-red-600 font-semibold text-xs">ไม่คืนเงิน</span>
+                                ) : m.register !== "ยกเลิก" ? (
+                                  <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} title="ยกเลิกการสมัคร" className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50">
+                                    <XCircle className="w-5 h-5 mx-auto" />
+                                  </button>
+                                ) : null}
                               </td>
                             </tr>
                           ))
@@ -678,6 +741,8 @@ export default function StatusPage() {
           </div>
         </div>
       )}
+
+
     </div>
   );
 }
