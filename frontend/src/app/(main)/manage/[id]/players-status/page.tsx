@@ -365,7 +365,7 @@ export default function RegisterStatusPage() {
     const player = players[playerIndex];
     if (!player) return;
 
-    const label = action === "REFUNDED" ? "คืนเงิน" : "ไม่คืนเงิน";
+    const label = action === "REFUNDED" ? "คืนเงิน" : "ยังไม่คืนเงิน";
     const confirmResult = await Swal.fire({
       title: `ยืนยัน${label}?`,
       text: `คุณต้องการ${label}ให้ทีม ${player.team} ใช่หรือไม่`,
@@ -653,29 +653,60 @@ export default function RegisterStatusPage() {
                         {/* สถานะการยกเลิก/คืนเงิน */}
                         <td className="border p-2">
                           {p.cancellationStatus === "REQUESTED" ? (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-red-600 font-bold text-xs">ขอยกเลิก</span>
-                              <div className="flex gap-1 mt-1">
+                            <div className="flex flex-col items-center gap-1.5">
+                              <span className="text-red-600 font-bold text-sm">ขอยกเลิก</span>
+                              {p.cancelReason && (
+                                <button
+                                  onClick={() => Swal.fire({
+                                    title: `<div class="pt-2 text-2xl font-black text-rose-500 tracking-tight">เหตุผลการยกเลิก</div>`,
+                                    html: `
+                                      <div class="mt-4 px-2">
+                                        <div class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-[2rem] p-6">
+                                          <div class="text-amber-800 text-lg font-bold leading-snug">
+                                            ${p.cancelReason || "ไม่ระบุเหตุผล"}
+                                          </div>
+                                        </div>
+                                        <div class="mt-4 flex items-center justify-center gap-2 text-rose-300 text-[10px] font-medium uppercase tracking-widest">
+                                          <span class="h-px w-8 bg-rose-100"></span>
+                                          <span>แจ้งเมื่อ ${new Date().toLocaleDateString('th-TH')}</span>
+                                          <span class="h-px w-8 bg-rose-100"></span>
+                                        </div>
+                                      </div>
+                                    `,
+                                    showConfirmButton: true,
+                                    confirmButtonText: "รับทราบ",
+                                    confirmButtonColor: "#fb7185",
+                                    customClass: {
+                                      popup: 'rounded-[2.5rem] p-8 border-4 border-rose-50 shadow-2xl bg-white',
+                                      confirmButton: 'px-10 py-3 rounded-full font-bold text-sm shadow-md shadow-rose-100 hover:scale-105 active:scale-95 transition-all'
+                                    },
+                                    buttonsStyling: true,
+                                    width: '420px',
+                                  })}
+                                  className="text-xs text-blue-600 underline hover:text-blue-800 transition-colors cursor-pointer font-medium"
+                                >
+                                  ดูเหตุผล
+                                </button>
+                              )}
+                              <div className="flex gap-2 mt-1">
                                 <button
                                   onClick={() => handleRefundAction(safeIndex, "REFUNDED")}
                                   disabled={refunding}
-                                  className="px-2 py-1 bg-green-500 text-white rounded-lg text-[10px] font-semibold hover:bg-green-600 shadow-sm disabled:opacity-50"
+                                  className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 shadow-sm disabled:opacity-50 min-w-[70px] transition-colors"
                                 >
                                   คืนเงิน
                                 </button>
                                 <button
                                   onClick={() => handleRefundAction(safeIndex, "REJECTED")}
                                   disabled={refunding}
-                                  className="px-2 py-1 bg-gray-500 text-white rounded-lg text-[10px] font-semibold hover:bg-gray-600 shadow-sm disabled:opacity-50"
+                                  className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 shadow-sm disabled:opacity-50 whitespace-nowrap transition-colors"
                                 >
-                                  ไม่คืนเงิน
+                                  ยังไม่คืนเงิน
                                 </button>
                               </div>
                             </div>
-                          ) : p.cancellationStatus === "REFUNDED" ? (
-                            <span className="text-green-600 font-bold text-xs">คืนเงินแล้ว</span>
-                          ) : p.cancellationStatus === "REJECTED" ? (
-                            <span className="text-red-600 font-bold text-xs">ไม่คืนเงิน</span>
+                          ) : p.cancellationStatus === "REFUNDED" || p.cancellationStatus === "REJECTED" ? (
+                            <button disabled className="px-3 py-1 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed">ยกเลิกแล้ว</button>
                           ) : (
                             <span className="text-gray-400 text-xs">—</span>
                           )}
