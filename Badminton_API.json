@@ -1,0 +1,632 @@
+{
+	"info": {
+		"_postman_id": "badminton-api-collection",
+		"name": "Badminton Tournament API",
+		"description": "API Collection for Badminton Tournament Management System\nGenerated based on backend source code.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth (Authentication)",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"fullName\": \"Test User\",\n    \"confirmPassword\": \"password123\",\n    \"role\": \"ORGANIZER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check User (Clerk)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"clerkId\": \"user_xxx\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/check",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"check"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create User (Clerk)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"clerkId\": \"user_xxx\",\n    \"email\": \"test@example.com\",\n    \"firstName\": \"First\",\n    \"lastName\": \"Last\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"create"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Tournament (Create/Manage)",
+			"item": [
+				{
+					"name": "Get All Tournaments (Page: Home)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Tournament Details (Page: Detail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Tournament (Page: Create)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Badminton Cup 2026",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "Bangkok",
+									"type": "text"
+								},
+								{
+									"key": "playType",
+									"value": "SINGLE",
+									"type": "text"
+								},
+								{
+									"key": "rank",
+									"value": "N,S,P+",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament"
+							]
+						}
+					}
+				},
+				{
+					"name": "Manage Groups - Auto Grouping (Page: Manage/Groups)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"playType\": \"P+\",\n    \"detail\": \"Arrange by score descending\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament/managegroup/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament",
+								"managegroup",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Registration (User/Organizer)",
+			"item": [
+				{
+					"name": "Register to Tournament (Page: User/Register)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "playType",
+									"value": "P+",
+									"type": "text"
+								},
+								{
+									"key": "teamName",
+									"value": "Badmintonz",
+									"type": "text"
+								},
+								{
+									"key": "managerName",
+									"value": "Somchai",
+									"type": "text"
+								},
+								{
+									"key": "player1Name",
+									"value": "Player One",
+									"type": "text"
+								},
+								{
+									"key": "player1Phone",
+									"value": "0812345678",
+									"type": "text"
+								},
+								{
+									"key": "player1Gender",
+									"value": "MALE",
+									"type": "text"
+								},
+								{
+									"key": "player1Birthday",
+									"value": "2000-01-01",
+									"type": "text"
+								},
+								{
+									"key": "video",
+									"type": "file"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament/:tournamentId/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament",
+								":tournamentId",
+								"register"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "My Registrations (Page: User/Status)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/user/registrations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"registrations"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Applicants (Page: Manage/Applicants)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tournament/:tournamentId/applicants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tournament",
+								":tournamentId",
+								"applicants"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Evaluation (Page: Manage/Applicants)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"score\": 10,\n    \"comment\": \"Good player\",\n    \"status\": \"PASSED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/registration/:registrationId/evaluation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"registration",
+								":registrationId",
+								"evaluation"
+							],
+							"variable": [
+								{
+									"key": "registrationId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Matches (Group & Bracket)",
+			"item": [
+				{
+					"name": "Get Group Matches (Page: Manage/Group-Scores)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/matches/:tournamentId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"matches",
+								":tournamentId"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Group Match Score (Page: Manage/Group-Scores)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"score1\": 21,\n    \"score2\": 19,\n    \"sets\": \"21-19\",\n    \"shuttle\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/group-matches/:matchId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"group-matches",
+								":matchId"
+							],
+							"variable": [
+								{
+									"key": "matchId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Bracket Matches (Page: Manage/Bracket)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bracket-matches/:tournamentId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bracket-matches",
+								":tournamentId"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Bracket Score (Page: Manage/Bracket)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"score1\": 21,\n    \"score2\": 18,\n    \"sets\": \"21-18\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bracket-matches/:matchId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bracket-matches",
+								":matchId"
+							],
+							"variable": [
+								{
+									"key": "matchId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Match History (Page: Match History)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/match-history/:tournamentId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"match-history",
+								":tournamentId"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Summary & Results",
+			"item": [
+				{
+					"name": "Get Summary (Page: Summary)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/summary/:tournamentId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"summary",
+								":tournamentId"
+							],
+							"variable": [
+								{
+									"key": "tournamentId",
+									"value": "1"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "token",
+			"value": "YOUR_JWT_TOKEN_HERE"
+		}
+	]
+}
