@@ -700,14 +700,10 @@ export const requestCancellation = async (req: Request, res: Response) => {
     const cancellation = await prisma.cancellationRequest.create({
       data: {
         registerId: parsedId,
+        reason: reason || null,
         status: "REQUESTED",
       },
     });
-
-    // ถ้ายังไม่จ่ายเงิน ให้ยกเลิกทันที
-    if (!isPaid) {
-      await prisma.register.update({ where: { id: parsedId }, data: { status: "FAILED" } });
-    }
 
     return res.status(200).json({ message: "ส่งคำขอยกเลิกสำเร็จ", data: cancellation });
   } catch (error) {
