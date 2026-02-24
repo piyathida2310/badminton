@@ -11,6 +11,9 @@ import {
     updatePaymentStatus,
     uploadPaymentSlip,
     getPaymentSlip,
+    requestCancellation,
+    getTournamentCancellations,
+    processRefund,
 } from "../controllers/registerController";
 
 const router = Router();
@@ -67,6 +70,25 @@ router.get(
     "/payment/slip/:registrationId",
     authMiddleware,
     getPaymentSlip
+);
+
+// --- Cancellation & Refund ---
+router.post(
+    "/registration/:registrationId/cancel",
+    authMiddleware,
+    requestCancellation
+);
+
+router.get(
+    "/tournament/:tournamentId/cancellations",
+    authMiddleware,
+    getTournamentCancellations
+);
+
+router.patch(
+    "/registration/:registrationId/refund",
+    authMiddleware,
+    processRefund
 );
 
 export default router;
