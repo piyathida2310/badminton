@@ -69,7 +69,9 @@ const groupBySort = (players: Player[], numGroups: number, order: "asc" | "desc"
   console.log(`\n[CODE SORT] Sorting by score ${order}...`);
 
   const sorted = [...players].sort((a, b) =>
-    order === "desc" ? b.score - a.score : a.score - b.score
+    order === "desc"
+      ? (b.score - a.score || a.id - b.id)
+      : (a.score - b.score || a.id - b.id)
   );
 
   console.log("   Sorted order:");

@@ -259,7 +259,7 @@ export const organizeTournamentGroups = async (
         where: { tournamentId },
         include: {
             registers: {
-                orderBy: { score: "desc" },
+                orderBy: [{ score: "desc" }, { id: "asc" }],
             },
         },
         orderBy: { name: "asc" },
