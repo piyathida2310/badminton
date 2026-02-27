@@ -515,7 +515,7 @@ export const getBracketMatches = async (req: Request, res: Response) => {
             include: { player1: true, player2: true, winner: true }
         });
 
-        // ✅ Safe BG Fallback: If viewing BG and nothing found, check for NULL entries (Legacy Data)
+        //  Safe BG Fallback: If viewing BG and nothing found, check for NULL entries (Legacy Data)
         if (existingMatches.length === 0 && handType === 'BG' && !fetchAll) {
             existingMatches = await prisma.bracketMatch.findMany({
                 where: { tournamentId: tId, handType: null },
@@ -764,6 +764,23 @@ export const getMatchHistory = async (req: Request, res: Response) => {
 
         const isDouble = tournament.playType === "DOUBLE";
 
+        // Pre-calculate Global Match Numbers for Group Matches
+        const activeGroups = await prisma.group.findMany({
+            where: { tournamentId: tId },
+            select: { id: true }
+        });
+        const activeGroupIds = activeGroups.map(g => g.id);
+
+        const allTournamentGroupMatches = await prisma.groupMatch.findMany({
+            where: {
+                tournamentId: tId,
+                groupId: { in: activeGroupIds }
+            },
+            select: { id: true },
+            orderBy: [{ scheduledTime: 'asc' }, { id: 'asc' }]
+        });
+        const allGroupMatchIds = allTournamentGroupMatches.map(m => m.id);
+
         // Fetch all group matches
         const groupMatches = await prisma.groupMatch.findMany({
             where: { tournamentId: tId },
@@ -819,8 +836,12 @@ export const getMatchHistory = async (req: Request, res: Response) => {
                 ? `${m.score1} : ${m.score2}`
                 : (m.sets || "-");
 
+            const globalMatchNumber = allGroupMatchIds.indexOf(m.id) + 1;
+            const displayId = globalMatchNumber > 0 ? `${globalMatchNumber}` : `${m.id}`;
+
             results.push({
                 id: m.id,
+                displayId: displayId,
                 court: "-",
                 status,
                 matchType: isDouble ? "double" : "single",
@@ -849,6 +870,14 @@ export const getMatchHistory = async (req: Request, res: Response) => {
             2: "QF",
             3: "Semi-Final",
             4: "Final",
+        };
+
+        const getBracketIndex = (r: number, s: number) => {
+            if (r === 1) return s - 1; // 0-7
+            if (r === 2) return 8 + (s - 1); // 8-11
+            if (r === 3) return 12 + (s - 1); // 12-13
+            if (r === 4) return 14; // 14
+            return -1;
         };
 
         for (const m of bracketMatches) {
@@ -882,8 +911,14 @@ export const getMatchHistory = async (req: Request, res: Response) => {
                 ? `${m.score1} : ${m.score2}`
                 : (m.sets || "-");
 
+            const bIndex = getBracketIndex(m.roundSequence || 0, m.matchSequence || 0);
+            const bracketMatchNumber = bIndex !== -1 ? bIndex + 1 : m.id;
+            
+            const displayId = `${bracketMatchNumber}`;
+
             results.push({
                 id: m.id,
+                displayId: displayId,
                 court: "-",
                 status,
                 matchType: isDouble ? "double" : "single",

@@ -34,6 +34,7 @@ interface Match {
   score?: string;
   stage?: string;
   shuttle?: number;
+  displayId?: string;
 }
 
 interface MatchTableProps {
@@ -237,7 +238,9 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
                   className={`transition-all duration-150 hover:bg-pink-50 ${i % 2 === 0 ? "bg-white" : "bg-amber-50/40"
                     }`}
                 >
-                  <td className="p-2 border border-gray-300">{m.id}</td>
+                  <td className="p-2 border border-gray-300 font-bold text-pink-700 whitespace-nowrap">
+                    {m.displayId || m.id}
+                  </td>
                   <td className="p-2 border border-gray-300">{m.type}</td>
                   <td className="p-2 border border-gray-300">{m.round}</td>
                   <td className="p-2 border border-gray-300">
@@ -281,7 +284,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
           >
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold text-pink-700 text-sm">
-                Match #{m.id} ({m.matchType === "single" ? "เดี่ยว" : "คู่"})
+                {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? "เดี่ยว" : "คู่"})
               </h3>
               {renderStatusBadge(m.status)}
             </div>
