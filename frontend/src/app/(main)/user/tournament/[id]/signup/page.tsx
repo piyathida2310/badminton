@@ -85,9 +85,19 @@ export default function RegisterPage() {
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // อนุญาตเฉพาะตัวเลขสำหรับเบอร์โทรศัพท์
+    if (name === "player1Phone" || name === "player2Phone") {
+      const numericValue = value.replace(/\D/g, "");
+      setFormData({
+        ...formData,
+        [name]: numericValue,
+      });
+      return;
+    }
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -358,6 +368,8 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   name="player1Phone"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={formData.player1Phone}
                   onChange={handleInputChange}
                   placeholder="08x-xxx-xxxx"
@@ -436,6 +448,8 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     name="player2Phone"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.player2Phone}
                     onChange={handleInputChange}
                     placeholder="08x-xxx-xxxx"
