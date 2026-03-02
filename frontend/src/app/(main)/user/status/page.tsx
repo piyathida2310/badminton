@@ -381,6 +381,19 @@ export default function StatusPage() {
     return Array.from(types).sort();
   }, [teamsInView, tournamentMeta, tournamentIdFromUrl]);
 
+  // Auto-select first option when options change (like manage players-status page)
+  useEffect(() => {
+    if (rankOptions.length > 0 && (!filter.rank || !rankOptions.includes(filter.rank))) {
+      setFilter((prev) => ({ ...prev, rank: rankOptions[0] }));
+    }
+  }, [rankOptions]);
+
+  useEffect(() => {
+    if (typeOptions.length > 0 && (!filter.type || !typeOptions.includes(filter.type))) {
+      setFilter((prev) => ({ ...prev, type: typeOptions[0] }));
+    }
+  }, [typeOptions]);
+
   const filteredTeams = teamsInView
     .map((team) => ({
       ...team,
@@ -417,7 +430,6 @@ export default function StatusPage() {
             onChange={(e) => setFilter((prev) => ({ ...prev, rank: e.target.value }))}
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
           >
-            <option value="">ทั้งหมด</option>
             {rankOptions.map((r: string) => (
               <option key={r} value={r}>
                 {r}
@@ -433,7 +445,6 @@ export default function StatusPage() {
             onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
             className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
           >
-            <option value="">ทั้งหมด</option>
             {typeOptions.map((t: string) => (
               <option key={t} value={t}>
                 {t}
