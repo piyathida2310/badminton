@@ -131,20 +131,20 @@ const MatchCard = ({
   return (
     <div
       onClick={isOrganizer ? onClick : undefined}
-      className={`relative w-[300px] rounded-xl shadow-md border overflow-hidden group transition-all 
-                 ${isOrganizer ? "hover:shadow-xl hover:scale-105 cursor-pointer" : "cursor-default"}`}
+      className={`relative w-[300px] h-[200px] shrink-0 rounded-2xl shadow-md border overflow-hidden flex flex-col group transition-all duration-300
+                 ${isOrganizer ? "hover:shadow-2xl hover:-translate-y-1 cursor-pointer" : "cursor-default"}`}
       style={{
         backgroundColor: "#ffffff",
-        borderColor: "#cbd5e1", // slate-300
-        borderWidth: "1px",
+        borderColor: winner ? (winner === 'A' ? "#10b981" : "#10b981") : "#e2e8f0", // emerald-500 if someone won
+        borderWidth: winner ? "2px" : "1px",
       }}
     >
       {/* Header / Match Info */}
       < div
-        className="flex justify-between items-center px-3 py-1 border-b"
-        style={{ backgroundColor: "#f1f5f9", borderColor: "#e2e8f0" }} // slate-100, slate-200
+        className="flex justify-between items-center px-4 py-1.5 border-b"
+        style={{ backgroundColor: winner ? "#ecfdf5" : "#f8fafc", borderColor: "#e2e8f0" }} // emerald-50 or slate-50
       >
-        <span className="text-[10px] font-bold" style={{ color: "#64748b" }}>Match #{matchNumber}</span>
+        <span className="text-[12px] font-bold tracking-wide" style={{ color: "#64748b" }}>Match #{matchNumber}</span>
         {
           match?.shuttlesUsed ? (
             <span className="text-[10px] font-medium flex items-center gap-1" style={{ color: "#475569" }}>
@@ -159,21 +159,23 @@ const MatchCard = ({
         <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'A' ? (p1Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
-              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+              <span className="text-[12px] font-black px-2 py-0.5 rounded w-10 text-center shrink-0 leading-normal" style={{ backgroundColor: winner === 'A' ? "#10b981" : "#e2e8f0", color: winner === 'A' ? "#ffffff" : "#334155" }}>
                 {t1?.code || "-"}
               </span>
-              <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
+              <span className={`text-[14px] ${winner === 'A' ? 'font-bold' : 'font-semibold'} pb-1 leading-snug break-words whitespace-normal`} style={{ color: "#0f172a", maxWidth: "180px" }}>
                 {t1?.name || "-"}
               </span>
               {p1Rank && <RankBadge rank={p1Rank} />}
               {winner === 'A' && p1Rank === '1st' && (
-                <span className="text-[9px] font-extrabold uppercase tracking-tighter" style={{ color: "#059669" }}>CHAMPION</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-tighter self-center" style={{ color: "#059669" }}>CHAMPION</span>
               )}
             </div>
             {/* Adjusted padding and added Line Height */}
-            <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
-              {t1?.players || "Waiting..."}
-            </span>
+            <div className="pl-12 pt-1 pb-2">
+              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: "#475569", maxWidth: "200px" }}>
+                {t1?.players || "รอผล..."}
+              </span>
+            </div>
           </div>
           {hasScore && (
             <div className="font-bold text-lg shrink-0 leading-none" style={{ color: "#1e293b" }}>
@@ -189,20 +191,22 @@ const MatchCard = ({
         <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'B' ? (p2Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
-              <span className="text-[10px] font-bold px-1 rounded w-8 text-center shrink-0 leading-normal" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>
+              <span className="text-[12px] font-black px-2 py-0.5 rounded w-10 text-center shrink-0 leading-normal" style={{ backgroundColor: winner === 'B' ? "#10b981" : "#e2e8f0", color: winner === 'B' ? "#ffffff" : "#334155" }}>
                 {t2?.code || "-"}
               </span>
-              <span className="text-[11px] font-semibold truncate leading-normal" style={{ color: "#1e293b" }}>
+              <span className={`text-[14px] ${winner === 'B' ? 'font-bold' : 'font-semibold'} pb-1 leading-snug break-words whitespace-normal`} style={{ color: "#0f172a", maxWidth: "180px" }}>
                 {t2?.name || "-"}
               </span>
               {p2Rank && <RankBadge rank={p2Rank} />}
               {winner === 'B' && p2Rank === '1st' && (
-                <span className="text-[9px] font-extrabold uppercase tracking-tighter" style={{ color: "#059669" }}>CHAMPION</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-tighter self-center" style={{ color: "#059669" }}>CHAMPION</span>
               )}
             </div>
-            <span className="text-[9px] block pl-10 truncate leading-relaxed" style={{ color: "#64748b", marginTop: "2px" }}>
-              {t2?.players || "Waiting..."}
-            </span>
+            <div className="pl-12 pt-1 pb-2">
+              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: "#475569", maxWidth: "200px" }}>
+                {t2?.players || "รอผล..."}
+              </span>
+            </div>
           </div>
           {hasScore && (
             <div className="font-bold text-lg shrink-0 leading-none" style={{ color: "#1e293b" }}>
@@ -961,27 +965,22 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
                 {/* Round of 16 (8 Matches) */}
                 {!isSmallBracket && (
-                  <div className="flex flex-col justify-between h-[1050px] w-[300px] z-10">
+                  <div className="flex flex-col justify-between w-[300px] z-10 shrink-0" style={{ height: '1880px', marginTop: '0px' }}>
                     {matches.slice(0, 8).map((m, i) => (
                       <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                     ))}
 
-                    {/* LINES - Recalculated for Card Width 300px */}
+                    {/* LINES - Recalculated for Card Width 300px and Height 1880px */}
                     <div className="absolute inset-0 pointer-events-none -z-10">
-                      {/* R16 -> QF */}
-                      {/* Box Height ~100px? Adjusted logic. 
-                            If 1050 / 8 = ~131px spacing.
-                            Center of box 1 ~65px. 
-                        */}
-                      <div style={{ position: 'relative', top: '-25px' }}> {/* Micro adjustment for alignment */}
+                      <div style={{ position: 'relative', top: '0px' }}>
                         {/* Group 1 */}
-                        <div><Line top={55} left={300} length={32} angle={0} /><Line top={186} left={300} length={32} angle={0} /><Line top={55} left={332} length={131} angle={90} /><Line top={120} left={332} length={32} angle={0} /></div>
+                        <div><Line top={100} left={300} length={32} angle={0} color="#94a3b8" /><Line top={340} left={300} length={32} angle={0} color="#94a3b8" /><Line top={100} left={332} length={240} angle={90} color="#94a3b8" /><Line top={220} left={332} length={32} angle={0} color="#94a3b8" /></div>
                         {/* Group 2 */}
-                        <div><Line top={317} left={300} length={32} angle={0} /><Line top={448} left={300} length={32} angle={0} /><Line top={317} left={332} length={131} angle={90} /><Line top={382} left={332} length={32} angle={0} /></div>
+                        <div><Line top={580} left={300} length={32} angle={0} color="#94a3b8" /><Line top={820} left={300} length={32} angle={0} color="#94a3b8" /><Line top={580} left={332} length={240} angle={90} color="#94a3b8" /><Line top={700} left={332} length={32} angle={0} color="#94a3b8" /></div>
                         {/* Group 3 */}
-                        <div><Line top={579} left={300} length={32} angle={0} /><Line top={710} left={300} length={32} angle={0} /><Line top={579} left={332} length={131} angle={90} /><Line top={644} left={332} length={32} angle={0} /></div>
+                        <div><Line top={1060} left={300} length={32} angle={0} color="#94a3b8" /><Line top={1300} left={300} length={32} angle={0} color="#94a3b8" /><Line top={1060} left={332} length={240} angle={90} color="#94a3b8" /><Line top={1180} left={332} length={32} angle={0} color="#94a3b8" /></div>
                         {/* Group 4 */}
-                        <div><Line top={841} left={300} length={32} angle={0} /><Line top={972} left={300} length={32} angle={0} /><Line top={841} left={332} length={131} angle={90} /><Line top={906} left={332} length={32} angle={0} /></div>
+                        <div><Line top={1540} left={300} length={32} angle={0} color="#94a3b8" /><Line top={1780} left={300} length={32} angle={0} color="#94a3b8" /><Line top={1540} left={332} length={240} angle={90} color="#94a3b8" /><Line top={1660} left={332} length={32} angle={0} color="#94a3b8" /></div>
                       </div>
                     </div>
                   </div>
@@ -989,25 +988,32 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
                 {/* QF (4 Matches) */}
                 <div
-                  className="flex flex-col justify-between h-[906px] w-[300px] z-10"
-                  style={{ marginTop: isSmallBracket ? '0px' : '65px' }}
+                  className="flex flex-col justify-between w-[300px] z-10 shrink-0"
+                  style={{ height: isSmallBracket ? '920px' : '1640px', marginTop: isSmallBracket ? '0px' : '120px' }}
                 >
                   {matches.slice(8, 12).map((m, i) => (
                     <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
-                  <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
-                    <div style={{ position: 'relative', top: '-25px' }}>
-                      {/* QF -> SF */}
-                      <div><Line top={120} left={664} length={32} angle={0} /><Line top={382} left={664} length={32} angle={0} /><Line top={120} left={696} length={262} angle={90} /><Line top={251} left={696} length={32} angle={0} /></div>
-                      <div><Line top={644} left={664} length={32} angle={0} /><Line top={906} left={664} length={32} angle={0} /><Line top={644} left={696} length={262} angle={90} /><Line top={775} left={696} length={32} angle={0} /></div>
-                    </div>
+                  <div className="absolute inset-0 pointer-events-none -z-10">
+                    {/* QF -> SF */}
+                    {isSmallBracket ? (
+                      <div style={{ position: 'relative', top: '0px' }}>
+                        <div><Line top={100} left={300} length={32} angle={0} color="#94a3b8" /><Line top={340} left={300} length={32} angle={0} color="#94a3b8" /><Line top={100} left={332} length={240} angle={90} color="#94a3b8" /><Line top={220} left={332} length={32} angle={0} color="#94a3b8" /></div>
+                        <div><Line top={580} left={300} length={32} angle={0} color="#94a3b8" /><Line top={820} left={300} length={32} angle={0} color="#94a3b8" /><Line top={580} left={332} length={240} angle={90} color="#94a3b8" /><Line top={700} left={332} length={32} angle={0} color="#94a3b8" /></div>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative', top: '0px' }}>
+                        <div><Line top={220} left={664} length={32} angle={0} color="#94a3b8" /><Line top={700} left={664} length={32} angle={0} color="#94a3b8" /><Line top={220} left={696} length={480} angle={90} color="#94a3b8" /><Line top={460} left={696} length={32} angle={0} color="#94a3b8" /></div>
+                        <div><Line top={1180} left={664} length={32} angle={0} color="#94a3b8" /><Line top={1660} left={664} length={32} angle={0} color="#94a3b8" /><Line top={1180} left={696} length={480} angle={90} color="#94a3b8" /><Line top={1420} left={696} length={32} angle={0} color="#94a3b8" /></div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* SF (2 Matches) */}
                 <div
-                  className="flex flex-col justify-between h-[644px] w-[300px] z-10"
-                  style={{ marginTop: isSmallBracket ? '131px' : '196px' }}
+                  className="flex flex-col justify-between w-[300px] z-10 shrink-0"
+                  style={{ height: isSmallBracket ? '680px' : '1160px', marginTop: isSmallBracket ? '120px' : '360px' }}
                 >
                   {matches.slice(12, 14).map((m, i) => {
                     const scores = m.scores;
@@ -1029,18 +1035,24 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       />
                     );
                   })}
-                  <div className="absolute inset-0 pointer-events-none -z-10" style={{ transform: isSmallBracket ? 'translateX(-364px)' : 'none' }}>
-                    <div style={{ position: 'relative', top: '-25px' }}>
-                      {/* SF -> Final */}
-                      <div><Line top={251} left={1028} length={32} angle={0} /><Line top={775} left={1028} length={32} angle={0} /><Line top={251} left={1060} length={524} angle={90} /><Line top={513} left={1060} length={32} angle={0} /></div>
-                    </div>
+                  <div className="absolute inset-0 pointer-events-none -z-10">
+                    {/* SF -> Final */}
+                    {isSmallBracket ? (
+                      <div style={{ position: 'relative', top: '0px' }}>
+                        <div><Line top={220} left={664} length={32} angle={0} color="#94a3b8" /><Line top={700} left={664} length={32} angle={0} color="#94a3b8" /><Line top={220} left={696} length={480} angle={90} color="#94a3b8" /><Line top={460} left={696} length={32} angle={0} color="#94a3b8" /></div>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative', top: '0px' }}>
+                        <div><Line top={460} left={1028} length={32} angle={0} color="#94a3b8" /><Line top={1420} left={1028} length={32} angle={0} color="#94a3b8" /><Line top={460} left={1060} length={960} angle={90} color="#94a3b8" /><Line top={940} left={1060} length={32} angle={0} color="#94a3b8" /></div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Final (1 Match) */}
                 <div
-                  className="flex flex-col justify-center h-[150px] w-[300px] z-10"
-                  style={{ marginTop: isSmallBracket ? '378px' : '443px' }}
+                  className="flex flex-col justify-center w-[300px] z-10 shrink-0"
+                  style={{ height: '200px', marginTop: isSmallBracket ? '360px' : '840px' }}
                 >
                   {matches.slice(14, 15).map((m, i) => {
                     const scores = m.scores;
