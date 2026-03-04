@@ -54,7 +54,7 @@ const validateGroups = (
     if (!Array.isArray(groupsObj[k]))
       throw new Error(`groups.${k} ต้องเป็น array`);
 
-    // 🔥 แก้ให้รองรับกลุ่มที่มีสมาชิกน้อยกว่า 4 คนด้วย (เพื่อรองรับเคสคนไม่เต็มแม็กซ์)
+    //  แก้ให้รองรับกลุ่มที่มีสมาชิกน้อยกว่า 4 คนด้วย (เพื่อรองรับเคสคนไม่เต็มแม็กซ์)
     // แต่ละกลุ่มห้ามเกิน 4 คน
     if (groupsObj[k].length > 4)
       throw new Error(

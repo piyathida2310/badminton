@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { UploadCloud } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,6 +27,19 @@ export default function RegisterPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [tournamentLoading, setTournamentLoading] = useState(true);
   const [isFull, setIsFull] = useState(false);
+
+  const player1BirthdayRef = useRef<HTMLInputElement>(null);
+  const player2BirthdayRef = useRef<HTMLInputElement>(null);
+
+  const calculateAge = (birthday: string): number => {
+    if (!birthday) return 0;
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age;
+  };
 
   const [formData, setFormData] = useState({
     teamName: "",
@@ -379,15 +392,35 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">วันเกิด</label>
+                <label className="block mb-1 font-medium">อายุ</label>
+                {formData.player1Birthday ? (
+                  <button
+                    type="button"
+                    onClick={() => player1BirthdayRef.current?.showPicker()}
+                    className="w-full border border-pink-300 rounded-xl px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 font-semibold text-left hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+                  >
+                    {calculateAge(formData.player1Birthday)} ปี
+                    <span className="text-xs text-pink-400 ml-2">(กดเพื่อเปลี่ยน)</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => player1BirthdayRef.current?.showPicker()}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 text-gray-400 text-left hover:border-pink-300 transition-all cursor-pointer"
+                  >
+                    เลือกวันเกิด
+                  </button>
+                )}
                 <input
+                  ref={player1BirthdayRef}
                   type="date"
                   name="player1Birthday"
                   value={formData.player1Birthday}
                   onChange={handleInputChange}
                   max={new Date().toISOString().split("T")[0]}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
+                  className="sr-only"
                   required
+                  tabIndex={-1}
                 />
               </div>
 
@@ -459,15 +492,35 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">วันเกิด</label>
+                  <label className="block mb-1 font-medium">อายุ</label>
+                  {formData.player2Birthday ? (
+                    <button
+                      type="button"
+                      onClick={() => player2BirthdayRef.current?.showPicker()}
+                      className="w-full border border-sky-300 rounded-xl px-4 py-2 bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 font-semibold text-left hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
+                    >
+                      {calculateAge(formData.player2Birthday)} ปี
+                      <span className="text-xs text-sky-400 ml-2">(กดเพื่อเปลี่ยน)</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => player2BirthdayRef.current?.showPicker()}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 text-gray-400 text-left hover:border-sky-300 transition-all cursor-pointer"
+                    >
+                      เลือกวันเกิด
+                    </button>
+                  )}
                   <input
+                    ref={player2BirthdayRef}
                     type="date"
                     name="player2Birthday"
                     value={formData.player2Birthday}
                     onChange={handleInputChange}
                     max={new Date().toISOString().split("T")[0]}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    className="sr-only"
                     required
+                    tabIndex={-1}
                   />
                 </div>
 
