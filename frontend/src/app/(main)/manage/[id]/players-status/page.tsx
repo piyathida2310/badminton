@@ -57,7 +57,8 @@ interface Player {
   registrationId: number;
   team: string;
   names: string[];
-  genders: string[]; // ✅ เพิ่ม field
+  genders: string[];
+  ages: number[];
   rank: string;
   type: string;
   videoUrl?: string | null;
@@ -113,6 +114,17 @@ const mapMatchTypeLabel = (value?: string | null) => {
 export default function RegisterStatusPage() {
   const { id } = useParams<{ id: string }>();
 
+  // คำนวณอายุจากวันเกิด
+  const calculateAge = (birthday: string | null | undefined): number => {
+    if (!birthday) return 0;
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age;
+  };
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,11 +176,17 @@ export default function RegisterStatusPage() {
         })
         : ["-"];
 
+    const playerAges =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => calculateAge(p.birthday))
+        : [0];
+
     return {
       registrationId: applicant.registrationId,
       team: applicant.teamName || applicant.managerName || fallbackName,
       names: playerNames,
       genders: playerGenders,
+      ages: playerAges,
       rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
       type: mapMatchTypeLabel(applicant.matchType),
       videoUrl: applicant.media?.videoUrl ?? null,
@@ -501,6 +519,7 @@ export default function RegisterStatusPage() {
                   <tr>
                     <th className="border p-2">ชื่อ–นามสกุล</th>
                     <th className="border p-2">เพศ</th>
+                    <th className="border p-2">อายุ</th>
                     <th className="border p-2">ประเภทมือ</th>
                     <th className="border p-2">ประเภท</th>
                     <th className="border p-2">วิดีโอ</th>
@@ -541,6 +560,13 @@ export default function RegisterStatusPage() {
                           {p.genders.map((g, idx) => (
                             <div key={idx} className="leading-relaxed">
                               {g}
+                            </div>
+                          ))}
+                        </td>
+                        <td className="border p-2 whitespace-nowrap min-w-[70px]">
+                          {p.ages.map((age, idx) => (
+                            <div key={idx} className="leading-relaxed">
+                              {age > 0 ? `${age} ปี` : "-"}
                             </div>
                           ))}
                         </td>

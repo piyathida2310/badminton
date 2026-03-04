@@ -4,6 +4,16 @@ import { HandType } from "@prisma/client"; // Import Enum
 import { groupPlayers, Player } from "./openai";
 import { getGroupColor, getGroupHeaderColor } from "../utils/groupUtils";
 
+// คำนวณอายุจากวันเกิด
+const calculateAge = (birthday: Date | null): number => {
+    if (!birthday) return 0;
+    const today = new Date();
+    let age = today.getFullYear() - birthday.getFullYear();
+    const m = today.getMonth() - birthday.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthday.getDate())) age--;
+    return age;
+};
+
 export const organizeTournamentGroups = async (
     tournamentId: number,
     playType: string,
@@ -42,6 +52,8 @@ export const organizeTournamentGroups = async (
                     teamName: true,
                     player1Gender: true,
                     player2Gender: true,
+                    player1Birthday: true,
+                    player2Birthday: true,
                 },
             },
         },
@@ -62,15 +74,24 @@ export const organizeTournamentGroups = async (
     });
 
     // 3. Prepare AI players
-    const players: Player[] = targetRegistrations.map((reg) => ({
-        id: reg.id,
-        score: reg.score ?? 0,
-        comment: reg.comment ?? "",
-        gender:
-            tournament.playType === "SINGLE"
-                ? reg.player1Gender ?? "Unknown"
-                : `${reg.player1Gender ?? "?"}/${reg.player2Gender ?? "?"}`,
-    }));
+    const players: Player[] = targetRegistrations.map((reg) => {
+        const age1 = calculateAge(reg.player1Birthday);
+        const age2 = calculateAge(reg.player2Birthday);
+        const age = tournament.playType === "SINGLE"
+            ? age1
+            : Math.round((age1 + age2) / 2); // เฉลี่ยอายุ 2 คนสำหรับคู่
+
+        return {
+            id: reg.id,
+            score: reg.score ?? 0,
+            comment: reg.comment ?? "",
+            age,
+            gender:
+                tournament.playType === "SINGLE"
+                    ? reg.player1Gender ?? "Unknown"
+                    : `${reg.player1Gender ?? "?"}/${reg.player2Gender ?? "?"}`,
+        };
+    });
 
     // 4. Calculate numGroups
     let numGroups = 4;

@@ -99,6 +99,17 @@ export default function StatusPage() {
   const searchParams = useSearchParams();
   const tournamentIdFromUrl = searchParams ? (searchParams.get("tournamentId") || searchParams.get("id")) : null;
 
+  // คำนวณอายุจากวันเกิด
+  const calculateAge = (birthday: string | null | undefined): number => {
+    if (!birthday) return 0;
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age;
+  };
+
   const [showPayment, setShowPayment] = useState(false);
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -133,6 +144,7 @@ export default function StatusPage() {
               id: reg.id,
               name: reg.player1Name,
               gender: reg.player1Gender,
+              age: calculateAge(reg.player1Birthday),
               rank: mapRank(reg.playType?.trim()?.toUpperCase()),
               type: isDouble ? "คู่" : "เดี่ยว",
               register: reg.cancellation?.status === "REQUESTED" ? "รอดำเนินการ" : (reg.cancellation?.status === "REFUNDED" || reg.cancellation?.status === "REJECTED") ? "ยกเลิก" : mapStatus(reg.status),
@@ -146,6 +158,7 @@ export default function StatusPage() {
               id: `${reg.id}_2`,
               name: reg.player2Name,
               gender: reg.player2Gender,
+              age: calculateAge(reg.player2Birthday),
               rank: mapRank(reg.playType),
               type: "คู่",
               register: reg.cancellation?.status === "REQUESTED" ? "รอดำเนินการ" : (reg.cancellation?.status === "REFUNDED" || reg.cancellation?.status === "REJECTED") ? "ยกเลิก" : mapStatus(reg.status),
@@ -481,6 +494,7 @@ export default function StatusPage() {
                         <tr>
                           <th className="p-3 border">ชื่อ–นามสกุล</th>
                           <th className="p-3 border">เพศ</th>
+                          <th className="p-3 border">อายุ</th>
                           <th className="p-3 border">ประเภทมือ</th>
                           <th className="p-3 border">ประเภท</th>
                           <th className="p-3 border">สถานะการสมัคร</th>
@@ -501,6 +515,13 @@ export default function StatusPage() {
                             <td className="p-3 border text-center leading-relaxed">
                               {team.members.map((m: any) => (
                                 <div key={m.id}>{mapGender(m.gender)}</div>
+                              ))}
+                            </td>
+                            <td className="p-2 border whitespace-nowrap min-w-[70px]">
+                              {team.members.map((m: any) => (
+                                <div key={m.id} className="leading-relaxed">
+                                  {m.age > 0 ? `${m.age} ปี` : "-"}
+                                </div>
                               ))}
                             </td>
                             <td className="p-2 border">{team.members[0].rank}</td>
@@ -586,6 +607,7 @@ export default function StatusPage() {
                             <tr key={m.id} className="hover:bg-slate-50 transition-all">
                               <td className="p-2 border">{m.name}</td>
                               <td className="p-2 border">{mapGender(m.gender)}</td>
+                              <td className="p-2 border whitespace-nowrap min-w-[70px]">{m.age > 0 ? `${m.age} ปี` : "-"}</td>
                               <td className="p-2 border">{m.rank}</td>
                               <td className="p-2 border">{m.type}</td>
                               <td className="p-2 border">
