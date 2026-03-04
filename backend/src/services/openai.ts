@@ -5,6 +5,7 @@ export interface Player {
   score: number;
   gender: string;
   comment: string;
+  age: number;
 }
 
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -145,14 +146,14 @@ export const groupPlayers = async (
   const teamList = players
     .map(
       (p) =>
-        `ID:${p.id} | Gender:${normalizeGender(p.gender)} | Score:${p.score} | Note:${p.comment || "-"}`
+        `ID:${p.id} | Gender:${normalizeGender(p.gender)} | Score:${p.score} | Age:${p.age} | Note:${p.comment || "-"}`
     )
     .join("\n");
 
   // ranked list สำหรับอ้างอิงการเรียงคะแนน
   const rankedList = [...players]
     .sort((a, b) => b.score - a.score)
-    .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score}`)
+    .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score} Age:${p.age}`)
     .join("\n");
 
   const tool = buildTool(numGroups, groupKeys);
@@ -206,6 +207,16 @@ STEP 4 — ตรวจสอบ
   → "ชายล้วน" ใน DOUBLE = หาทีมที่ Gender เป็น "Male/Male"
   → "หญิงล้วน" ใน DOUBLE = "Female/Female"
   → "คู่ผสม"   ใน DOUBLE = "Male/Female"
+
+═══════════════════════════════════════
+ข้อมูล Age (อายุ):
+═══════════════════════════════════════
+- แต่ละทีม/ผู้เล่นจะมี Age (อายุ ปี) แนบมาด้วย
+- ถ้าผู้ใช้ระบุเงื่อนไขเรื่องอายุ (เช่น "จัดกลุ่มตามช่วงอายุ", "อายุใกล้เคียงกัน", "อายุน้อยอยู่ด้วยกัน อายุมากอยู่ด้วยกัน")
+  ให้ใช้ Age ประกอบการจัดกลุ่ม
+- ถ้าผู้ใช้ไม่ได้ระบุเงื่อนไขเรื่องอายุ ไม่ต้องใช้ Age เป็นเงื่อนไขหลัก
+  แต่สามารถใช้เป็นข้อมูลเสริมได้
+- DOUBLE tournament: Age จะเป็นอายุเฉลี่ยของผู้เล่น 2 คน
 
 ทำตาม ALGORITHM ข้างต้นทุกครั้ง อย่า skip ขั้นตอน
 ถ้า constraint ทำไม่ได้ 100% ให้ทำให้ดีที่สุดและระบุใน interpreted
