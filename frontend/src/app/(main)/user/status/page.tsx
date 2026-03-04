@@ -136,7 +136,7 @@ export default function StatusPage() {
               rank: mapRank(reg.playType?.trim()?.toUpperCase()),
               type: isDouble ? "คู่" : "เดี่ยว",
               register: reg.cancellation?.status === "REQUESTED" ? "รอดำเนินการ" : (reg.cancellation?.status === "REFUNDED" || reg.cancellation?.status === "REJECTED") ? "ยกเลิก" : mapStatus(reg.status),
-              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.cancellation?.status === "REJECTED" ? "ยังไม่คืนเงิน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.cancellation?.status === "REJECTED" ? "ไม่คืนเงิน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
               cancellationStatus: reg.cancellation?.status ?? null,
             },
           ];
@@ -149,7 +149,7 @@ export default function StatusPage() {
               rank: mapRank(reg.playType),
               type: "คู่",
               register: reg.cancellation?.status === "REQUESTED" ? "รอดำเนินการ" : (reg.cancellation?.status === "REFUNDED" || reg.cancellation?.status === "REJECTED") ? "ยกเลิก" : mapStatus(reg.status),
-              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.cancellation?.status === "REJECTED" ? "ยังไม่คืนเงิน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
+              payment: reg.cancellation?.status === "REFUNDED" ? "ได้รับเงินคืน" : reg.cancellation?.status === "REJECTED" ? "ไม่คืนเงิน" : reg.status === "FAILED" ? "ยกเลิก" : mapPaymentStatus(reg.payment?.status),
               cancellationStatus: reg.cancellation?.status ?? null,
             });
           }
@@ -486,7 +486,7 @@ export default function StatusPage() {
                           <th className="p-3 border">สถานะการสมัคร</th>
                           <th className="p-3 border">ชำระเงิน</th>
                           <th className="p-3 border">สถานะการชำระเงิน</th>
-                          <th className="p-3 border">จัดการ</th>
+                          <th className="p-3 border">ยกเลิกการสมัคร</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -575,7 +575,7 @@ export default function StatusPage() {
                                 <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">ยกเลิกแล้ว</button>
                               ) : team.members[0].register !== "ยกเลิก" ? (
                                 <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
-                                  ยกเลิก
+                                  ยืนยัน
                                 </button>
                               ) : null}
                             </td>
@@ -634,7 +634,7 @@ export default function StatusPage() {
                                   <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">ยกเลิกแล้ว</button>
                                 ) : m.register !== "ยกเลิก" ? (
                                   <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
-                                    ยกเลิก
+                                    ยืนยัน
                                   </button>
                                 ) : null}
                               </td>

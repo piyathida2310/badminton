@@ -365,7 +365,7 @@ export default function RegisterStatusPage() {
     const player = players[playerIndex];
     if (!player) return;
 
-    const label = action === "REFUNDED" ? "คืนเงิน" : "ยังไม่คืนเงิน";
+    const label = action === "REFUNDED" ? "คืนเงิน" : "ไม่คืนเงิน";
     const confirmResult = await Swal.fire({
       title: `ยืนยัน${label}?`,
       text: `คุณต้องการ${label}ให้ทีม ${player.team} ใช่หรือไม่`,
@@ -701,7 +701,7 @@ export default function RegisterStatusPage() {
                                   disabled={refunding}
                                   className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 shadow-sm disabled:opacity-50 whitespace-nowrap transition-colors"
                                 >
-                                  ยังไม่คืนเงิน
+                                  ไม่คืนเงิน
                                 </button>
                               </div>
                             </div>
