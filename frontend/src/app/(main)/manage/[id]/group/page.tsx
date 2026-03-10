@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Swal from "sweetalert2";
 
 import axios from "../../../../../lib/api";
 
@@ -41,7 +42,7 @@ export default function TournamentGroupPage() {
         //  set title
         setTournamentTitle(tournament?.title || "");
         setTournamentStats(tournament);
-        setIsOrganizer(tournament.isOrganizer || false); // ✅ Set organizer status
+        setIsOrganizer(tournament.isOrganizer || false); //  Set organizer status
 
         //  set matchType
         if (tournament?.playType) {
@@ -120,7 +121,14 @@ export default function TournamentGroupPage() {
       const errorMessage = resData?.errors
         ? `${resData.message} - ${resData.errors}`
         : (resData?.message || "Failed to organize groups");
-      alert(errorMessage);
+
+      Swal.fire({
+        title: "เงื่อนไขมีปัญหา",
+        text: errorMessage.replace("Something went wrong! - ", ""),
+        icon: "warning",
+        confirmButtonText: "รับทราบ",
+        confirmButtonColor: "#3085d6",
+      });
     } finally {
       setLoading(false);
     }
