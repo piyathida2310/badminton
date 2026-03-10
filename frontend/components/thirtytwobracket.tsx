@@ -159,7 +159,7 @@ const MatchCard = ({
         <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'A' ? (p1Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
-              <span className="text-[12px] font-black px-2 py-0.5 rounded w-10 text-center shrink-0 leading-normal" style={{ backgroundColor: winner === 'A' ? "#10b981" : "#e2e8f0", color: winner === 'A' ? "#ffffff" : "#334155" }}>
+              <span className="text-[12px] font-black px-2 py-0.5 rounded min-w-[40px] w-fit text-center shrink-0 leading-normal whitespace-nowrap" style={{ backgroundColor: winner === 'A' ? "#10b981" : "#e2e8f0", color: winner === 'A' ? "#ffffff" : "#334155" }}>
                 {t1?.code || "-"}
               </span>
               <span className={`text-[14px] ${winner === 'A' ? 'font-bold' : 'font-semibold'} pb-1 leading-snug break-words whitespace-normal`} style={{ color: "#0f172a", maxWidth: "180px" }}>
@@ -191,7 +191,7 @@ const MatchCard = ({
         <div className="flex justify-between items-center p-1.5 rounded-lg transition-colors" style={{ backgroundColor: winner === 'B' ? (p2Rank === '1st' ? "#dcfce7" : "#fef9c3") : "transparent" }}>
           <div className="flex flex-col flex-1 min-w-0 mr-2">
             <div className="flex items-center gap-2 mb-1"> {/* Added mb-1 */}
-              <span className="text-[12px] font-black px-2 py-0.5 rounded w-10 text-center shrink-0 leading-normal" style={{ backgroundColor: winner === 'B' ? "#10b981" : "#e2e8f0", color: winner === 'B' ? "#ffffff" : "#334155" }}>
+              <span className="text-[12px] font-black px-2 py-0.5 rounded min-w-[40px] w-fit text-center shrink-0 leading-normal whitespace-nowrap" style={{ backgroundColor: winner === 'B' ? "#10b981" : "#e2e8f0", color: winner === 'B' ? "#ffffff" : "#334155" }}>
                 {t2?.code || "-"}
               </span>
               <span className={`text-[14px] ${winner === 'B' ? 'font-bold' : 'font-semibold'} pb-1 leading-snug break-words whitespace-normal`} style={{ color: "#0f172a", maxWidth: "180px" }}>
@@ -421,6 +421,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
   const [lowerMatches, setLowerMatches] = useState<any[]>([]);
   const [showLowerBracket, setShowLowerBracket] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [groupMatchCount, setGroupMatchCount] = useState<number>(0);
 
   useEffect(() => {
     // 8 + 4 + 2 + 1 = 15 matches total
@@ -451,6 +452,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
         const tournament = tournamentRes.data.data;
         const allDbMatches: any[] = bracketRes.data.data || [];
+        setGroupMatchCount(bracketRes.data.groupMatchCount || 0);
 
         console.log(`[Bracket DEBUG] Loading Rank: ${rank}, Matches Found: ${allDbMatches.length}`);
         if (allDbMatches.length > 0) {
@@ -858,7 +860,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         match={selectedMatch}
-        matchNumber={selectedMatch ? selectedMatch.id + 1 : 0}
+        matchNumber={selectedMatch ? selectedMatch.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0) : 0}
         onSave={handleScoreUpdate}
       />
 
@@ -967,7 +969,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                 {!isSmallBracket && (
                   <div className="flex flex-col justify-between w-[300px] z-10 shrink-0" style={{ height: '1880px', marginTop: '0px' }}>
                     {matches.slice(0, 8).map((m, i) => (
-                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
+                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                     ))}
 
                     {/* LINES - Recalculated for Card Width 300px and Height 1880px */}
@@ -992,7 +994,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   style={{ height: isSmallBracket ? '920px' : '1640px', marginTop: isSmallBracket ? '0px' : '120px' }}
                 >
                   {matches.slice(8, 12).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
                   <div className="absolute inset-0 pointer-events-none -z-10">
                     {/* QF -> SF */}
@@ -1026,7 +1028,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       <MatchCard
                         key={m.id}
                         matchId={m.id}
-                        matchNumber={m.id + 1}
+                        matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)}
                         match={m}
                         onClick={() => handleMatchClick(m)}
                         isOrganizer={isOrganizer}
@@ -1070,7 +1072,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       <MatchCard
                         key={m.id}
                         matchId={m.id}
-                        matchNumber={m.id + 1}
+                        matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)}
                         match={m}
                         onClick={() => handleMatchClick(m)}
                         isOrganizer={isOrganizer}
