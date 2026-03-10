@@ -969,7 +969,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                 {!isSmallBracket && (
                   <div className="flex flex-col justify-between w-[300px] z-10 shrink-0" style={{ height: '1880px', marginTop: '0px' }}>
                     {matches.slice(0, 8).map((m, i) => (
-                      <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
+                      <MatchCard key={m.id} matchId={m.id} matchNumber={i + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                     ))}
 
                     {/* LINES - Recalculated for Card Width 300px and Height 1880px */}
@@ -994,7 +994,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                   style={{ height: isSmallBracket ? '920px' : '1640px', marginTop: isSmallBracket ? '0px' : '120px' }}
                 >
                   {matches.slice(8, 12).map((m, i) => (
-                    <MatchCard key={m.id} matchId={m.id} matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
+                    <MatchCard key={m.id} matchId={m.id} matchNumber={i + 9 + groupMatchCount - (isSmallBracket ? 8 : 0)} match={m} onClick={() => handleMatchClick(m)} isOrganizer={isOrganizer} />
                   ))}
                   <div className="absolute inset-0 pointer-events-none -z-10">
                     {/* QF -> SF */}
@@ -1028,7 +1028,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       <MatchCard
                         key={m.id}
                         matchId={m.id}
-                        matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)}
+                        matchNumber={i + 13 + groupMatchCount - (isSmallBracket ? 8 : 0)}
                         match={m}
                         onClick={() => handleMatchClick(m)}
                         isOrganizer={isOrganizer}
@@ -1072,7 +1072,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       <MatchCard
                         key={m.id}
                         matchId={m.id}
-                        matchNumber={m.id + 1 + groupMatchCount - (isSmallBracket ? 8 : 0)}
+                        matchNumber={15 + groupMatchCount - (isSmallBracket ? 8 : 0)}
                         match={m}
                         onClick={() => handleMatchClick(m)}
                         isOrganizer={isOrganizer}

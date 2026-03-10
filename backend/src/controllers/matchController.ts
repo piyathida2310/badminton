@@ -817,6 +817,13 @@ export const getMatchHistory = async (req: Request, res: Response) => {
         });
 
         const results: any[] = [];
+        const isSmallBracket = (tournament?.maxPlayers || 32) <= 16;
+
+        const groupMatchCounts: Record<string, number> = {};
+        for (const gm of groupMatches) {
+            const gmHandType = gm.handType || gm.player1?.playType || "legacy";
+            groupMatchCounts[gmHandType] = (groupMatchCounts[gmHandType] || 0) + 1;
+        }
 
         // Process Group Matches
         for (const m of groupMatches) {
@@ -926,7 +933,13 @@ export const getMatchHistory = async (req: Request, res: Response) => {
                 : (m.sets || "-");
 
             const bIndex = getBracketIndex(m.roundSequence || 0, m.matchSequence || 0);
-            const bracketMatchNumber = bIndex !== -1 ? bIndex + 1 : m.id;
+
+            // Map bracket handType exactly like group matches (use player fallback just in case)
+            const bracketHandType = m.handType || m.player1?.playType || "legacy";
+            const offset = groupMatchCounts[bracketHandType] || 0;
+            const sizeOffset = isSmallBracket ? -8 : 0;
+
+            const bracketMatchNumber = bIndex !== -1 ? bIndex + 1 + offset + sizeOffset : m.id;
 
             const displayId = `${bracketMatchNumber}`;
 
