@@ -116,7 +116,11 @@ export default function TournamentGroupPage() {
       }
     } catch (error: any) {
       console.error("Manage group error:", error);
-      alert(error.response?.data?.message || "Failed to organize groups");
+      const resData = error.response?.data;
+      const errorMessage = resData?.errors
+        ? `${resData.message} - ${resData.errors}`
+        : (resData?.message || "Failed to organize groups");
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
