@@ -177,23 +177,23 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         animate={{ x: isOpen ? 0 : "-100%" }}
         exit={{ x: "-100%" }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="fixed top-0 left-0 w-64 h-full bg-gradient-to-b from-amber-50 to-pink-100 shadow-2xl z-50 p-6 border-r border-pink-200 md:hidden"
+        className="fixed top-0 left-0 w-64 h-full bg-white shadow-2xl z-50 p-6 border-r border-gray-200 md:hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-pink-600 tracking-wide">{t('sidebar.menu')}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-pink-200 transition">
-            <X size={22} className="text-pink-600" />
+          <h2 className="text-xl font-bold text-orange-600 tracking-wide">{t('sidebar.menu')}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-orange-50 transition">
+            <X size={22} className="text-orange-500" />
           </button>
         </div>
 
         {/* Tournament Name Display (Mobile) */}
         {tournamentName && (
           <div className="mb-4 mx-2 relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-amber-300 rounded-lg blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
-            <div className="relative px-3 py-2 bg-white/80 backdrop-blur-md rounded-lg border border-white/50 shadow-sm text-center">
+            <div className="absolute inset-0 bg-orange-200 rounded-lg blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+            <div className="relative px-3 py-2 bg-white/80 backdrop-blur-md rounded-lg border border-orange-100 shadow-sm text-center">
               <div className="flex justify-center items-center mb-0.5">
-                <span className="bg-gradient-to-r from-pink-600 to-amber-600 bg-clip-text text-transparent text-[9px] font-extrabold uppercase tracking-widest">
+                <span className="text-orange-600 text-[9px] font-extrabold uppercase tracking-widest">
                   {t('sidebar.currentTournament')}
                 </span>
               </div>
@@ -205,17 +205,17 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         )}
 
         {/* User Info Mobile */}
-        <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/30 backdrop-blur-sm shadow-sm cursor-pointer">
+        <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-orange-50 border border-orange-100/50 backdrop-blur-sm shadow-sm cursor-pointer">
           {displayAvatar ? (
             <Image
               src={displayAvatar}
               alt="User"
               width={40}
               height={40}
-              className="rounded-full border border-pink-300"
+              className="rounded-full border border-orange-200"
             />
           ) : (
-            <UserCircle2 size={24} className="text-pink-600" />
+            <UserCircle2 size={24} className="text-orange-500" />
           )}
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">
@@ -223,7 +223,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
             </span>
             <Link
               href={variant === 'user' ? "/user/profile" : "/manage/profile"}
-              className="text-sm text-pink-600 hover:underline"
+              className="text-sm text-orange-500 hover:underline"
               onClick={onClose}
             >
               {t('sidebar.profile')}
@@ -256,7 +256,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
               }
               router.push("/");
             }}
-            className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
+            className="mt-8 flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
           >
             <LogOut size={18} />
             <span>{t('sidebar.logout')}</span>
@@ -265,29 +265,29 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
       </motion.aside>
 
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
-        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">{t('sidebar.menu')}</h2>
+      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-[240px] h-screen bg-white shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] p-6 z-40 border-r border-slate-100">
+        <h2 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 mt-[70px] mb-6 tracking-wide drop-shadow-sm">{t('sidebar.menu')}</h2>
 
         {/* Tournament Name Display (Desktop) */}
         {tournamentName && (
           <div className="mb-6 relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-amber-400 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-            <div className="relative px-4 py-3 bg-white/90 backdrop-blur-xl rounded-xl border border-white/60 shadow-lg text-center transform transition-all hover:scale-[1.02]">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-200 to-amber-200 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+            <div className="relative px-4 py-3 bg-white/90 backdrop-blur-xl rounded-xl border border-orange-100/50 shadow-[0_4px_12px_-2px_rgba(249,115,22,0.1)] text-center transform transition-all hover:-translate-y-0.5">
               <div className="flex justify-center items-center gap-2 mb-1 opacity-80">
                 <Trophy size={12} className="text-amber-500" />
-                <span className="text-[9px] font-extrabold text-pink-500 tracking-[0.2em] uppercase">
+                <span className="text-[9px] font-extrabold text-orange-500 tracking-[0.2em] uppercase">
                   {t('sidebar.currentTournament')}
                 </span>
                 <Trophy size={12} className="text-amber-500" />
               </div>
-              <h3 className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-700 to-amber-700 break-words leading-snug">
+              <h3 className="text-sm font-black text-orange-600 break-words leading-snug">
                 {tournamentName}
               </h3>
             </div>
           </div>
         )}
 
-        <nav className="flex flex-col gap-5 text-gray-700 font-medium">
+        <nav className="flex flex-col gap-3 text-gray-700 font-medium text-sm">
           {displayedLinks.map((link) => (
             <SidebarDesktopLink
               key={link.href}
@@ -322,20 +322,21 @@ function SidebarDesktopLink({
       <Link
         href={href}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 group relative overflow-hidden
           ${isActive
-            ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
-            : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+            ? "text-orange-700 font-bold shadow-sm"
+            : "hover:bg-slate-50 hover:text-orange-600 hover:shadow-sm"
           }`}
       >
+        {isActive && <div className="absolute inset-0 bg-gradient-to-r from-orange-100/80 to-amber-50/50 border-r-4 border-orange-500 rounded-lg -z-10"></div>}
         <motion.span
           whileHover={{ rotate: 8 }}
           transition={{ type: "spring", stiffness: 200 }}
-          className={`${isActive ? "text-pink-700" : "text-pink-600 group-hover:text-pink-700"}`}
+          className={`${isActive ? "text-orange-600" : "text-slate-400 group-hover:text-orange-500"} flex-shrink-0`}
         >
           {icon}
         </motion.span>
-        <span>{label}</span>
+        <span className="flex-1 leading-tight whitespace-normal break-words text-sm">{label}</span>
       </Link>
     </motion.div>
   );
@@ -363,14 +364,15 @@ function SidebarMobileLink({
       <Link
         href={href}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 group relative overflow-hidden
                 ${isActive
-            ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
-            : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+            ? "text-orange-700 font-bold shadow-sm"
+            : "hover:bg-slate-50 hover:text-orange-600 hover:shadow-sm"
           }`}
       >
-        <span>{icon}</span>
-        <span>{label}</span>
+        {isActive && <div className="absolute inset-0 bg-gradient-to-r from-orange-100/80 to-amber-50/50 border-r-4 border-orange-500 rounded-lg -z-10"></div>}
+        <span className="flex-shrink-0">{icon}</span>
+        <span className="flex-1 leading-tight whitespace-normal break-words text-sm">{label}</span>
       </Link>
     </motion.div>
   )

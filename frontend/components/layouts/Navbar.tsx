@@ -92,7 +92,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
 
   return (
     <>
-      <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200 to-pink-600 shadow-lg border-b border-white/20">
+      <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-xl bg-white/90 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border-b border-slate-100 transition-all duration-300">
         {/* เนื้อหา Navbar */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
           {/* โลโก้ */}
@@ -109,34 +109,34 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
           </Link>
 
           {/* ชื่อผู้ใช้ + avatar */}
-          <div className="relative hidden md:flex items-center text-white gap-3">
+          <div className="relative hidden md:flex items-center text-slate-700 gap-3">
             {/* ปุ่มเปลี่ยนภาษา (Toggle Text) */}
             <div
               onClick={() => setLanguage(language === "th" ? "en" : "th")}
-              className="flex items-center bg-white/10 p-1.5 rounded-full cursor-pointer border border-white/20 backdrop-blur-md shadow-inner transition-all hover:bg-white/20"
+              className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100"
             >
-              <div className={`flex items-center justify-center px-3 py-1 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-md text-pink-600 font-bold" : "text-white opacity-70 hover:opacity-100 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">TH</span>
               </div>
-              <div className={`flex items-center justify-center px-3 py-1 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-md text-pink-600 font-bold" : "text-white opacity-70 hover:opacity-100 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">EN</span>
               </div>
             </div>
 
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-3 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
+              className="flex items-center gap-3 px-5 py-2 rounded-full bg-white border border-slate-200 hover:bg-orange-50 hover:border-orange-200 transition-all duration-300 cursor-pointer shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-2px_rgba(249,115,22,0.15)] group"
             >
               {/* รูปโปรไฟล์ */}
               {displayAvatar ? (
                 <img
                   src={displayAvatar}
                   alt="User Avatar"
-                  className="w-8 h-8 rounded-full object-cover border border-white shadow-sm"
+                  className="w-8 h-8 rounded-full object-cover border-2 border-orange-100 shadow-sm group-hover:border-orange-300 transition-colors"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-white/40 flex items-center justify-center border border-white/30">
-                  <User size={18} className="text-white" />
+                <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center border-2 border-orange-100 group-hover:bg-orange-100 group-hover:border-orange-200 transition-all">
+                  <User size={18} className="text-orange-500 transition-transform group-hover:scale-110" />
                 </div>
               )}
 
@@ -160,7 +160,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
 
             {/* Dropdown */}
             {isDropdownOpen && (
-              <div className="absolute right-0 top-[110%] mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+              <div className="absolute right-0 top-[110%] mt-2 w-48 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 overflow-hidden transform origin-top-right transition-all">
                 <button
                   onClick={handleGoToProfile}
                   className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition text-left"
@@ -183,7 +183,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
           {/* ปุ่มเมนู (Mobile) */}
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-white md:hidden p-2 rounded-md hover:bg-white/20 transition"
+            className="text-slate-700 md:hidden p-2 rounded-md hover:bg-orange-50 hover:text-orange-600 transition"
           >
             <Menu size={24} />
           </button>

@@ -20,7 +20,7 @@ export default function RootLayout({
         <Navbar variant="user" />
 
         {/* พื้นที่เนื้อหาหลัก */}
-        <div className="flex-1 ml-0 md:ml-64 pt-[70px] overflow-y-auto">
+        <div className="flex-1 ml-0 md:ml-[240px] pt-[70px] overflow-y-auto">
           {children}
         </div>
       </div>
