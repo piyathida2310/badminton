@@ -4,6 +4,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import axios from "../src/lib/api";
 import Swal from "sweetalert2";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 interface mathRules {
   id: string;
@@ -31,7 +32,29 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
   const params = useParams();
   const searchParams = useSearchParams();
   const [tournament, setTournament] = useState<tournamentmath>();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const getDisplayRule = (content: string | undefined): string => {
+    if (!content) return "";
+    
+    // Normalize newlines and trim completely (remove all whitespaces for exact check)
+    const cleanContent = content.replace(/\s+/g, '');
+    
+    // Get language default rules from translations
+    const cleanTh = (translations["th"].manageMatch as any).defaultRules.join("").replace(/\s+/g, '');
+    const cleanEn = (translations["en"].manageMatch as any).defaultRules.join("").replace(/\s+/g, '');
+
+    // Check if it starts with a significant portion of the default rules (first 100 non-whitespace chars)
+    // or if it matches perfectly without spaces.
+    if (cleanContent === cleanTh || cleanContent === cleanEn || 
+        cleanContent.startsWith(cleanTh.substring(0, 50)) || 
+        cleanContent.startsWith(cleanEn.substring(0, 50))) {
+      return (translations[language].manageMatch as any).defaultRules.join("\n\n");
+    }
+    
+    // Otherwise return custom rules
+    return content;
+  };
 
   // Get tournament ID from props, URL params, or query params
   const id = tournamentId || params?.id || searchParams?.get("id");
@@ -102,7 +125,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
   const handelUpdateRule = async (id: string) => {
     try {
       await axios.put(`/api/rules/${id}`, {
-        content: tournament?.rule.content,
+        content: getDisplayRule(tournament?.rule.content),
       });
 
       Swal.fire({
@@ -389,7 +412,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                         onDoubleClick={!readOnly ? () => setEditingRule(true) : undefined}
                         className={`${!readOnly ? 'cursor-pointer' : ''} bg-white p-3 rounded-xl border shadow-inner h-72 overflow-y-auto whitespace-pre-line`}
                       >
-                        {tournament?.rule.content}
+                        {getDisplayRule(tournament?.rule.content)}
                       </p>
                     )}
 
@@ -398,7 +421,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                       <div className="space-y-3">
                         <textarea
                           autoFocus
-                          value={tournament?.rule.content || ""}
+                          value={getDisplayRule(tournament?.rule.content) || ""}
                           onChange={(e) =>
                             setTournament((prev: any) => ({
                               ...prev,

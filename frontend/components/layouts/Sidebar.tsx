@@ -135,7 +135,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         { href: getUserLink("/user/group"), icon: <Clock size={18} />, label: t('sidebar.manageGroups'), rawLabel: "จัดกลุ่มการแข่งขัน" },
         { href: getUserLink("/user/bracket"), icon: <Swords size={18} />, label: t('sidebar.brackets'), rawLabel: "สายการแข่งขัน" },
         { href: getUserLink("/user/status"), icon: <Users size={18} />, label: t('sidebar.playerStatus'), rawLabel: "สถานะผู้แข่ง" },
-        { href: getUserLink("/user/court-running"), icon: <Clock size={18} />, label: t('sidebar.courtRunning'), rawLabel: "Court Running" },
+        { href: getUserLink("/user/court-running"), icon: <Clock size={18} />, label: t('sidebar.courtRunning'), rawLabel: "ตารางการแข่งขัน" },
         { href: getUserLink("/user/results"), icon: <Medal size={18} />, label: t('sidebar.results'), rawLabel: "ผลการแข่งขัน" },
         { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: t('sidebar.profile'), rawLabel: "ข้อมูลส่วนตัว" },
       ];

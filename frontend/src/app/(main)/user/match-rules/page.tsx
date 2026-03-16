@@ -2,6 +2,7 @@
 import { useSearchParams } from "next/navigation";
 import RulesTablesPage from "../../../../../components/rulesTables";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ export default function Page() {
 }
 
 function EmptyRulesView() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const competitionTypeData = [
     {
@@ -182,8 +183,8 @@ function EmptyRulesView() {
                 </tr>
 
                 <tr>
-                  <td className="p-3 bg-[#fffaf7] space-y-2 h-20 text-center text-gray-400">
-                    -
+                  <td className="p-3 bg-[#fffaf7] space-y-2 h-72 overflow-y-auto whitespace-pre-line text-gray-700">
+                    {(translations[language]?.manageMatch as any)?.defaultRules?.join('\n\n')}
                   </td>
                 </tr>
               </tbody>
