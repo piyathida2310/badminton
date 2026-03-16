@@ -503,6 +503,20 @@ export const getBracketMatches = async (req: Request, res: Response) => {
         const handType = handTypeStr ? mapHandType(handTypeStr) : null;
         const fetchAll = req.query.all === 'true';
 
+        // Count group matches for this handType to offset bracket match numbers
+        const activeGroups = await prisma.group.findMany({
+            where: { tournamentId: tId },
+            select: { id: true }
+        });
+        const activeGroupIds = activeGroups.map(g => g.id);
+        const groupMatchCount = await prisma.groupMatch.count({
+            where: {
+                tournamentId: tId,
+                groupId: { in: activeGroupIds },
+                handType: handType || undefined
+            }
+        });
+
         // 1. Check if matches exist (Filter by HandType if provided AND not fetching all)
         let whereClause: any = { tournamentId: tId };
         if (!fetchAll) {
@@ -585,10 +599,10 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                     orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
                     include: { player1: true, player2: true, winner: true }
                 });
-                return res.status(200).json({ data: allMatches });
+                return res.status(200).json({ data: allMatches, groupMatchCount });
             }
 
-            return res.status(200).json({ data: existingMatches });
+            return res.status(200).json({ data: existingMatches, groupMatchCount });
         }
 
         // 2. Initialize Bracket (If NO matches found for this HandType)
@@ -732,7 +746,7 @@ export const getBracketMatches = async (req: Request, res: Response) => {
             }
         });
 
-        return res.status(201).json({ message: "Bracket initialized", data: allMatches });
+        return res.status(201).json({ message: "Bracket initialized", data: allMatches, groupMatchCount });
 
     } catch (error) {
         console.error("Get Bracket Matches Error:", error);
@@ -803,6 +817,13 @@ export const getMatchHistory = async (req: Request, res: Response) => {
         });
 
         const results: any[] = [];
+        const isSmallBracket = (tournament?.maxPlayers || 32) <= 16;
+
+        const groupMatchCounts: Record<string, number> = {};
+        for (const gm of groupMatches) {
+            const gmHandType = gm.handType || gm.player1?.playType || "legacy";
+            groupMatchCounts[gmHandType] = (groupMatchCounts[gmHandType] || 0) + 1;
+        }
 
         // Process Group Matches
         for (const m of groupMatches) {
@@ -912,8 +933,14 @@ export const getMatchHistory = async (req: Request, res: Response) => {
                 : (m.sets || "-");
 
             const bIndex = getBracketIndex(m.roundSequence || 0, m.matchSequence || 0);
-            const bracketMatchNumber = bIndex !== -1 ? bIndex + 1 : m.id;
-            
+
+            // Map bracket handType exactly like group matches (use player fallback just in case)
+            const bracketHandType = m.handType || m.player1?.playType || "legacy";
+            const offset = groupMatchCounts[bracketHandType] || 0;
+            const sizeOffset = isSmallBracket ? -8 : 0;
+
+            const bracketMatchNumber = bIndex !== -1 ? bIndex + 1 + offset + sizeOffset : m.id;
+
             const displayId = `${bracketMatchNumber}`;
 
             results.push({
