@@ -27,7 +27,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="bg-gradient-to-b from-[#FFFDF6] to-[#F9F6EE] px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 py-20"
+      className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-50 via-white to-orange-50/30 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 py-24"
     >
       {/* Header */}
       <motion.div
@@ -39,7 +39,7 @@ export default function About() {
       >
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800">
           เกี่ยวกับระบบ <br />
-          <span className="bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
             Badminton Competition
           </span>
         </h1>
@@ -56,7 +56,7 @@ export default function About() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col gap-4 bg-white/60 backdrop-blur-md rounded-xl p-8 shadow-xl hover:scale-105 transition-transform"
+          className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-300"
         >
           <h2 className="text-2xl font-bold text-gray-800">วัตถุประสงค์</h2>
           <ul className="text-gray-700">
@@ -83,7 +83,7 @@ export default function About() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col gap-4 bg-white/60 backdrop-blur-md rounded-xl p-8 shadow-xl hover:scale-105 transition-transform"
+          className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-300"
         >
           <h2 className="text-2xl font-bold text-gray-800">ประโยชน์</h2>
           <ul className="text-gray-700 list-disc list-inside space-y-2">
@@ -130,9 +130,9 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: idx * 0.2 }}
-            className="flex flex-col gap-4 bg-white/60 backdrop-blur-md rounded-xl p-6 shadow-lg text-center hover:scale-105 transition-transform"
+            className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-300 group"
           >
-            <h3 className="text-xl font-bold text-gray-800">{feature.title}</h3>
+            <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">{feature.title}</h3>
             <p className="text-gray-700">{feature.desc}</p>
           </motion.div>
         ))}
@@ -158,7 +158,7 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: idx * 0.2 }}
-              className="flex flex-col items-center bg-white/60 backdrop-blur-md rounded-xl p-6 shadow-xl hover:scale-105 transition-transform"
+              className="flex flex-col items-center bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-300 group"
             >
               <Image
                 src={person.img}
@@ -180,16 +180,17 @@ export default function About() {
         </div>
 
         <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-8 tracking-tight">
             พร้อมเริ่มใช้งานแล้วหรือยัง?
           </h2>
           <motion.a
             href="/register"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-amber-500 to-pink-500 text-white px-8 py-3 rounded-lg shadow-xl hover:from-amber-600 hover:to-pink-600 transition-all"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group relative inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-10 py-4 rounded-full shadow-[0_10px_40px_-10px_rgba(249,115,22,0.5)] hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.8)] hover:-translate-y-1 transition-all duration-300 font-bold text-lg overflow-hidden"
           >
-            ลงทะเบียนตอนนี้
+            <span className="relative z-10">ลงทะเบียนตอนนี้</span>
+            <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </motion.a>
         </div>
       </section>
