@@ -17,9 +17,9 @@ import {
   LogOut,
   Swords,
   BookOpen,
-  Medal, 
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +27,7 @@ export default function Navbar() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -64,7 +65,7 @@ export default function Navbar() {
               <span className="font-medium tracking-wide">
                 {user?.firstName && user?.lastName 
                   ? `${user.firstName} ${user.lastName}` 
-                  : user?.firstName || user?.username || "ผู้ใช้"}
+                  : user?.firstName || user?.username || t('navbar.user')}
               </span>
               <svg
                 className={`w-4 h-4 transition-transform ${
@@ -94,7 +95,7 @@ export default function Navbar() {
                   onClick={() => setIsDropdownOpen(false)}
                 >
                   <Settings size={16} />
-                  <span>แก้ไขโปรไฟล์</span>
+                  <span>{t('navbar.editProfile')}</span>
                 </Link>
                 <button
                   onClick={async () => {
@@ -106,7 +107,7 @@ export default function Navbar() {
                   className="w-full text-left flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
                   <LogOut size={16} />
-                  <span>ออกจากระบบ</span>
+                  <span>{t('navbar.logout')}</span>
                 </button>
               </motion.div>
             )}
@@ -124,19 +125,21 @@ export default function Navbar() {
       </nav>
 
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
+      <SidebarLay isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
     </>
   );
 }
 
 /* Sidebar Section */
-type SidebarProps = {
+export type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
-  user: { name: string };
+  user?: any;
 };
 
-function Sidebar({ isOpen, onClose, user }: SidebarProps) {
+export function SidebarLay({ isOpen, onClose, user }: SidebarProps) {
+  const { t } = useLanguage();
+
   return (
     <>
       {/* Overlay Mobile */}
@@ -162,7 +165,7 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-pink-600 tracking-wide">MENU</h2>
+          <h2 className="text-xl font-bold text-pink-600 tracking-wide">{t('sidebar.menu')}</h2>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-pink-200 transition">
             <X size={22} className="text-pink-600" />
           </button>
@@ -185,28 +188,28 @@ function Sidebar({ isOpen, onClose, user }: SidebarProps) {
             <span className="font-medium text-gray-800">
               {user?.firstName && user?.lastName 
                 ? `${user.firstName} ${user.lastName}` 
-                : user?.firstName || user?.username || "ผู้ใช้"}
+                : user?.firstName || user?.username || t('navbar.user')}
             </span>
             <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
-              โปรไฟล์ของฉัน
+              {t('sidebar.profile')}
             </Link>
           </div>
         </div>
 
         {/* Sidebar มือถือ */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" onClick={onClose} />
-          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" onClick={onClose} />
+          <SidebarLink href="/manage" icon={<Trophy size={18} />} label={t('sidebar.tournaments')} onClick={onClose} />
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label={t('sidebar.profile')} onClick={onClose} />
         </nav>
       </motion.aside>
 
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
-        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">MENU</h2>
+        <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">{t('sidebar.menu')}</h2>
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label="รายการแข่งขัน" />         
-          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label="ข้อมูลส่วนตัว" />
+          <SidebarLink href="/manage" icon={<Trophy size={18} />} label={t('sidebar.tournaments')} />         
+          <SidebarLink href="/manage/profile" icon={<UserCircle2 size={18} />} label={t('sidebar.profile')} />
         </nav>
       </aside>
     </>

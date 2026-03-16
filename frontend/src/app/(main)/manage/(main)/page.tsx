@@ -8,6 +8,7 @@ import Photo from "../../../../../components/image";
 import { h1 } from "framer-motion/client";
 import { error } from "console";
 import Swal from "sweetalert2";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tournament {
   id: number;
@@ -24,6 +25,7 @@ interface Tournament {
 
 export default function TournamentPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -172,61 +174,61 @@ export default function TournamentPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gradient bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-pink-500 drop-shadow-md">
-          รายการแข่งขัน
+          {t('manage.pageTitle')}
         </h1>
         <button
           onClick={() => router.push("/manage/manage-match")}
           className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:scale-105 hover:brightness-110 transition-all transform"
         >
-          จัดแข่ง
+          {t('manage.createTournament')}
         </button>
       </div>
 
       {/* Tournament Cards */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {tournaments.map((t) => (
+        {tournaments.map((item) => (
           <motion.div
-            key={t.id}
+            key={item.id}
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
             className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
           >
             <div
               className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
-              onClick={() => setSelectedImage(t.image)}
+              onClick={() => setSelectedImage(item.image)}
             >
               <Photo
-                src={t.image}
-                alt={t.title}
+                src={item.image}
+                alt={item.title}
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
 
-              {t.canceled && (
+              {item.canceled && (
                 <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
-                  ยกเลิก
+                  {t('manage.canceled')}
                 </div>
               )}
             </div>
 
             <div className="p-4 text-center">
               <h2
-                onClick={() => rules(t.id)}
+                onClick={() => rules(item.id)}
                 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
               >
-                {t.title}
+                {item.title}
               </h2>
 
               <p className="text-gray-500 mb-3 text-sm">
-                วันที่ {formatThaiDate(t.date)}
+                {t('manage.date')} {formatThaiDate(item.date)}
               </p>
 
               <div className="flex flex-wrap justify-center gap-2 mb-3 text-sm text-gray-600">
-                {Array.from(new Set([...t.rank, ...Object.keys(t.registrationStats || {})])).map((r, index) => {
-                  const isActive = t.rank.includes(r);
+                {Array.from(new Set([...item.rank, ...Object.keys(item.registrationStats || {})])).map((r, index) => {
+                  const isActive = item.rank.includes(r);
                   return (
                     <span
                       key={index}
-                      onClick={t.IsOwner && isActive ? () => handleCancelRank(t.id, r) : undefined}
+                      onClick={item.IsOwner && isActive ? () => handleCancelRank(item.id, r) : undefined}
                       className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
                         ${isActive
                           ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
@@ -234,21 +236,21 @@ export default function TournamentPage() {
                       `}
                       title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
                     >
-                      Rank {formatRank(r)} : {t.registrationStats?.[r] || 0}/{t.maxPlayers}
-                      {!isActive && <span className="ml-1 text-xs">(ยกเลิก)</span>}
+                      Rank {formatRank(r)} : {item.registrationStats?.[r] || 0}/{item.maxPlayers}
+                      {!isActive && <span className="ml-1 text-xs">({t('manage.canceled')})</span>}
                     </span>
                   );
                 })}
               </div>
 
               <button
-                disabled={t.canceled}
-                onClick={t.IsOwner ? () => handleCancel(t.id) : () => null}
-                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${t.IsOwner ? t.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
+                disabled={item.canceled}
+                onClick={item.IsOwner ? () => handleCancel(item.id) : () => null}
+                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${item.IsOwner ? item.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
                   : "bg-gray-400 cursor-not-allowed text-gray-200"
                   }`}
               >
-                {t.IsOwner === true ? t.canceled ? "ยกเลิกสำเร็จ" : "ยกเลิกรายการจัดแข่ง" : "คุณไม่สามารถยกเลิกได้"}
+                {item.IsOwner === true ? item.canceled ? t('manage.canceled') : t('manage.cancelTournament') : "คุณไม่สามารถยกเลิกได้"}
               </button>
             </div>
           </motion.div>
@@ -266,7 +268,7 @@ export default function TournamentPage() {
                 : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
-              ก่อนหน้า
+              {t('manage.prev')}
             </button>
 
             {Array.from({ length: totalPages }, (_, i) => (
@@ -290,9 +292,9 @@ export default function TournamentPage() {
                 : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
-              ถัดไป
+              {t('manage.next')}
             </button>
-          </div> : <h1 className="text-center mt-36 text-gray-500 text-xl">ไม่มีรายการ</h1>
+          </div> : <h1 className="text-center mt-36 text-gray-500 text-xl">{t('manage.noData')}</h1>
       }
 
       {/* Modal แสดงรูปใหญ่ */}

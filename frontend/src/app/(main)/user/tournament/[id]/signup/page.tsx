@@ -5,6 +5,7 @@ import { UploadCloud } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "../../../../../../lib/api";
 import Swal from "sweetalert2";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tournament {
   id: number;
@@ -19,6 +20,7 @@ interface Tournament {
 export default function RegisterPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [mode, setMode] = useState<"single" | "double">("single");
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
@@ -267,16 +269,16 @@ export default function RegisterPage() {
       <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6E2FF] via-[#FEE5F1] to-[#E2F1FF] p-6">
         <div className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-xl p-8 text-center">
           <h1 className="text-3xl font-extrabold text-red-500 mb-4">
-            ขออภัย การสมัครเต็มแล้ว
+            {t('signup.fullMessage')}
           </h1>
           <p className="text-gray-600 mb-8">
-            จำนวนผู้สมัครครบตามที่กำหนดแล้ว ไม่สามารถรับสมัครเพิ่มได้
+            {t('signup.fullDesc')}
           </p>
           <button
             onClick={() => router.push("/user/tournament")}
             className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all"
           >
-            กลับหน้ารายการแข่งขัน
+            {t('signup.backToTournament')}
           </button>
         </div>
       </div>
@@ -291,13 +293,13 @@ export default function RegisterPage() {
       >
         {/* Header */}
         <h1 className="text-center text-3xl md:text-4xl font-extrabold text-[#5E4B8A] mb-10 flex items-center justify-center gap-3">
-          สมัครการแข่งขันแบดมินตัน
+          {t('signup.pageTitle')}
         </h1>
 
         {/* ประเภทการแข่งขัน */}
         <section className="mb-8">
           <label className="block text-gray-800 font-semibold mb-3 text-base">
-            ประเภทการแข่งขัน
+            {t('signup.competitionType')}
           </label>
           <div className="flex gap-8">
             {tournamentLoading ? (
@@ -315,7 +317,7 @@ export default function RegisterPage() {
                   className="accent-pink-500 w-4 h-4"
                   disabled
                 />
-                {tournament.playType === "SINGLE" ? "เดี่ยว" : "คู่"}
+                {tournament.playType === "SINGLE" ? t('signup.single') : t('signup.double')}
               </label>
             ) : (
               <div className="text-red-500">ไม่สามารถโหลดข้อมูลการแข่งขันได้</div>
@@ -325,10 +327,10 @@ export default function RegisterPage() {
 
         {/* ข้อมูลทีม */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">ข้อมูลทีม</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.teamInfo')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
             <div>
-              <label className="block mb-1 font-medium">ชื่อทีม</label>
+              <label className="block mb-1 font-medium">{t('signup.teamName')}</label>
               <input
                 type="text"
                 name="teamName"
@@ -340,7 +342,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block mb-1 font-medium">ชื่อผู้จัดการทีม</label>
+              <label className="block mb-1 font-medium">{t('signup.managerName')}</label>
               <input
                 type="text"
                 name="managerName"
@@ -356,12 +358,12 @@ export default function RegisterPage() {
 
         {/* ข้อมูลผู้เล่น */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">ข้อมูลผู้เล่น</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.playerInfo')}</h2>
 
           {/* ผู้เล่นคนที่ 1 */}
           <div className="bg-[#FBC9DC]/70 border border-[#F7A2BC] rounded-2xl p-5 mb-6 shadow-sm hover:shadow-md transition-all">
             <p className="font-semibold text-[#4A3C7A] mb-3 text-base">
-              ผู้เล่นคนที่ 1
+              {t('signup.player1')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
               <div>
@@ -556,7 +558,7 @@ export default function RegisterPage() {
 
         {/* แรงค์ */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">ประเภทมือ</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.rankType')}</h2>
           <div className="flex flex-wrap gap-3">
             {tournamentLoading ? (
               <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
@@ -619,7 +621,7 @@ export default function RegisterPage() {
             className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${(!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
               }`}
           >
-            {loading ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
+            {loading ? t('signup.registering') : t('signup.registerBtn')}
           </button>
         </div>
       </form>

@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import About from "../../components/about";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
 
   // ตรวจสอบ role และ redirect อัตโนมัติ
   useEffect(() => {
@@ -55,13 +57,13 @@ export default function Home() {
             href="#"
             className="hover:text-yellow-200 hover:scale-105 transition-transform"
           >
-            หน้าแรก
+            {t('home.navHome')}
           </a>
           <a
             href="#about"
             className="hover:text-yellow-200 hover:scale-105 transition-transform"
           >
-            เกี่ยวกับ
+            {t('home.navAbout')}
           </a>
         </div>
 
@@ -71,13 +73,13 @@ export default function Home() {
             href="/sign-in"
             className="bg-white/20 backdrop-blur-md text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-white/30 hover:scale-105 transition-transform shadow-md"
           >
-            เข้าสู่ระบบ
+            {t('home.login')}
           </a>
           <a
             href="/register"
             className="bg-yellow-400 text-gray-900 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-yellow-500 hover:scale-105 transition-transform font-semibold shadow-md"
           >
-            ลงทะเบียน
+            {t('home.register')}
           </a>
         </div>
 
@@ -103,14 +105,14 @@ export default function Home() {
                 className="text-white text-lg hover:text-yellow-200 transition"
                 onClick={() => setIsOpen(false)}
               >
-                หน้าแรก
+                {t('home.navHome')}
               </a>
               <a
                 href="#about"
                 className="text-white text-lg hover:text-yellow-200 transition"
                 onClick={() => setIsOpen(false)}
               >
-                เกี่ยวกับ
+                {t('home.navAbout')}
               </a>
             </div>
             <div className="flex flex-col items-center gap-3 w-full px-8">
@@ -119,14 +121,14 @@ export default function Home() {
                 className="bg-white/20 text-white px-5 py-2 rounded-lg hover:bg-white/30 transition w-full text-center"
                 onClick={() => setIsOpen(false)}
               >
-                เข้าสู่ระบบ
+                {t('home.login')}
               </a>
               <a
                 href="/register"
                 className="bg-yellow-400 text-gray-900 px-5 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition w-full text-center"
                 onClick={() => setIsOpen(false)}
               >
-                ลงทะเบียน
+                {t('home.register')}
               </a>
             </div>
           </motion.div>
@@ -142,20 +144,19 @@ export default function Home() {
           className="flex flex-col gap-4 sm:gap-6 text-center lg:text-left max-w-md sm:max-w-lg lg:max-w-xl xl:max-w-2xl"
         >
           <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-gray-800 leading-snug">
-            ระบบจัดการแข่งขัน <br className="hidden md:block" />
+            {t('home.title')} <br className="hidden md:block" />
             <span className="bg-gradient-to-r from-amber-600 to-pink-500 bg-clip-text text-transparent">
-              แบดมินตัน
+              {t('home.subtitle')}
             </span>
           </h1>
           <p className="text-gray-600 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">
-            จัดการการแข่งขัน สมัครผู้เล่น และติดตามผลการแข่งได้ง่ายๆ
-            ในระบบเดียว รองรับทั้งนักกีฬาและผู้จัดการแข่งขัน
+            {t('home.description')}
           </p>
           <a
             href="/register"
             className="bg-amber-500 text-white px-6 py-2 sm:px-8 sm:py-3 rounded-lg w-fit mx-auto lg:mx-0 text-sm sm:text-base md:text-lg hover:bg-amber-600 hover:scale-105 transition-transform shadow-md"
           >
-            เริ่มต้นใช้งาน
+            {t('home.getStarted')}
           </a>
         </motion.div>
 

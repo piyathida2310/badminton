@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import api from "../../../../lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /* โครงสร้างข้อมูล */
 interface Match {
@@ -38,6 +39,7 @@ export default function UserResultSummaryPage() {
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
   const [selectedRank, setSelectedRank] = useState("all");
   const [availableRanks, setAvailableRanks] = useState<string[]>([]);
+  const { t } = useLanguage();
 
   // 1. Get Tournament ID from localStorage
   useEffect(() => {
@@ -230,7 +232,7 @@ export default function UserResultSummaryPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <p className="text-pink-500 font-bold animate-pulse text-xl">กำลังดึงข้อมูล...</p>
+        <p className="text-pink-500 font-bold animate-pulse text-xl">{t('results.loading')}</p>
       </div>
     );
   }
@@ -238,7 +240,7 @@ export default function UserResultSummaryPage() {
   if (!tournamentId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <p className="text-gray-500 font-bold text-xl">กรุณาเลือกรายการแข่งขันก่อนเพื่อดูสรุปผล</p>
+        <p className="text-gray-500 font-bold text-xl">{t('results.selectFirst')}</p>
       </div>
     );
   }
@@ -247,28 +249,28 @@ export default function UserResultSummaryPage() {
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-extrabold text-pink-500 tracking-tight drop-shadow-md">
-          🏆 สรุปผลการแข่งขัน
+          🏆 {t('results.pageTitle')}
         </h1>
 
         <div className="mt-4 text-gray-700 leading-relaxed space-y-1">
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
-              <label htmlFor="filter-type" className="font-medium text-gray-800">ประเภท:</label>
+              <label htmlFor="filter-type" className="font-medium text-gray-800">{t('results.type')}</label>
               <select
                 id="filter-type"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
-                <option value="all">ทั้งหมด</option>
-                <option value="double">คู่</option>
-                <option value="single">เดี่ยว</option>
+                <option value="all">{t('results.all')}</option>
+                <option value="double">{t('results.double')}</option>
+                <option value="single">{t('results.single')}</option>
               </select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="rank-filter" className="font-medium text-gray-800">ประเภทมือ:</label>
+              <label htmlFor="rank-filter" className="font-medium text-gray-800">{t('results.rankType')}</label>
               <select
                 id="rank-filter"
                 value={selectedRank}
@@ -284,7 +286,7 @@ export default function UserResultSummaryPage() {
           </div>
 
           <p className="text-pink-600 font-semibold mt-2">
-            สรุปลูกที่ใช้รวมทั้งหมด: {totalShuttles} ลูก
+            {t('results.totalShuttle')}: {totalShuttles} ลูก
           </p>
         </div>
       </div>
@@ -302,8 +304,8 @@ export default function UserResultSummaryPage() {
         </div>
       ) : (
         <div className="text-center text-gray-600 mt-10 p-10 bg-white/50 rounded-2xl border border-dashed border-gray-300">
-          <p>📅 ยังไม่มีผลการแข่งขันที่สรุปได้ในขณะนี้</p>
-          <p className="text-sm mt-2">ข้อมูลผลการแข่งขันจะแสดงผลเมื่อมีการจัดอันดับเสร็จสิ้นครับ</p>
+          <p>📅 {t('results.noResults')}</p>
+          <p className="text-sm mt-2">{t('results.noResultsDesc')}</p>
         </div>
       )}
     </main>

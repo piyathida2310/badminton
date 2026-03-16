@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type SidebarUserProps = {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { t } = useLanguage();
 
   const [role, setRole] = useState("user");
   const [tournamentName, setTournamentName] = useState<string>("");
@@ -60,20 +62,21 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
     {
       href: role === "manage" ? "/manage" : "/user/tournament",
       icon: <Trophy size={18} />,
-      label: "รายการแข่งขัน",
+      label: t('sidebar.tournaments'),
+      rawLabel: "รายการแข่งขัน",
     },
-    { href: role === "manage" ? "/user/manage-rules" : getLink("/user/match-rules"), icon: <BookOpen size={18} />, label: "กติกา" },
-    { href: getLink("/user/group"), icon: <Clock size={18} />, label: "จัดกลุ่มการแข่งขัน" },
-    { href: getLink("/user/bracket"), icon: <Swords size={18} />, label: "สายการแข่งขัน" },
-    { href: role === "manage" ? "/user/players-status" : getLink("/user/status"), icon: <Users size={18} />, label: "สถานะผู้แข่ง" },
-    { href: role === "manage" ? "/user/match-history" : getLink("/user/court-running"), icon: <Clock size={18} />, label: "Court Running" },
-    { href: role === "manage" ? "/user/results-competition" : getLink("/user/results"), icon: <Medal size={18} />, label: "ผลการแข่งขัน" },
-    { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: "ข้อมูลส่วนตัว" },
+    { href: role === "manage" ? "/user/manage-rules" : getLink("/user/match-rules"), icon: <BookOpen size={18} />, label: t('sidebar.rules'), rawLabel: "กติกา" },
+    { href: getLink("/user/group"), icon: <Clock size={18} />, label: t('sidebar.manageGroups'), rawLabel: "จัดกลุ่มการแข่งขัน" },
+    { href: getLink("/user/bracket"), icon: <Swords size={18} />, label: t('sidebar.brackets'), rawLabel: "สายการแข่งขัน" },
+    { href: role === "manage" ? "/user/players-status" : getLink("/user/status"), icon: <Users size={18} />, label: t('sidebar.playerStatus'), rawLabel: "สถานะผู้แข่ง" },
+    { href: role === "manage" ? "/user/match-history" : getLink("/user/court-running"), icon: <Clock size={18} />, label: t('sidebar.courtRunning'), rawLabel: "Court Running" },
+    { href: role === "manage" ? "/user/results-competition" : getLink("/user/results"), icon: <Medal size={18} />, label: t('sidebar.results'), rawLabel: "ผลการแข่งขัน" },
+    { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: t('sidebar.profile'), rawLabel: "ข้อมูลส่วนตัว" },
   ];
 
   const displayedLinks = allLinks.filter(link => {
     // Always show Tournament List and Profile
-    if (link.label === "รายการแข่งขัน" || link.label === "ข้อมูลส่วนตัว") return true;
+    if (link.rawLabel === "รายการแข่งขัน" || link.rawLabel === "ข้อมูลส่วนตัว") return true;
     // Show others only if tournamentId exists
     return !!tournamentId;
   });
@@ -103,7 +106,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-pink-600 tracking-wide">MENU</h2>
+          <h2 className="text-xl font-bold text-pink-600 tracking-wide">{t('sidebar.menu')}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-pink-200 transition"
@@ -119,7 +122,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
             <div className="relative px-3 py-2 bg-white/80 backdrop-blur-md rounded-lg border border-white/50 shadow-sm text-center">
               <div className="flex justify-center items-center mb-0.5">
                 <span className="bg-gradient-to-r from-pink-600 to-amber-600 bg-clip-text text-transparent text-[9px] font-extrabold uppercase tracking-widest">
-                  CURRENT TOURNAMENT
+                  {t('sidebar.currentTournament')}
                 </span>
               </div>
               <h3 className="text-xs font-bold text-gray-800 break-words leading-tight drop-shadow-sm">
@@ -148,14 +151,14 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
             <span className="font-medium text-gray-800">
               {user?.firstName && user?.lastName
                 ? `${user.firstName} ${user.lastName}`
-                : user?.firstName || user?.username || "ผู้ใช้"}
+                : user?.firstName || user?.username || t('navbar.user')}
             </span>
             <Link
               href={`/user/profile`}
               onClick={onClose}
               className="text-sm text-pink-600 hover:underline"
             >
-              โปรไฟล์ของฉัน
+              {t('sidebar.profile')}
             </Link>
 
           </div>
@@ -196,14 +199,14 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
           className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
         >
           <LogOut size={18} />
-          <span>ออกจากระบบ</span>
+          <span>{t('sidebar.logout')}</span>
         </button>
       </motion.aside>
 
       {/*  Sidebar Desktop ถาวร */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-white via-pink-50 to-amber-100 shadow-lg p-8 z-40 border-r border-pink-200">
         <h2 className="text-2xl font-extrabold text-pink-600 mt-20 mb-8 tracking-wide">
-          MENU
+          {t('sidebar.menu')}
         </h2>
 
         {/* Tournament Name Display (Desktop) */}
@@ -214,7 +217,7 @@ export default function SidebarUser({ isOpen, onClose }: SidebarUserProps) {
               <div className="flex justify-center items-center gap-2 mb-1 opacity-80">
                 <Trophy size={12} className="text-amber-500" />
                 <span className="text-[9px] font-extrabold text-pink-500 tracking-[0.2em] uppercase">
-                  TOURNAMENT
+                  {t('sidebar.currentTournament')}
                 </span>
                 <Trophy size={12} className="text-amber-500" />
               </div>

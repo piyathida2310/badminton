@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Swal from "sweetalert2";
 import api from "../../../../../lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type EvaluationStatus = "WAITING" | "PASSED" | "FAILED";
 type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED";
@@ -61,6 +62,7 @@ interface Player {
   ages: number[];
   rank: string;
   type: string;
+  typeRaw: string;
   videoUrl?: string | null;
   slipUrl?: string | null;
   status: EvaluationStatus;
@@ -106,13 +108,14 @@ const mapHandTypeLabel = (value?: string | null) => {
   return value;
 };
 
-const mapMatchTypeLabel = (value?: string | null) => {
+const mapMatchTypeLabel = (value: string | null | undefined, t: any) => {
   if (!value) return "-";
-  return value === "DOUBLE" ? "คู่" : "เดี่ยว";
+  return value === "DOUBLE" ? t('status.double') : t('status.single');
 };
 
 export default function RegisterStatusPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useLanguage();
 
   // คำนวณอายุจากวันเกิด
   const calculateAge = (birthday: string | null | undefined): number => {
@@ -125,7 +128,57 @@ export default function RegisterStatusPage() {
     return age;
   };
 
-  const [players, setPlayers] = useState<Player[]>([]);
+  const mapApplicantToPlayer = React.useCallback((applicant: ApplicantResponse): Player => {
+    const fallbackName =
+      `${applicant.user.firstName ?? ""} ${applicant.user.lastName ?? ""}`.trim() ||
+      applicant.user.userName ||
+      t('playersStatus.unnamed');
+
+    const playerNames =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => p.name || fallbackName).filter(Boolean)
+        : [fallbackName];
+
+    const playerGenders =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => {
+          if (p.gender === "MALE") return t('status.male');
+          if (p.gender === "FEMALE") return t('status.female');
+          return p.gender || "-";
+        })
+        : ["-"];
+
+    const playerAges =
+      applicant.players && applicant.players.length > 0
+        ? applicant.players.map((p) => calculateAge(p.birthday))
+        : [0];
+
+    return {
+      registrationId: applicant.registrationId,
+      team: applicant.teamName || applicant.managerName || fallbackName,
+      names: playerNames,
+      genders: playerGenders,
+      ages: playerAges,
+      rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
+      type: mapMatchTypeLabel(applicant.matchType, t),
+      typeRaw: applicant.matchType,
+      videoUrl: applicant.media?.videoUrl ?? null,
+      slipUrl: applicant.payment?.slipUrl ?? null,
+      status: applicant.status?.evaluation ?? "WAITING",
+      paymentStatus: applicant.status?.evaluation === "FAILED" ? "REJECTED" : (applicant.payment?.status ?? "PENDING"),
+      score: applicant.status?.score ?? undefined,
+      comment: applicant.status?.comment ?? "",
+      cancellationStatus: (applicant as any).cancellationStatus ?? null,
+      cancelReason: (applicant as any).cancelReason ?? null,
+      refundQrUrl: (applicant as any).refundQrUrl ?? null,
+      refundBankName: (applicant as any).refundBankName ?? null,
+      refundAccountNum: (applicant as any).refundAccountNum ?? null,
+      refundAccountName: (applicant as any).refundAccountName ?? null,
+    };
+  }, [t]);
+
+  const [applicantsRaw, setApplicantsRaw] = useState<ApplicantResponse[]>([]);
+  const players: Player[] = useMemo(() => applicantsRaw.map(mapApplicantToPlayer), [applicantsRaw, mapApplicantToPlayer]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tournamentRanks, setTournamentRanks] = useState<string[]>([]);
@@ -150,67 +203,17 @@ export default function RegisterStatusPage() {
   }, [players, tournamentRanks]);
 
   const typeOptions = useMemo(() => {
-    return Array.from(new Set(players.map((p) => p.type).filter(Boolean)));
+    return Array.from(new Set(players.map((p) => p.typeRaw).filter(Boolean)));
   }, [players]);
 
 
   // Removed auto-selection useEffects to allow "All" (empty) as default
 
-  const mapApplicantToPlayer = (applicant: ApplicantResponse): Player => {
-    const fallbackName =
-      `${applicant.user.firstName ?? ""} ${applicant.user.lastName ?? ""}`.trim() ||
-      applicant.user.userName ||
-      "ไม่ระบุชื่อ";
-
-    const playerNames =
-      applicant.players && applicant.players.length > 0
-        ? applicant.players.map((p) => p.name || fallbackName).filter(Boolean)
-        : [fallbackName];
-
-    const playerGenders =
-      applicant.players && applicant.players.length > 0
-        ? applicant.players.map((p) => {
-          if (p.gender === "MALE") return "ชาย";
-          if (p.gender === "FEMALE") return "หญิง";
-          return p.gender || "-";
-        })
-        : ["-"];
-
-    const playerAges =
-      applicant.players && applicant.players.length > 0
-        ? applicant.players.map((p) => calculateAge(p.birthday))
-        : [0];
-
-    return {
-      registrationId: applicant.registrationId,
-      team: applicant.teamName || applicant.managerName || fallbackName,
-      names: playerNames,
-      genders: playerGenders,
-      ages: playerAges,
-      rank: applicant.rankLabel || mapHandTypeLabel(applicant.rank),
-      type: mapMatchTypeLabel(applicant.matchType),
-      videoUrl: applicant.media?.videoUrl ?? null,
-      slipUrl: applicant.payment?.slipUrl ?? null,
-      status: applicant.status?.evaluation ?? "WAITING",
-      paymentStatus: applicant.status?.evaluation === "FAILED" ? "REJECTED" : (applicant.payment?.status ?? "PENDING"),
-      score: applicant.status?.score ?? undefined,
-      comment: applicant.status?.comment ?? "",
-      cancellationStatus: (applicant as any).cancellationStatus ?? null,
-      cancelReason: (applicant as any).cancelReason ?? null,
-      refundQrUrl: (applicant as any).refundQrUrl ?? null,
-      refundBankName: (applicant as any).refundBankName ?? null,
-      refundAccountNum: (applicant as any).refundAccountNum ?? null,
-      refundAccountName: (applicant as any).refundAccountName ?? null,
-    };
-  };
-
-
-
   useEffect(() => {
     const fetchApplicants = async () => {
       if (!id) {
         setLoading(false);
-        setError("ไม่พบรหัสทัวร์นาเมนต์");
+        setError(t('playersStatus.noTournamentId'));
         return;
       }
       setLoading(true);
@@ -227,23 +230,21 @@ export default function RegisterStatusPage() {
         let types: string[] = [];
 
         if (Array.isArray(playTypesRaw)) {
-          types = playTypesRaw.map((t: string) => mapMatchTypeLabel(t));
+          types = playTypesRaw;
         } else if (typeof playTypesRaw === 'string') {
-          // In case it's a single string, though usually it's an array for checkboxes
-          // If it's a JSON string representation of array
           try {
             const parsed = JSON.parse(playTypesRaw);
             if (Array.isArray(parsed)) {
-              types = parsed.map((t: string) => mapMatchTypeLabel(t));
+              types = parsed;
             } else {
-              types = [mapMatchTypeLabel(playTypesRaw)];
+              types = [playTypesRaw];
             }
           } catch {
-            types = [mapMatchTypeLabel(playTypesRaw)];
+            types = [playTypesRaw];
           }
         }
 
-        setPlayers(applicants.map(mapApplicantToPlayer));
+        setApplicantsRaw(applicants);
         setTournamentRanks(ranks);
         setTournamentTypes(types);
         // ⭐ ตั้งค่า default เฉพาะครั้งแรกเท่านั้น เพื่อไม่ให้เด้งเวลาเปลี่ยนสถานะ
@@ -254,7 +255,7 @@ export default function RegisterStatusPage() {
 
         setSelectedType(prev => prev || (types.length > 0
           ? types[0]
-          : (applicants.length > 0 ? mapMatchTypeLabel(applicants[0].matchType) : "")
+          : (applicants.length > 0 ? applicants[0].matchType : "")
         ));
       } catch (err: any) {
         // Only log error if not 403
@@ -264,14 +265,14 @@ export default function RegisterStatusPage() {
 
         let message =
           err?.response?.data?.message ||
-          "ไม่สามารถโหลดรายชื่อผู้สมัครได้ โปรดลองใหม่อีกครั้ง";
+          t('playersStatus.loadFailed');
 
         if (
           err?.response?.status === 403 ||
           message.includes("Forbidden") ||
           message.includes("permissions")
         ) {
-          message = "คุณไม่สามารถดูข้อมูลนี้ได้ เนื่องจากไม่ใช่รายการแข่งขันของคุณ";
+          message = t('playersStatus.forbidden');
         }
 
         setError(message);
@@ -302,11 +303,14 @@ export default function RegisterStatusPage() {
           status: value,
         });
 
-        setPlayers((prev) => {
+        setApplicantsRaw((prev) => {
           const updated = [...prev];
-          updated[index].status = value as EvaluationStatus;
+          updated[index] = {
+            ...updated[index],
+            status: { ...updated[index].status, evaluation: value as EvaluationStatus }
+          };
           if (value === "FAILED") {
-            updated[index].paymentStatus = "REJECTED";
+            updated[index].payment = { ...updated[index].payment, status: "REJECTED" as PaymentStatus };
           }
           return updated;
         });
@@ -316,15 +320,18 @@ export default function RegisterStatusPage() {
           status: value,
         });
 
-        setPlayers((prev) => {
+        setApplicantsRaw((prev) => {
           const updated = [...prev];
-          updated[index].paymentStatus = value as PaymentStatus;
+          updated[index] = {
+            ...updated[index],
+            payment: { ...updated[index].payment, status: value as PaymentStatus }
+          };
           return updated;
         });
       }
     } catch (error) {
       console.error("Failed to update status:", error);
-      alert("ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง");
+      alert(t('playersStatus.updateFailed'));
     }
   };
 
@@ -339,9 +346,12 @@ export default function RegisterStatusPage() {
           score: videoScore,
         });
 
-        setPlayers((prev) => {
+        setApplicantsRaw((prev) => {
           const updated = [...prev];
-          updated[selectedPlayerIndex].score = videoScore;
+          updated[selectedPlayerIndex] = {
+            ...updated[selectedPlayerIndex],
+            status: { ...updated[selectedPlayerIndex].status, score: videoScore }
+          };
           return updated;
         });
 
@@ -350,7 +360,7 @@ export default function RegisterStatusPage() {
         setVideoScore(0);
       } catch (error) {
         console.error("Failed to save score:", error);
-        alert("ไม่สามารถบันทึกคะแนนได้ กรุณาลองใหม่อีกครั้ง");
+        alert(t('playersStatus.saveScoreFailed'));
       }
     }
   };
@@ -365,10 +375,13 @@ export default function RegisterStatusPage() {
         comment: value,
       });
 
-      setPlayers((prev) => {
+      setApplicantsRaw((prev) => {
         const updated = [...prev];
         if (updated[index]) {
-          updated[index].comment = value;
+          updated[index] = {
+            ...updated[index],
+            status: { ...updated[index].status, comment: value }
+          };
         }
         return updated;
       });
@@ -383,15 +396,15 @@ export default function RegisterStatusPage() {
     const player = players[playerIndex];
     if (!player) return;
 
-    const label = action === "REFUNDED" ? "คืนเงิน" : "ไม่คืนเงิน";
+    const label = action === "REFUNDED" ? t('playersStatus.refund') : t('playersStatus.noRefund');
     const confirmResult = await Swal.fire({
-      title: `ยืนยัน${label}?`,
-      text: `คุณต้องการ${label}ให้ทีม ${player.team} ใช่หรือไม่`,
+      title: action === "REFUNDED" ? t('playersStatus.confirmRefundTitle') : t('playersStatus.confirmNoRefundTitle'),
+      text: `${action === "REFUNDED" ? t('playersStatus.confirmRefundText') : t('playersStatus.confirmNoRefundText')} ${player.team} ${t('playersStatus.yesRef')}`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: action === "REFUNDED" ? "#22c55e" : "#ef4444",
-      confirmButtonText: `ยืนยัน${label}`,
-      cancelButtonText: "ย้อนกลับ",
+      confirmButtonText: `${label}`,
+      cancelButtonText: t('status.goBack'),
     });
     if (!confirmResult.isConfirmed) return;
 
@@ -399,20 +412,23 @@ export default function RegisterStatusPage() {
     try {
       await api.patch(`/api/registration/${player.registrationId}/refund`, { status: action });
 
-      setPlayers(prev => {
+      setApplicantsRaw(prev => {
         const updated = [...prev];
         updated[playerIndex] = {
           ...updated[playerIndex],
           cancellationStatus: action,
-          status: action === "REFUNDED" ? "FAILED" as EvaluationStatus : updated[playerIndex].status,
+          status: {
+            ...updated[playerIndex].status,
+            evaluation: action === "REFUNDED" ? "FAILED" : updated[playerIndex].status.evaluation,
+          }
         };
         return updated;
       });
 
-      await Swal.fire({ title: "สำเร็จ", text: `${label}เรียบร้อยแล้ว`, icon: "success", timer: 1500, showConfirmButton: false });
+      await Swal.fire({ title: t('playersStatus.actionSuccessTitle'), text: t('playersStatus.actionSuccessText'), icon: "success", timer: 1500, showConfirmButton: false });
     } catch (error) {
       console.error("Refund Error:", error);
-      await Swal.fire({ title: "ผิดพลาด", text: "ไม่สามารถดำเนินการได้ กรุณาลองใหม่", icon: "error" });
+      await Swal.fire({ title: t('playersStatus.actionErrorTitle'), text: t('playersStatus.actionErrorText'), icon: "error" });
     } finally {
       setRefunding(false);
     }
@@ -420,7 +436,7 @@ export default function RegisterStatusPage() {
 
   const filteredPlayers = players.filter((p) => {
     const rankMatch = !selectedRank || p.rank === selectedRank;
-    const typeMatch = !selectedType || p.type === selectedType;
+    const typeMatch = !selectedType || p.typeRaw === selectedType;
     return rankMatch && typeMatch;
   });
 
@@ -437,14 +453,14 @@ export default function RegisterStatusPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF] py-10 px-4 sm:px-6 text-[#2F3E46]">
       <h1 className="text-center text-3xl sm:text-4xl font-bold mb-10 text-[#1E293B] drop-shadow-sm">
-        สถานะการสมัคร
+        {t('status.pageTitle')}
       </h1>
 
       {/* Filter - Only show if no error */}
       {!error && (
         <div className="max-w-6xl mx-auto mb-8 flex flex-wrap justify-center gap-4">
           <div className="flex items-center gap-2 text-sm sm:text-base">
-            <label className="font-medium text-[#334155]">ประเภทมือ</label>
+            <label className="font-medium text-[#334155]">{t('status.rankType')}</label>
             <select
               value={selectedRank}
               onChange={(e) => setSelectedRank(e.target.value)}
@@ -460,16 +476,16 @@ export default function RegisterStatusPage() {
           </div>
 
           <div className="flex items-center gap-2 text-sm sm:text-base">
-            <label className="font-medium text-[#334155]">ประเภท</label>
+            <label className="font-medium text-[#334155]">{t('status.type')}</label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
             >
 
-              {typeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {typeOptions.map((tRaw) => (
+                <option key={tRaw} value={tRaw}>
+                  {mapMatchTypeLabel(tRaw, t)}
                 </option>
               ))}
             </select>
@@ -489,7 +505,7 @@ export default function RegisterStatusPage() {
       )}
       {loading && (
         <div className="max-w-4xl mx-auto mb-6 bg-slate-50 border border-slate-200 text-slate-600 px-4 py-3 rounded-xl text-center">
-          กำลังโหลดข้อมูลผู้สมัคร...
+          {t('playersStatus.loadingApplicants')}
         </div>
       )}
 
@@ -497,7 +513,7 @@ export default function RegisterStatusPage() {
       <div className="max-w-6xl mx-auto space-y-10">
         {Object.entries(groupedPlayers).length === 0 && !loading && !error && (
           <div className="text-center text-slate-600 bg-white/80 border border-slate-200 rounded-2xl py-10 shadow-sm">
-            ไม่มีข้อมูลผู้สมัครสำหรับทัวร์นาเมนต์นี้
+            {t('status.noData')}
           </div>
         )}
         {Object.entries(groupedPlayers).map(([teamName, members]) => (
@@ -509,7 +525,7 @@ export default function RegisterStatusPage() {
             <div className="relative rounded-t-2xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
               <div className="relative py-3 text-center text-base sm:text-xl font-semibold text-white tracking-wide z-10">
-                ทีม {teamName}
+                {t('status.team')} {teamName}
               </div>
             </div>
 
@@ -517,18 +533,18 @@ export default function RegisterStatusPage() {
               <table className="w-full border-collapse text-sm md:text-base text-center min-w-[600px]">
                 <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
                   <tr>
-                    <th className="border p-2">ชื่อ–นามสกุล</th>
-                    <th className="border p-2">เพศ</th>
-                    <th className="border p-2">อายุ</th>
-                    <th className="border p-2">ประเภทมือ</th>
-                    <th className="border p-2">ประเภท</th>
-                    <th className="border p-2">วิดีโอ</th>
-                    <th className="border p-2">คะแนน</th>
-                    <th className="border p-2">คอมเมนต์</th>
-                    <th className="border p-2">สถานะ</th>
-                    <th className="border p-2">รูปภาพการชำระเงิน</th>
-                    <th className="border p-2">สถานะการชำระเงิน</th>
-                    <th className="border p-2">การยกเลิก/คืนเงิน</th>
+                    <th className="border p-2">{t('status.name')}</th>
+                    <th className="border p-2">{t('status.gender')}</th>
+                    <th className="border p-2">{t('status.age')}</th>
+                    <th className="border p-2">{t('status.rankCol')}</th>
+                    <th className="border p-2">{t('status.typeCol')}</th>
+                    <th className="border p-2">{t('playersStatus.video')}</th>
+                    <th className="border p-2">{t('playersStatus.score')}</th>
+                    <th className="border p-2">{t('playersStatus.comment')}</th>
+                    <th className="border p-2">{t('status.regStatus')}</th>
+                    <th className="border p-2">{t('playersStatus.slip')}</th>
+                    <th className="border p-2">{t('status.paymentStatus')}</th>
+                    <th className="border p-2">{t('playersStatus.cancelRefund')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -566,7 +582,7 @@ export default function RegisterStatusPage() {
                         <td className="border p-2 whitespace-nowrap min-w-[70px]">
                           {p.ages.map((age, idx) => (
                             <div key={idx} className="leading-relaxed">
-                              {age > 0 ? `${age} ปี` : "-"}
+                              {age > 0 ? `${age} ${t('status.year')}` : "-"}
                             </div>
                           ))}
                         </td>
@@ -583,7 +599,7 @@ export default function RegisterStatusPage() {
                             className={`whitespace-nowrap px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
-                            ดูวิดีโอ
+                            {t('playersStatus.watchVideo')}
                           </button>
                         </td>
                         <td className="border p-2 text-pink-700 font-semibold">
@@ -593,7 +609,7 @@ export default function RegisterStatusPage() {
                           <textarea
                             value={p.comment || ""}
                             onChange={(e) => handleCommentChange(safeIndex, e.target.value)}
-                            placeholder="เพิ่มความคิดเห็น..."
+                            placeholder={t('playersStatus.addComment')}
                             disabled={p.status === "PASSED" || p.status === "FAILED"}
                             className={`w-full h-24 p-2 rounded-xl border border-slate-300 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none shadow-sm ${p.status === "PASSED" || p.status === "FAILED" ? "opacity-50 cursor-not-allowed bg-gray-100" : ""
                               }`}
@@ -604,7 +620,7 @@ export default function RegisterStatusPage() {
                             <div
                               className={`text-sm font-semibold ${evaluationStatusColor[p.status]}`}
                             >
-                              {evaluationStatusLabel[p.status] ?? p.status}
+                              {p.status === "WAITING" ? t('status.waiting') : p.status === "PASSED" ? t('status.passed') : p.status === "FAILED" ? t('status.failed') : p.status}
                             </div>
                             {p.status === "WAITING" && (
                               <div className="flex gap-2">
@@ -616,7 +632,7 @@ export default function RegisterStatusPage() {
                                   }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
                                 >
-                                  ยืนยัน
+                                  {t('playersStatus.confirm')}
                                 </button>
                                 <button
                                   type="button"
@@ -626,7 +642,7 @@ export default function RegisterStatusPage() {
                                   }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
                                 >
-                                  ยกเลิก
+                                  {t('playersStatus.cancel')}
                                 </button>
                               </div>
                             )}
@@ -639,7 +655,7 @@ export default function RegisterStatusPage() {
                             className={`px-3 py-1 bg-gradient-to-r from-[#a882f5] to-[#c874d6] text-white rounded-md shadow-sm ${hasSlip ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
-                            ดูรูปภาพ
+                            {t('playersStatus.viewImage')}
                           </button>
                         </td>
                         <td className="border p-2">
@@ -647,7 +663,7 @@ export default function RegisterStatusPage() {
                             <div
                               className={`text-sm font-semibold ${paymentStatusColor[p.paymentStatus]}`}
                             >
-                              {paymentStatusLabel[p.paymentStatus] ?? p.paymentStatus}
+                              {p.paymentStatus === "PENDING" ? t('status.waiting') : p.paymentStatus === "CONFIRMED" ? t('status.confirmed') : p.paymentStatus === "REJECTED" ? t('status.failed') : p.paymentStatus}
                             </div>
                             {p.paymentStatus === "PENDING" && (
                               <div className="flex gap-2">
@@ -659,7 +675,7 @@ export default function RegisterStatusPage() {
                                   }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
                                 >
-                                  ยืนยัน
+                                  {t('playersStatus.confirm')}
                                 </button>
                                 <button
                                   type="button"
@@ -669,7 +685,7 @@ export default function RegisterStatusPage() {
                                   }}
                                   className="px-3 py-1 rounded-lg shadow-sm bg-red-100 text-red-700 hover:bg-red-200"
                                 >
-                                  ยกเลิก
+                                  {t('playersStatus.cancel')}
                                 </button>
                               </div>
                             )}
@@ -680,27 +696,27 @@ export default function RegisterStatusPage() {
                         <td className="border p-2">
                           {p.cancellationStatus === "REQUESTED" ? (
                             <div className="flex flex-col items-center gap-1.5">
-                              <span className="text-red-600 font-bold text-sm">ขอยกเลิก</span>
+                              <span className="text-red-600 font-bold text-sm">{t('playersStatus.cancelRequested')}</span>
                               {p.cancelReason && (
                                 <button
                                   onClick={() => Swal.fire({
-                                    title: `<div class="pt-2 text-2xl font-black text-rose-500 tracking-tight">เหตุผลการยกเลิก</div>`,
+                                    title: `<div class="pt-2 text-2xl font-black text-rose-500 tracking-tight">${t('playersStatus.reason')}</div>`,
                                     html: `
                                       <div class="mt-4 px-2">
                                         <div class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-[2rem] p-6">
                                           <div class="text-amber-800 text-lg font-bold leading-snug">
-                                            ${p.cancelReason || "ไม่ระบุเหตุผล"}
+                                            ${p.cancelReason || t('playersStatus.noReason')}
                                           </div>
                                         </div>
                                         <div class="mt-4 flex items-center justify-center gap-2 text-rose-300 text-[10px] font-medium uppercase tracking-widest">
                                           <span class="h-px w-8 bg-rose-100"></span>
-                                          <span>แจ้งเมื่อ ${new Date().toLocaleDateString('th-TH')}</span>
+                                          <span>${t('playersStatus.notifiedAt')} ${new Date().toLocaleDateString(t('status.gender') === 'ชาย' ? 'th-TH' : 'en-US')}</span>
                                           <span class="h-px w-8 bg-rose-100"></span>
                                         </div>
                                       </div>
                                     `,
                                     showConfirmButton: true,
-                                    confirmButtonText: "รับทราบ",
+                                    confirmButtonText: t('playersStatus.acknowledge'),
                                     confirmButtonColor: "#fb7185",
                                     customClass: {
                                       popup: 'rounded-[2.5rem] p-8 border-4 border-rose-50 shadow-2xl bg-white',
@@ -711,7 +727,7 @@ export default function RegisterStatusPage() {
                                   })}
                                   className="text-xs text-blue-600 underline hover:text-blue-800 transition-colors cursor-pointer font-medium"
                                 >
-                                  ดูเหตุผล
+                                  {t('playersStatus.viewReason')}
                                 </button>
                               )}
                               <div className="flex gap-2 mt-1">
@@ -720,19 +736,19 @@ export default function RegisterStatusPage() {
                                   disabled={refunding}
                                   className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 shadow-sm disabled:opacity-50 min-w-[70px] transition-colors"
                                 >
-                                  คืนเงิน
+                                  {t('playersStatus.refund')}
                                 </button>
                                 <button
                                   onClick={() => handleRefundAction(safeIndex, "REJECTED")}
                                   disabled={refunding}
                                   className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 shadow-sm disabled:opacity-50 whitespace-nowrap transition-colors"
                                 >
-                                  ไม่คืนเงิน
+                                  {t('playersStatus.noRefund')}
                                 </button>
                               </div>
                             </div>
                           ) : p.cancellationStatus === "REFUNDED" || p.cancellationStatus === "REJECTED" ? (
-                            <button disabled className="px-3 py-1 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed">ยกเลิกแล้ว</button>
+                            <button disabled className="px-3 py-1 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed">{t('playersStatus.canceled')}</button>
                           ) : (
                             <span className="text-gray-400 text-xs">—</span>
                           )}
@@ -774,7 +790,7 @@ export default function RegisterStatusPage() {
 
               <div className="text-center">
                 <p className="mb-2 font-semibold text-pink-700">
-                  ให้คะแนนวิดีโอ (1–10)
+                  {t('playersStatus.rateVideo')}
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-2">
