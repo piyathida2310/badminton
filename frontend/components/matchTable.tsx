@@ -12,6 +12,8 @@ import {
   Loader2,
 } from "lucide-react";
 import api from "../src/lib/api";
+import { useLanguage } from "../src/contexts/LanguageContext";
+import { translations } from "../src/contexts/translations";
 
 interface Match {
   id: number;
@@ -42,6 +44,9 @@ interface MatchTableProps {
 }
 
 export default function MatchTable({ tournamentId }: MatchTableProps) {
+  const { language } = useLanguage();
+  const t = translations[language].matchHistory;
+
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +66,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
         setMatches(data);
       } catch (err: any) {
         console.error("Failed to fetch match history:", err);
-        setError("ไม่สามารถโหลดข้อมูลแมตช์ได้");
+        setError(t.loadFailed);
       } finally {
         setLoading(false);
       }
@@ -76,18 +81,25 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
 
   const countLabel =
     filter === "ทั้งหมด"
-      ? `${matches.length} แมตช์ทั้งหมด`
-      : `${filteredMatches.length} แมตช์`;
+      ? `${matches.length} ${t.allMatchNum}`
+      : `${filteredMatches.length} ${t.matchNum}`;
 
   const renderStatusBadge = (status: string) => {
     const base =
       "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border backdrop-blur-sm";
+    
+    let label = status;
+    if (status === "รอแข่ง") label = t.filterWait;
+    if (status === "กำลังแข่ง") label = t.filterPlaying;
+    if (status === "แข่งสำเร็จ") label = t.filterDone;
+    if (status === "ยกเลิก") label = t.filterCancel;
+
     if (status === "รอแข่ง")
       return (
         <span
           className={`${base} border-yellow-200 bg-yellow-100/70 text-yellow-800`}
         >
-          <Clock size={12} /> {status}
+          <Clock size={12} /> {label}
         </span>
       );
     if (status === "กำลังแข่ง")
@@ -95,7 +107,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
         <span
           className={`${base} border-red-200 bg-red-100/70 text-red-700 animate-pulse`}
         >
-          <PlayCircle size={12} /> {status}
+          <PlayCircle size={12} /> {label}
         </span>
       );
     if (status === "แข่งสำเร็จ")
@@ -103,7 +115,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
         <span
           className={`${base} border-green-200 bg-green-100/70 text-green-700`}
         >
-          <CheckCircle size={12} /> {status}
+          <CheckCircle size={12} /> {label}
         </span>
       );
     if (status === "ยกเลิก")
@@ -111,7 +123,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
         <span
           className={`${base} border-gray-200 bg-gray-100/70 text-gray-600`}
         >
-          <XCircle size={12} /> {status}
+          <XCircle size={12} /> {label}
         </span>
       );
   };
@@ -142,7 +154,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
         <Loader2 className="w-8 h-8 animate-spin mb-3 text-pink-500" />
-        <p className="text-sm font-medium">กำลังโหลดข้อมูลแมตช์...</p>
+        <p className="text-sm font-medium">{t.loading}</p>
       </div>
     );
   }
@@ -158,7 +170,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
   if (matches.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
-        <p className="font-medium">ยังไม่มีแมตช์การแข่งขัน</p>
+        <p className="font-medium">{t.noMatches}</p>
       </div>
     );
   }
@@ -169,7 +181,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
         <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
           <Filter className="text-pink-600" size={18} />
-          <span className="font-semibold">ตัวกรองสถานะ</span>
+          <span className="font-semibold">{t.filterTitle}</span>
           <span className="text-gray-500 text-xs">({countLabel})</span>
         </div>
 
@@ -189,11 +201,18 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
             bg-gradient-to-r from-white/70 to-pink-50 border border-pink-200 shadow-[0_2px_10px_rgba(255,182,193,0.2)]
             focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition-all cursor-pointer"
           >
-            {["ทั้งหมด", "รอแข่ง", "กำลังแข่ง", "แข่งสำเร็จ"].map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
+            {["ทั้งหมด", "รอแข่ง", "กำลังแข่ง", "แข่งสำเร็จ"].map((item) => {
+              let label = item;
+              if (item === "ทั้งหมด") label = t.filterAll;
+              if (item === "รอแข่ง") label = t.filterWait;
+              if (item === "กำลังแข่ง") label = t.filterPlaying;
+              if (item === "แข่งสำเร็จ") label = t.filterDone;
+              return (
+                <option key={item} value={item}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
           <ChevronDown
             className="absolute right-3 top-3 text-pink-500 pointer-events-none"
@@ -209,18 +228,18 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
             <thead className="bg-gradient-to-r from-amber-200 via-pink-200 to-rose-200 text-gray-900">
               <tr>
                 {[
-                  "แมทช์",
-                  "ประเภท",
-                  "รอบ",
-                  "สถานะ",
-                  "เวลาเข้า",
-                  "กลุ่ม",
-                  "ทีม A",
-                  "ผู้เล่น A",
-                  "สกอร์",
-                  "ทีม B",
-                  "ผู้เล่น B",
-                  "ลูกแบด",
+                  t.colMatch,
+                  t.colCategory,
+                  t.colRound,
+                  t.colStatus,
+                  t.colTime,
+                  t.colGroup,
+                  t.colTeamA,
+                  t.colPlayerA,
+                  t.colScore,
+                  t.colTeamB,
+                  t.colPlayerB,
+                  t.colShuttle,
                 ].map((h, i) => (
                   <th
                     key={i}
@@ -284,20 +303,20 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
           >
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold text-pink-700 text-sm">
-                {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? "เดี่ยว" : "คู่"})
+                {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? t.mobSingle : t.mobDouble})
               </h3>
               {renderStatusBadge(m.status)}
             </div>
 
             <p className="text-gray-700 text-xs">
-              <span className="font-semibold">ประเภท:</span> {m.type}
+              <span className="font-semibold">{t.mobCategory} </span> {m.type}
             </p>
             <p className="text-gray-700 text-xs">
-              <span className="font-semibold">เวลา:</span> {m.timeIn}
+              <span className="font-semibold">{t.mobTime} </span> {m.timeIn}
             </p>
             {m.score && m.score !== "-" && (
               <p className="text-gray-700 text-xs">
-                <span className="font-semibold">สกอร์:</span> {m.score}
+                <span className="font-semibold">{t.mobScore} </span> {m.score}
               </p>
             )}
 
@@ -306,12 +325,12 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
                 {m.group !== "-" ? `${m.group.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} | ` : ""}{m.type} ({m.round})
               </p>
               <div className="mt-1">
-                <p className="text-gray-500 text-[10px] mb-0.5">ทีม: {m.team1}</p>
+                <p className="text-gray-500 text-[10px] mb-0.5">{t.mobTeam} {m.team1}</p>
                 {renderPlayers(m.matchType, m.player1A, m.player1B)}
               </div>
               <p className="text-center font-bold text-gray-600 mt-1 mb-1">⚔️ VS ⚔️</p>
               <div>
-                <p className="text-gray-500 text-[10px] mb-0.5">ทีม: {m.team2}</p>
+                <p className="text-gray-500 text-[10px] mb-0.5">{t.mobTeam} {m.team2}</p>
                 {renderPlayers(m.matchType, m.player2A, m.player2B)}
               </div>
             </div>
