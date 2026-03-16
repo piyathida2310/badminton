@@ -32,64 +32,67 @@ export default function Home() {
 
   return (
 
-    <main className="min-h-screen flex flex-col bg-gradient-to-b from-[#FFFDF6] to-[#F9F6EE] scroll-smooth">
+    <main className="min-h-screen flex flex-col bg-gradient-to-b from-[#FFFDF6] to-[#F9F6EE] scroll-smooth pt-[70px]">
       {/* Navbar */}
       <motion.nav
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex justify-between items-center px-4 sm:px-6 md:px-12 lg:px-16 xl:px-24 py-3 max-h-[60px] shadow-sm bg-gradient-to-r from-amber-200 to-pink-600 relative"
+        className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200 to-pink-600 shadow-lg border-b border-white/20"
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <Image
-            src="/images/bad_logo.png"
-            alt="Badminton Logo"
-            width={150}
-            height={150}
-            className="drop-shadow-lg"
-          />
-        </div>
+        {/* เนื้อหา Navbar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10 w-full">
+          {/* Logo */}
+          <div className="flex items-center gap-2 -ml-2 sm:ml-0">
+            <Image
+              src="/images/bad_logo.png"
+              alt="Badminton Logo"
+              width={140}
+              height={140}
+              className="drop-shadow-lg"
+            />
+          </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-10 text-white font-medium text-sm md:text-base lg:text-lg">
-          <a
-            href="#"
-            className="hover:text-yellow-200 hover:scale-105 transition-transform"
-          >
-            {t('home.navHome')}
-          </a>
-          <a
-            href="#about"
-            className="hover:text-yellow-200 hover:scale-105 transition-transform"
-          >
-            {t('home.navAbout')}
-          </a>
-        </div>
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-10 text-white font-medium text-sm md:text-base lg:text-lg">
+            <a
+              href="#"
+              className="hover:text-yellow-200 hover:scale-105 transition-transform"
+            >
+              {t('home.navHome')}
+            </a>
+            <a
+              href="#about"
+              className="hover:text-yellow-200 hover:scale-105 transition-transform"
+            >
+              {t('home.navAbout')}
+            </a>
+          </div>
 
-        {/* Desktop Buttons */}
-        <div className="hidden md:flex gap-2 lg:gap-4">
-          <a
-            href="/sign-in"
-            className="bg-white/20 backdrop-blur-md text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-white/30 hover:scale-105 transition-transform shadow-md"
-          >
-            {t('home.login')}
-          </a>
-          <a
-            href="/register"
-            className="bg-yellow-400 text-gray-900 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-yellow-500 hover:scale-105 transition-transform font-semibold shadow-md"
-          >
-            {t('home.register')}
-          </a>
-        </div>
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex gap-2 lg:gap-4">
+            <a
+              href="/sign-in"
+              className="bg-white/20 backdrop-blur-md text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-white/30 hover:scale-105 transition-transform shadow-md"
+            >
+              {t('home.login')}
+            </a>
+            <a
+              href="/register"
+              className="bg-yellow-400 text-gray-900 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base hover:bg-yellow-500 hover:scale-105 transition-transform font-semibold shadow-md"
+            >
+              {t('home.register')}
+            </a>
+          </div>
 
-        {/* Mobile Hamburger */}
-        <button
-          className="md:hidden text-white"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
+          {/* Mobile Hamburger */}
+          <button
+            className="md:hidden text-white"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
 
         {/* Mobile Menu */}
         {isOpen && (

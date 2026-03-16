@@ -53,7 +53,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
   const displayName = clerkUser?.firstName && clerkUser?.lastName
     ? `${clerkUser.firstName} ${clerkUser.lastName}`
     : clerkUser?.firstName || clerkUser?.username || localUser?.name || t('navbar.user');
-  
+
   const displayAvatar = clerkUser?.imageUrl || localUser?.avatar;
 
   //  ออกจากระบบ
@@ -62,12 +62,12 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("role"); // from original Navbar.tsx
-    
+
     // ออกจากระบบด้วย Clerk ถ้ามี
     if (clerkUser) {
       await signOut();
     }
-    
+
     // ไปหน้าแรก
     router.push("/");
   };
@@ -75,7 +75,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
   //  ไปหน้าโปรไฟล์
   const handleGoToProfile = () => {
     setIsDropdownOpen(false);
-    
+
     // Check various roles used in the original components
     const userRole = localStorage.getItem("userRole");
     const role = localStorage.getItem("role");
@@ -93,9 +93,6 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
   return (
     <>
       <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200 to-pink-600 shadow-lg border-b border-white/20">
-        {/* เส้นบน Navbar */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60 animate-[gradient_4s_linear_infinite]" />
-
         {/* เนื้อหา Navbar */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
           {/* โลโก้ */}
