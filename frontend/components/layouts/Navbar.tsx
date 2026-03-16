@@ -4,23 +4,33 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, User, Settings, LogOut } from "lucide-react";
-import { Sidebar } from "./Sidebar";
+import Sidebar from "./Sidebar";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export default function NavbarUser() {
+export type NavbarVariant = 'manage' | 'manage-id' | 'user';
+
+interface NavbarProps {
+  variant?: NavbarVariant;
+}
+
+export default function Navbar({ variant = 'manage' }: NavbarProps) {
   const router = useRouter();
+  const { user: clerkUser } = useUser();
+  const { signOut } = useClerk();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<{ name: string; avatar?: string }>({
-    name: "",
-    avatar: "",
-  });
   const { t, language, setLanguage } = useLanguage();
 
-  //  ดึงข้อมูลผู้ใช้จาก token
+  // Fallback for custom API user if Clerk is not used
+  const [localUser, setLocalUser] = useState<{ name: string; avatar?: string } | null>(null);
+
   useEffect(() => {
+    // If we have a Clerk user, we don't need to fetch the local one
+    if (clerkUser) return;
+
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
@@ -29,32 +39,51 @@ export default function NavbarUser() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setUser({
+        setLocalUser({
           name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
           avatar: res.data.avatar || "",
         });
       })
       .catch(() => {
-        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้");
+        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
       });
-  }, []);
+  }, [clerkUser]);
+
+  // Derived user info
+  const displayName = clerkUser?.firstName && clerkUser?.lastName
+    ? `${clerkUser.firstName} ${clerkUser.lastName}`
+    : clerkUser?.firstName || clerkUser?.username || localUser?.name || t('navbar.user');
+  
+  const displayAvatar = clerkUser?.imageUrl || localUser?.avatar;
 
   //  ออกจากระบบ
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // ลบข้อมูลใน localStorage
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("role");
-    alert("ออกจากระบบเรียบร้อย");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("role"); // from original Navbar.tsx
+    
+    // ออกจากระบบด้วย Clerk ถ้ามี
+    if (clerkUser) {
+      await signOut();
+    }
+    
+    // ไปหน้าแรก
     router.push("/");
   };
 
   //  ไปหน้าโปรไฟล์
-  // ✅ ของใหม่ (แก้แล้ว)
   const handleGoToProfile = () => {
     setIsDropdownOpen(false);
+    
+    // Check various roles used in the original components
+    const userRole = localStorage.getItem("userRole");
     const role = localStorage.getItem("role");
 
-    if (role === "organizer") {
-      router.push("/organizer/profile");
+    if (userRole === "ORGANIZER" || role === "organizer") {
+      // Original Navbar.tsx used /organizer/profile, but others used /manage/profile.
+      // Standardizing to /manage/profile based on layout structure.
+      router.push("/manage/profile");
     } else {
       router.push("/user/profile");
     }
@@ -102,9 +131,9 @@ export default function NavbarUser() {
               className="flex items-center gap-3 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
             >
               {/* รูปโปรไฟล์ */}
-              {user.avatar ? (
+              {displayAvatar ? (
                 <img
-                  src={user.avatar}
+                  src={displayAvatar}
                   alt="User Avatar"
                   className="w-8 h-8 rounded-full object-cover border border-white shadow-sm"
                 />
@@ -116,7 +145,7 @@ export default function NavbarUser() {
 
               {/* ชื่อผู้ใช้ */}
               <span className="font-medium tracking-wide">
-                {user.name || t('navbar.user')}
+                {displayName}
               </span>
 
               {/* ลูกศร */}
@@ -164,10 +193,10 @@ export default function NavbarUser() {
         </div>
       </nav>
 
-      {/* SidebarUser */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        variant={variant}
       />
     </>
   );

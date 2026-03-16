@@ -6,159 +6,73 @@ import { useState, useEffect } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu,
-  User,
-  UserCircle2,
   X,
+  UserCircle2,
   Trophy,
   Clock,
   Users,
-  Settings,
-  LogOut,
   Swords,
   BookOpen,
   Medal,
+  LogOut,
 } from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+import { NavbarVariant } from "./Navbar";
 
-
-export default function Navbar() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
-  const { t, language, setLanguage } = useLanguage();
-
-  return (
-    <>
-      <nav className="fixed w-full top-0 left-0 z-50 backdrop-blur-md bg-gradient-to-r from-amber-200/80 via-pink-400/70 to-pink-600/80 shadow-lg border-b border-white/20">
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-white via-yellow-200 to-pink-200 opacity-60 animate-[gradient_4s_linear_infinite]" />
-
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
-          {/* โลโก้ */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <motion.div
-              whileHover={{ rotate: 360, scale: 1.1 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Image
-                src="/images/bad_logo.png"
-                alt="Badminton Logo"
-                width={120}
-                height={120}
-                className="rounded-full drop-shadow-lg"
-              />
-            </motion.div>
-          </Link>
-
-          {/* ชื่อผู้ใช้ Desktop */}
-          <div className="hidden md:flex items-center relative gap-3">
-            {/* ปุ่มเปลี่ยนภาษา (Toggle ธงชาติ) */}
-            <div 
-              onClick={() => setLanguage(language === "th" ? "en" : "th")}
-              className="flex items-center bg-black/10 p-1 rounded-full cursor-pointer border border-white/20 backdrop-blur-md shadow-inner transition-all hover:bg-black/20"
-            >
-              <div className={`flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-md text-pink-600" : "opacity-60 hover:opacity-100 text-white"}`}>
-                <span className="text-lg leading-none">🇹🇭</span>
-                <span className={`text-xs font-extrabold ${language === "th" ? "block" : "hidden"}`}>TH</span>
-              </div>
-              <div className={`flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-md text-pink-600" : "opacity-60 hover:opacity-100 text-white"}`}>
-                <span className="text-lg leading-none">🇬🇧</span>
-                <span className={`text-xs font-extrabold ${language === "en" ? "block" : "hidden"}`}>EN</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
-            >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="User Avatar" className="w-5 h-5 rounded-full object-cover border border-white shadow-sm" />
-              ) : (
-                <User size={18} className="text-white" />
-              )}
-              <span className="font-medium tracking-wide">
-                {user?.firstName && user?.lastName
-                  ? `${user.firstName} ${user.lastName}`
-                  : user?.firstName || user?.username || t('navbar.user')}
-              </span>
-              <svg
-                className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""
-                  }`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {/* Dropdown Desktop */}
-            {isDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 top-[110%] mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200"
-              >
-                <Link
-                  href="/manage/profile"
-                  className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <Settings size={16} />
-                  <span>{t('navbar.editProfile')}</span>
-                </Link>
-                <button
-                  onClick={async () => {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("userRole");
-                    await signOut();
-                    router.push("/");
-                  }}
-                  className="w-full text-left flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
-                >
-                  <LogOut size={16} />
-                  <span>{t('navbar.logout')}</span>
-                </button>
-              </motion.div>
-            )}
-          </div>
-
-          {/* ปุ่ม Hamburger Mobile */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsSidebarOpen(true)}
-            className="text-white md:hidden p-2 rounded-md hover:bg-white/20 transition"
-          >
-            <Menu size={24} />
-          </motion.button>
-        </div>
-      </nav>
-
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
-    </>
-  );
-}
-
-/* Sidebar Section */
 export type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
-  user?: any;
+  variant?: NavbarVariant; // Extends the variant from Navbar
+  user?: any; // keep for backwards compatibility if needed, though we fetch it here now
 };
 
-export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, variant = 'manage' }: SidebarProps) {
   const { id } = useParams();
-  const [tournamentName, setTournamentName] = useState<string>("");
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user: clerkUser } = useUser();
+  const { signOut } = useClerk();
   const { t } = useLanguage();
 
+  const [tournamentName, setTournamentName] = useState<string>("");
+  const [tournamentId, setTournamentId] = useState<string | null>(null);
+  const [localUser, setLocalUser] = useState<{ name: string; avatar?: string } | null>(null);
+
+  // Fallback for custom API user if Clerk is not used
   useEffect(() => {
-    if (id) {
+    // If we have a Clerk user, we don't need to fetch the local one
+    if (clerkUser) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    api
+      .get("/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setLocalUser({
+          name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
+          avatar: res.data.avatar || "",
+        });
+      })
+      .catch(() => {
+        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
+      });
+  }, [clerkUser]);
+
+  // Derived user info
+  const displayName = clerkUser?.firstName && clerkUser?.lastName
+    ? `${clerkUser.firstName} ${clerkUser.lastName}`
+    : clerkUser?.firstName || clerkUser?.username || localUser?.name || t('navbar.user');
+
+  const displayAvatar = clerkUser?.imageUrl || localUser?.avatar;
+
+  // Handle Tournament Names based on variant
+  useEffect(() => {
+    if (variant === 'manage-id' && id) {
       const fetchTournament = async () => {
         try {
           const token = localStorage.getItem("accessToken");
@@ -178,8 +92,69 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         }
       };
       fetchTournament();
+    } else if (variant === 'user') {
+      if (pathname === "/user/tournament") {
+        setTournamentName("");
+        setTournamentId(null);
+        localStorage.removeItem("selectedTournamentName");
+        localStorage.removeItem("selectedTournamentId");
+      } else {
+        const tName = localStorage.getItem("selectedTournamentName");
+        const tId = localStorage.getItem("selectedTournamentId");
+        if (tName) setTournamentName(tName);
+        if (tId) setTournamentId(tId);
+      }
+    } else {
+        // 'manage' standard
+        setTournamentName("");
+        setTournamentId(null);
     }
-  }, [id]);
+  }, [id, variant, pathname]);
+
+  const getUserLink = (path: string) => {
+    return tournamentId ? `${path}?id=${tournamentId}` : path;
+  };
+
+  // Determine which links to show based on standard logic from original files
+  const getLinks = () => {
+    if (variant === 'manage-id') {
+      return [
+        { href: "/manage", icon: <Trophy size={18} />, label: t('sidebar.tournaments') },
+        { href: `/manage/${id}/manage-rules`, icon: <BookOpen size={18} />, label: t('sidebar.rules') },
+        { href: `/manage/${id}/group`, icon: <Clock size={18} />, label: t('sidebar.manageGroups') },
+        { href: `/manage/${id}/bracket`, icon: <Swords size={18} />, label: t('sidebar.brackets') },
+        { href: `/manage/${id}/players-status`, icon: <Users size={18} />, label: t('sidebar.playerStatus') },
+        { href: `/manage/${id}/match-history`, icon: <Clock size={18} />, label: t('sidebar.courtRunning') },
+        { href: `/manage/${id}/results-competition`, icon: <Medal size={18} />, label: t('sidebar.results') },
+        { href: `/manage/profile`, icon: <UserCircle2 size={18} />, label: t('sidebar.profile') },
+      ];
+    } else if (variant === 'user') {
+      const allLinks = [
+        { href: "/user/tournament", icon: <Trophy size={18} />, label: t('sidebar.tournaments'), rawLabel: "รายการแข่งขัน" },
+        { href: getUserLink("/user/match-rules"), icon: <BookOpen size={18} />, label: t('sidebar.rules'), rawLabel: "กติกา" },
+        { href: getUserLink("/user/group"), icon: <Clock size={18} />, label: t('sidebar.manageGroups'), rawLabel: "จัดกลุ่มการแข่งขัน" },
+        { href: getUserLink("/user/bracket"), icon: <Swords size={18} />, label: t('sidebar.brackets'), rawLabel: "สายการแข่งขัน" },
+        { href: getUserLink("/user/status"), icon: <Users size={18} />, label: t('sidebar.playerStatus'), rawLabel: "สถานะผู้แข่ง" },
+        { href: getUserLink("/user/court-running"), icon: <Clock size={18} />, label: t('sidebar.courtRunning'), rawLabel: "Court Running" },
+        { href: getUserLink("/user/results"), icon: <Medal size={18} />, label: t('sidebar.results'), rawLabel: "ผลการแข่งขัน" },
+        { href: `/user/profile`, icon: <UserCircle2 size={18} />, label: t('sidebar.profile'), rawLabel: "ข้อมูลส่วนตัว" },
+      ];
+
+      return allLinks.filter(link => {
+        if (link.rawLabel === "รายการแข่งขัน" || link.rawLabel === "ข้อมูลส่วนตัว") return true;
+        return !!tournamentId;
+      });
+    } else {
+        // 'manage'
+        return [
+            { href: "/manage", icon: <Trophy size={18} />, label: t('sidebar.tournaments') },
+            { href: "/manage/profile", icon: <UserCircle2 size={18} />, label: t('sidebar.profile') }
+        ];
+    }
+  };
+
+  const displayedLinks = getLinks();
+
 
   return (
     <>
@@ -231,9 +206,9 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
 
         {/* User Info Mobile */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-white/30 backdrop-blur-sm shadow-sm cursor-pointer">
-          {user?.imageUrl ? (
+          {displayAvatar ? (
             <Image
-              src={user.imageUrl}
+              src={displayAvatar}
               alt="User"
               width={40}
               height={40}
@@ -244,11 +219,13 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           )}
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">
-              {user?.firstName && user?.lastName
-                ? `${user.firstName} ${user.lastName}`
-                : user?.firstName || user?.username || t('navbar.user')}
+              {displayName}
             </span>
-            <Link href="/manage/profile" className="text-sm text-pink-600 hover:underline" onClick={onClose}>
+            <Link 
+                href={variant === 'user' ? "/user/profile" : "/manage/profile"} 
+                className="text-sm text-pink-600 hover:underline" 
+                onClick={onClose}
+            >
               {t('sidebar.profile')}
             </Link>
           </div>
@@ -256,16 +233,35 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
 
         {/* Sidebar มือถือ */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label={t('sidebar.tournaments')} onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label={t('sidebar.rules')} onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label={t('sidebar.manageGroups')} onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label={t('sidebar.brackets')} onClick={onClose} />
-
-          <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label={t('sidebar.playerStatus')} onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label={t('sidebar.courtRunning')} onClick={onClose} />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label={t('sidebar.results')} onClick={onClose} />
-          <SidebarLink href={`/manage/profile`} icon={<UserCircle2 size={18} />} label={t('sidebar.profile')} onClick={onClose} />
+          {displayedLinks.map((link) => (
+             <SidebarMobileLink 
+                key={link.href} 
+                href={link.href} 
+                icon={link.icon as React.ReactNode} 
+                label={link.label} 
+                onClick={onClose} 
+             />
+          ))}
         </nav>
+
+        {/* Logout on Mobile for User Variant */}
+        {variant === 'user' && (
+             <button
+             onClick={async () => {
+               localStorage.removeItem("accessToken");
+               localStorage.removeItem("userRole");
+               localStorage.removeItem("role"); 
+               if(clerkUser) {
+                   await signOut();
+               }
+               router.push("/");
+             }}
+             className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
+           >
+             <LogOut size={18} />
+             <span>{t('sidebar.logout')}</span>
+           </button>
+        )}
       </motion.aside>
 
       {/* Sidebar Desktop */}
@@ -292,22 +288,21 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
         )}
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
-          <SidebarLink href="/manage" icon={<Trophy size={18} />} label={t('sidebar.tournaments')} />
-          <SidebarLink href={`/manage/${id}/manage-rules`} icon={<BookOpen size={18} />} label={t('sidebar.rules')} />
-          <SidebarLink href={`/manage/${id}/group`} icon={<Clock size={18} />} label={t('sidebar.manageGroups')} />
-          <SidebarLink href={`/manage/${id}/bracket`} icon={<Swords size={18} />} label={t('sidebar.brackets')} />
-
-          <SidebarLink href={`/manage/${id}/players-status`} icon={<Users size={18} />} label={t('sidebar.playerStatus')} />
-          <SidebarLink href={`/manage/${id}/match-history`} icon={<Clock size={18} />} label={t('sidebar.courtRunning')} />
-          <SidebarLink href={`/manage/${id}/results-competition`} icon={<Medal size={18} />} label={t('sidebar.results')} />
-          <SidebarLink href={`/manage/profile`} icon={<UserCircle2 size={18} />} label={t('sidebar.profile')} />
+            {displayedLinks.map((link) => (
+                <SidebarDesktopLink 
+                    key={link.href} 
+                    href={link.href} 
+                    icon={link.icon} 
+                    label={link.label} 
+                />
+            ))}
         </nav>
       </aside>
     </>
   );
 }
 
-function SidebarLink({
+function SidebarDesktopLink({
   href,
   icon,
   label,
@@ -319,7 +314,8 @@ function SidebarLink({
   onClick?: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  // Strip query params for active check
+  const isActive = pathname === href.split('?')[0];
 
   return (
     <motion.div whileHover={{ x: 6, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -343,4 +339,39 @@ function SidebarLink({
       </Link>
     </motion.div>
   );
+}
+
+function SidebarMobileLink({
+    href,
+    icon,
+    label,
+    onClick,
+  }: {
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+    onClick?: () => void;
+  }) {
+    const pathname = usePathname();
+    const isActive = pathname === href.split('?')[0];
+
+    return (
+        <motion.div
+            whileHover={{ x: 6 }}
+            transition={{ type: "spring", stiffness: 300 }}
+        >
+            <Link
+                href={href}
+                onClick={onClick}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+                ${isActive
+                    ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
+                    : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+                }`}
+            >
+                <span>{icon}</span>
+                <span>{label}</span>
+            </Link>
+        </motion.div>
+    )
 }

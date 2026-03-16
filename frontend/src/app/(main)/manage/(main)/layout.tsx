@@ -1,6 +1,6 @@
 // app/(your-layout)/layout.tsx
 import type { Metadata } from "next";
-import NavbarLay from "../../../../../components/layouts/Navbarlay";
+import Navbar from "../../../../../components/layouts/Navbar";
 import ProtectedRoute from "../../../../../components/auth/ProtectedRoute";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({
         {/* Sidebar แบบ fixed */}
 
         {/* Navbar fixed ด้านบน */}
-        <NavbarLay />
+        <Navbar variant="manage" />
 
         {/* เนื้อหา */}
         <main className="flex-1 ml-0 md:ml-64 pt-[69px] overflow-y-auto">
