@@ -11,7 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   // ตรวจสอบ role และ redirect อัตโนมัติ
   useEffect(() => {
@@ -71,6 +71,19 @@ export default function Home() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex gap-3 lg:gap-5 items-center">
+            {/* Language Toggle */}
+            <div
+              onClick={() => setLanguage(language === "th" ? "en" : "th")}
+              className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100 mr-2"
+            >
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                <span className="text-sm">TH</span>
+              </div>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                <span className="text-sm">EN</span>
+              </div>
+            </div>
+
             <a
               href="/sign-in"
               className="bg-white text-orange-600 border border-orange-200 px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base hover:bg-orange-50 hover:border-orange-300 hover:shadow-md transition-all duration-300 font-medium"
@@ -120,6 +133,19 @@ export default function Home() {
               </a>
             </div>
             <div className="flex flex-col items-center gap-3 w-full px-8">
+              {/* Language Toggle Mobile */}
+              <div
+                onClick={() => setLanguage(language === "th" ? "en" : "th")}
+                className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100 mb-2"
+              >
+                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                  <span className="text-sm">TH</span>
+                </div>
+                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                  <span className="text-sm">EN</span>
+                </div>
+              </div>
+
               <a
                 href="/sign-in"
                 className="bg-orange-50 text-orange-600 border border-orange-200 px-5 py-2 rounded-lg hover:bg-orange-100 transition w-full text-center"

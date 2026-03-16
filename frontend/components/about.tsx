@@ -2,17 +2,19 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { CheckCircle2, Target, Lightbulb, Calendar, TrendingUp, MonitorSmartphone } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function About() {
+  const { t } = useLanguage();
   const teamMembers = [
     {
-      name: "สุขหทัย พลยะเรศ",
+      name: t('about.team.cream'),
       role: "Frontend Developer",
       email: "sukhathai7331@gmail.com",
       img: "/images/cream.jpg",
     },
     {
-      name: "ปิยธิดา  อันชม",
+      name: t('about.team.faii'),
       role: "Backend Developer",
       email: "18987m210@gmail.com",
       img: "/images/faii.jpg",
@@ -20,9 +22,9 @@ export default function About() {
   ];
 
   const features = [
-    { title: "จัดการแข่งขันง่าย", desc: "สร้างแมตช์และจัดการวันเวลาได้ง่าย", icon: <Calendar className="w-8 h-8 text-orange-500" /> },
-    { title: "ติดตามผลเรียลไทม์", desc: "ดูคะแนนและอันดับแบบทันที", icon: <TrendingUp className="w-8 h-8 text-orange-500" /> },
-    { title: "รองรับทุกอุปกรณ์", desc: "ใช้งานได้ทั้งมือถือและเดสก์ท็อป", icon: <MonitorSmartphone className="w-8 h-8 text-orange-500" /> },
+    { title: t('about.features.easyManage'), desc: t('about.features.easyManageDesc'), icon: <Calendar className="w-8 h-8 text-orange-500" /> },
+    { title: t('about.features.realtime'), desc: t('about.features.realtimeDesc'), icon: <TrendingUp className="w-8 h-8 text-orange-500" /> },
+    { title: t('about.features.responsive'), desc: t('about.features.responsiveDesc'), icon: <MonitorSmartphone className="w-8 h-8 text-orange-500" /> },
   ];
 
   return (
@@ -39,14 +41,13 @@ export default function About() {
         className="text-center mb-16"
       >
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800">
-          เกี่ยวกับระบบ <br />
+          {t('about.title')} <br />
           <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
-            Badminton Competition
+            {t('about.systemName')}
           </span>
         </h1>
         <p className="text-gray-700 mt-4 text-base sm:text-lg md:text-xl">
-          ระบบช่วยจัดการการแข่งขันแบดมินตัน สมัครผู้เล่น
-          และติดตามผลการแข่งขันได้ง่ายๆ
+          {t('about.description')}
         </p>
       </motion.div>
 
@@ -64,24 +65,24 @@ export default function About() {
             <div className="p-3 bg-orange-100 rounded-2xl text-orange-600">
               <Target className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">วัตถุประสงค์</h2>
+            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">{t('about.objectivesTitle')}</h2>
           </div>
           <ul className="text-gray-600 space-y-4">
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-              <span>ทำเว็บไซต์เพื่อช่วยจัดการข้อมูลการแข่งลดปัญหางานเอกสารซ้ำซ้อนที่เคยใช้ Excel</span>
+              <span>{t('about.objective1')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-              <span>มีระบบจับคู่และจัดสายแข่งขันอัตโนมัติ ทั้งเดี่ยวและคู่ให้การแข่งขันมีมาตรฐาน</span>
+              <span>{t('about.objective2')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-              <span>เก็บประวัติผลการแข่งขันเอาไว้เพื่อนำมาใช้ในการจัดอันดับและช่วยตัดสินใจได้ง่ายขึ้น</span>
+              <span>{t('about.objective3')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-              <span>ผู้เล่นเห็นตารางและย้อมูลการแข่งขันออนไลน์ได้เลย สะดวก รวดเร็ว</span>
+              <span>{t('about.objective4')}</span>
             </li>
           </ul>
         </motion.div>
@@ -98,24 +99,24 @@ export default function About() {
             <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
               <Lightbulb className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">ประโยชน์</h2>
+            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">{t('about.benefitsTitle')}</h2>
           </div>
           <ul className="text-gray-600 space-y-4">
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>จัดการข้อมูลของผู้เข้าแข่งขันได้อย่างเป็นระบบ</span>
+              <span>{t('about.benefit1')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>ลดขั้นตอนการทำงานหรือเก็บข้อมูลที่ซับซ้อนในระบบ Excel</span>
+              <span>{t('about.benefit2')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>สามารถรู้ค่าใช้จ่ายด้วยระบบกำหนดราคาลูกแบดมินตัน</span>
+              <span>{t('about.benefit3')}</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>รายงานผลการแข่งขันที่เป็นระบบ เพิ่มความโปร่งใสและความน่าเชื่อถือ</span>
+              <span>{t('about.benefit4')}</span>
             </li>
           </ul>
         </motion.div>
@@ -173,7 +174,7 @@ export default function About() {
           transition={{ duration: 0.8 }}
           className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-10"
         >
-          ติดต่อผู้จัดทำ
+          {t('about.contactTitle')}
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 mb-24 max-w-4xl mx-auto">
@@ -216,7 +217,7 @@ export default function About() {
 
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-8 tracking-tight">
-            พร้อมเริ่มใช้งานแล้วหรือยัง?
+            {t('about.readyToUse')}
           </h2>
           <motion.a
             href="/register"
@@ -224,7 +225,7 @@ export default function About() {
             whileTap={{ scale: 0.98 }}
             className="group relative inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-10 py-4 rounded-full shadow-[0_10px_40px_-10px_rgba(249,115,22,0.5)] hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.8)] hover:-translate-y-1 transition-all duration-300 font-bold text-lg overflow-hidden"
           >
-            <span className="relative z-10">ลงทะเบียนตอนนี้</span>
+            <span className="relative z-10">{t('about.registerNow')}</span>
             <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </motion.a>
         </div>
