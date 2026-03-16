@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { CheckCircle2, Target, Lightbulb, Calendar, TrendingUp, MonitorSmartphone } from "lucide-react";
 
 export default function About() {
   const teamMembers = [
@@ -19,9 +20,9 @@ export default function About() {
   ];
 
   const features = [
-    { title: "จัดการแข่งขันง่าย", desc: "สร้างแมตช์และจัดการวันเวลาได้ง่าย" },
-    { title: "ติดตามผลเรียลไทม์", desc: "ดูคะแนนและอันดับแบบทันที" },
-    { title: "รองรับทุกอุปกรณ์", desc: "ใช้งานได้ทั้งมือถือและเดสก์ท็อป" },
+    { title: "จัดการแข่งขันง่าย", desc: "สร้างแมตช์และจัดการวันเวลาได้ง่าย", icon: <Calendar className="w-8 h-8 text-orange-500" /> },
+    { title: "ติดตามผลเรียลไทม์", desc: "ดูคะแนนและอันดับแบบทันที", icon: <TrendingUp className="w-8 h-8 text-orange-500" /> },
+    { title: "รองรับทุกอุปกรณ์", desc: "ใช้งานได้ทั้งมือถือและเดสก์ท็อป", icon: <MonitorSmartphone className="w-8 h-8 text-orange-500" /> },
   ];
 
   return (
@@ -50,30 +51,37 @@ export default function About() {
       </motion.div>
 
       {/* Mission & Vision */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-20 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-300"
+          className="flex flex-col gap-6 bg-white/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden"
         >
-          <h2 className="text-2xl font-bold text-gray-800">วัตถุประสงค์</h2>
-          <ul className="text-gray-700">
-            <li>
-              ทำเว็บไซต์เพื่อช่วยจัดการข้อมูลการแข่งลดปัญหางานเอกสารซ้ำซ้อนที่เคยใช้
-              Excel
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-orange-100 rounded-2xl text-orange-600">
+              <Target className="w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">วัตถุประสงค์</h2>
+          </div>
+          <ul className="text-gray-600 space-y-4">
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <span>ทำเว็บไซต์เพื่อช่วยจัดการข้อมูลการแข่งลดปัญหางานเอกสารซ้ำซ้อนที่เคยใช้ Excel</span>
             </li>
-            <li>
-              มีระบบจับคู่และจัดสายแข็งขันอัตโนมัติ
-              ทั้งเดี่ยวและคู่ให้การแข่งขันมีมาตรฐาน
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <span>มีระบบจับคู่และจัดสายแข่งขันอัตโนมัติ ทั้งเดี่ยวและคู่ให้การแข่งขันมีมาตรฐาน</span>
             </li>
-            <li>
-              เก็บประวัติผลการแข่งขันเอาไว้เพื่อนำมาใช้ในการจัดอันดับและช่วยตัดสินใจได้ง่ายขึ้น
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <span>เก็บประวัติผลการแข่งขันเอาไว้เพื่อนำมาใช้ในการจัดอันดับและช่วยตัดสินใจได้ง่ายขึ้น</span>
             </li>
-            <li>
-              ทำให้ผู้เล่นเห็นตารางและข้อมูลการแข่งขันออนไลน์ได้เลยไม่ต้องคอยถามพนักงาน
-              สะดวก รวดเร็วกว่าเดิม
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <span>ผู้เล่นเห็นตารางและย้อมูลการแข่งขันออนไลน์ได้เลย สะดวก รวดเร็ว</span>
             </li>
           </ul>
         </motion.div>
@@ -83,16 +91,31 @@ export default function About() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-300"
+          className="flex flex-col gap-6 bg-white/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden"
         >
-          <h2 className="text-2xl font-bold text-gray-800">ประโยชน์</h2>
-          <ul className="text-gray-700 list-disc list-inside space-y-2">
-            <li>จัดการข้อมูลของผู้เข้าแข่งขันได้อย่างเป็นระบบ</li>
-            <li>ลดขั้นตอนการทำงานหรือเก็บข้อมูลที่ซับซ้อนในระบบ Excel</li>
-            <li>สามารถรู้ค่าใช้จ่ายด้วยระบบกำหนดราคาลูกแบดมินตัน</li>
-            <li>
-              รายงานผลการแข่งขันที่เป็นระบบ
-              ทำให้เพิ่มความโปร่งใสและความน่าเชื่อถือของการแข่งขัน
+          <div className="absolute top-0 left-0 w-32 h-32 bg-amber-100/50 rounded-br-full -z-10 transition-transform group-hover:scale-110"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
+              <Lightbulb className="w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">ประโยชน์</h2>
+          </div>
+          <ul className="text-gray-600 space-y-4">
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <span>จัดการข้อมูลของผู้เข้าแข่งขันได้อย่างเป็นระบบ</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <span>ลดขั้นตอนการทำงานหรือเก็บข้อมูลที่ซับซ้อนในระบบ Excel</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <span>สามารถรู้ค่าใช้จ่ายด้วยระบบกำหนดราคาลูกแบดมินตัน</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <span>รายงานผลการแข่งขันที่เป็นระบบ เพิ่มความโปร่งใสและความน่าเชื่อถือ</span>
             </li>
           </ul>
         </motion.div>
@@ -122,7 +145,7 @@ export default function About() {
       </motion.div>
 
       {/* Features */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-32 max-w-7xl mx-auto">
         {features.map((feature, idx) => (
           <motion.div
             key={idx}
@@ -130,10 +153,13 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: idx * 0.2 }}
-            className="flex flex-col gap-4 bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-300 group"
+            className="flex flex-col items-center gap-4 bg-white backdrop-blur-xl border border-slate-100 rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] text-center hover:shadow-[0_20px_40px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-500 group"
           >
-            <h3 className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">{feature.title}</h3>
-            <p className="text-gray-700">{feature.desc}</p>
+            <div className="p-4 bg-orange-50 rounded-full group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-300">
+              {feature.icon}
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 tracking-tight mt-2">{feature.title}</h3>
+            <p className="text-slate-500 leading-relaxed">{feature.desc}</p>
           </motion.div>
         ))}
       </section>
@@ -150,28 +176,37 @@ export default function About() {
           ติดต่อผู้จัดทำ
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 mb-24 max-w-4xl mx-auto">
           {teamMembers.map((person, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: idx * 0.2 }}
-              className="flex flex-col items-center bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-300 group"
+              className="relative flex flex-col items-center bg-white border border-slate-100 rounded-[2rem] p-10 shadow-[0_4px_24px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-500 group overflow-hidden"
             >
-              <Image
-                src={person.img}
-                alt={person.name}
-                width={120}
-                height={120}
-                className="rounded-full mb-4 object-contain border-4 border-amber-400"
-              />
-              <h3 className="text-xl font-bold text-gray-800">{person.name}</h3>
-              <p className="text-gray-600">{person.role}</p>
+              {/* Decorative top background */}
+              <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-orange-100/80 to-amber-50/40 -z-10 group-hover:h-36 transition-all duration-500"></div>
+              
+              <div className="relative mb-6">
+                <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                <Image
+                  src={person.img}
+                  alt={person.name}
+                  width={140}
+                  height={140}
+                  className="relative rounded-full object-cover border-4 border-white shadow-lg z-10 w-[140px] h-[140px]"
+                />
+              </div>
+              
+              <h3 className="text-2xl font-extrabold text-gray-800 mb-2">{person.name}</h3>
+              <div className="px-4 py-1.5 bg-orange-50 text-orange-600 font-semibold text-sm rounded-full mb-4">
+                {person.role}
+              </div>
               <a
                 href={`mailto:${person.email}`}
-                className="text-amber-500 hover:underline mt-2"
+                className="text-slate-500 hover:text-orange-500 hover:underline transition-colors font-medium"
               >
                 {person.email}
               </a>

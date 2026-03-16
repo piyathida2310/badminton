@@ -23,7 +23,7 @@ export default function RootLayout({
         <Navbar variant="manage-id" />
 
         {/* เนื้อหา */}
-        <main className="flex-1 ml-0 md:ml-[240px] pt-[69px] overflow-y-auto">
+        <main className="flex-1 ml-0 md:ml-[250px] pt-[69px] overflow-y-auto">
           {children}
         </main>
       </div>

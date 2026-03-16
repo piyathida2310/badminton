@@ -15,12 +15,12 @@ export default function RootLayout({
   return (
     <ProtectedRoute>
       {/* ป้องกันหน้า user ทั้งหมดด้วยการตรวจ token */}
-      <div className="fmin-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
+      <div className="min-h-screen flex bg-gradient-to-b from-[#FFFDF8] to-[#FFF9FC] overflow-hidden">
         {/* NavbarUser มี SidebarUser อยู่ในตัวแล้ว */}
         <Navbar variant="user" />
 
         {/* พื้นที่เนื้อหาหลัก */}
-        <div className="flex-1 ml-0 md:ml-[240px] pt-[70px] overflow-y-auto">
+        <div className="flex-1 ml-0 md:ml-[250px] pt-[70px] overflow-y-auto">
           {children}
         </div>
       </div>
