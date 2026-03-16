@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import axios from "../../../../lib/api";
 import Photo from "../../../../../components/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tournament {
   id: number;
@@ -20,6 +21,7 @@ interface Tournament {
 
 export default function TournamentPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -71,32 +73,32 @@ export default function TournamentPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-center items-center mb-10 gap-4">
         <h1 className="text-3xl font-extrabold text-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-          รายการแข่งขัน
+          {t('tournament.pageTitle')}
         </h1>
       </div>
 
       {/* Tournament Cards */}
       {tournaments.length === 0 ? (
-        <p className="text-center text-gray-500 mt-20">ยังไม่มีข้อมูลการแข่งขัน</p>
+        <p className="text-center text-gray-500 mt-20">{t('tournament.noData')}</p>
       ) : (
         <>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {tournaments.map((t) => {
+            {tournaments.map((item) => {
               //  Calculate if All Ranks are Full
-              const ranks = t.rank && Array.isArray(t.rank) ? t.rank : [];
+              const ranks = item.rank && Array.isArray(item.rank) ? item.rank : [];
               const isAllFull = ranks.length > 0
-                ? ranks.every(r => (t.registrationStats?.[r] || 0) >= (t.maxPlayers || 0))
-                : (t.currentPlayers || 0) >= (t.maxPlayers || 0);
+                ? ranks.every(r => (item.registrationStats?.[r] || 0) >= (item.maxPlayers || 0))
+                : (item.currentPlayers || 0) >= (item.maxPlayers || 0);
 
               //  Check if registration is expired (Close at 00:00 of the tournament start day)
-              const tournamentDate = new Date(t.date);
+              const tournamentDate = new Date(item.date);
               tournamentDate.setHours(0, 0, 0, 0);
               const now = new Date();
               const isExpired = now >= tournamentDate;
 
               return (
                 <motion.div
-                  key={t.id}
+                  key={item.id}
                   whileHover={{ y: -5, scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 260, damping: 18 }}
                   className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
@@ -104,20 +106,20 @@ export default function TournamentPage() {
                   <div
                     className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
                     onClick={() => {
-                      localStorage.setItem("selectedTournamentName", t.title);
-                      localStorage.setItem("selectedTournamentId", t.id.toString());
-                      router.push(`/user/match-rules?id=${t.id}`);
+                      localStorage.setItem("selectedTournamentName", item.title);
+                      localStorage.setItem("selectedTournamentId", item.id.toString());
+                      router.push(`/user/match-rules?id=${item.id}`);
                     }}
                   >
                     <Photo
-                      src={t.image}
-                      alt={t.title}
+                      src={item.image}
+                      alt={item.title}
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
-                    {t.canceled && (
+                    {item.canceled && (
                       <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
-                        ยกเลิก
+                        {t('tournament.canceled')}
                       </div>
                     )}
                   </div>
@@ -125,29 +127,29 @@ export default function TournamentPage() {
                   <div className="p-4 text-center">
                     <h2
                       onClick={() => {
-                        localStorage.setItem("selectedTournamentName", t.title);
-                        localStorage.setItem("selectedTournamentId", t.id.toString());
-                        router.push(`/user/match-rules?id=${t.id}`);
+                        localStorage.setItem("selectedTournamentName", item.title);
+                        localStorage.setItem("selectedTournamentId", item.id.toString());
+                        router.push(`/user/match-rules?id=${item.id}`);
                       }}
                       className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
                     >
-                      {t.title}
+                      {item.title}
                     </h2>
 
                     <p className="text-gray-500 mb-3 text-sm">
-                      วันที่ {formatThaiDate(t.date)}
+                      {t('tournament.date')} {formatThaiDate(item.date)}
                     </p>
 
                     {(() => {
-                      const isDisabled = t.canceled || isAllFull || isExpired;
+                      const isDisabled = item.canceled || isAllFull || isExpired;
 
                       return (
                         <button
                           onClick={() => {
                             if (!isDisabled) {
-                              localStorage.setItem("selectedTournamentName", t.title);
-                              localStorage.setItem("selectedTournamentId", t.id.toString());
-                              router.push(`/user/tournament/${t.id}`);
+                              localStorage.setItem("selectedTournamentName", item.title);
+                              localStorage.setItem("selectedTournamentId", item.id.toString());
+                              router.push(`/user/tournament/${item.id}`);
                             }
                           }}
                           disabled={isDisabled}
@@ -156,13 +158,13 @@ export default function TournamentPage() {
                             : "bg-gradient-to-r from-green-500 to-emerald-500 hover:scale-105 hover:brightness-110 text-white"
                             }`}
                         >
-                          {t.canceled
-                            ? "ไม่สามารถเข้าร่วมได้"
+                          {item.canceled
+                            ? t('tournament.cannotJoin')
                             : isExpired
-                              ? "ปิดรับสมัคร"
+                              ? t('tournament.closed')
                               : isAllFull
-                                ? "เต็มจำนวนทุกรุ่น"
-                                : "เข้าร่วมการแข่งขัน"}
+                                ? t('tournament.full')
+                                : t('tournament.join')}
                         </button>
                       );
                     })()}
@@ -182,7 +184,7 @@ export default function TournamentPage() {
                 : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
-              ก่อนหน้า
+              {t('tournament.prev')}
             </button>
 
             {Array.from({ length: totalPages }, (_, i) => (
@@ -206,7 +208,7 @@ export default function TournamentPage() {
                 : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
                 }`}
             >
-              ถัดไป
+              {t('tournament.next')}
             </button>
           </div>
         </>

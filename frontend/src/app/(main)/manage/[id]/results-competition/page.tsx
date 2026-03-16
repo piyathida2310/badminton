@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../../../lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /* โครงสร้างข้อมูล */
 interface Match {
@@ -44,6 +45,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
   const [selectedRank, setSelectedRank] = useState("all");
   const [availableRanks, setAvailableRanks] = useState<string[]>([]);
+  const { t } = useLanguage();
 
   // 1. Fetch Tournament List
   useEffect(() => {
@@ -240,7 +242,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   if (loading && tournaments.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <p className="text-pink-500 font-bold animate-pulse text-xl">กำลังดึงข้อมูล...</p>
+        <p className="text-pink-500 font-bold animate-pulse text-xl">{t('results.loading')}</p>
       </div>
     );
   }
@@ -249,14 +251,14 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-extrabold text-pink-500 tracking-tight drop-shadow-md">
-          🏆 สรุปผลการแข่งขัน
+          🏆 {t('results.pageTitle')}
         </h1>
 
         <div className="mt-4 text-gray-700 leading-relaxed space-y-1">
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
-              <label htmlFor="competition-event" className="font-medium text-gray-800">รายการแข่งขัน:</label>
+              <label htmlFor="competition-event" className="font-medium text-gray-800">{t('manage.pageTitle')}:</label>
               <select
                 id="competition-event"
                 value={currentId}
@@ -270,28 +272,28 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="filter-type" className="font-medium text-gray-800">ประเภท:</label>
+              <label htmlFor="filter-type" className="font-medium text-gray-800">{t('results.type')}</label>
               <select
                 id="filter-type"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
-                <option value="all">ทั้งหมด</option>
-                <option value="double">คู่</option>
-                <option value="single">เดี่ยว</option>
+                <option value="all">{t('results.all')}</option>
+                <option value="double">{t('results.double')}</option>
+                <option value="single">{t('results.single')}</option>
               </select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="rank-filter" className="font-medium text-gray-800">ประเภทมือ:</label>
+              <label htmlFor="rank-filter" className="font-medium text-gray-800">{t('results.rankType')}</label>
               <select
                 id="rank-filter"
                 value={selectedRank}
                 onChange={(e) => setSelectedRank(e.target.value)}
                 className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
               >
-                <option value="all">ทั้งหมด</option>
+                <option value="all">{t('results.all')}</option>
                 {availableRanks.map(r => (
                   <option key={r} value={r}>{r}</option>
                 ))}
@@ -300,7 +302,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
           </div>
 
           <p className="text-pink-600 font-semibold mt-2">
-            สรุปลูกที่ใช้รวมทั้งหมด: {totalShuttles} ลูก
+            {t('results.totalShuttle')}: {totalShuttles} ลูก
           </p>
         </div>
       </div>
@@ -320,8 +322,8 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
         </div>
       ) : (
         <div className="text-center text-gray-600 mt-10 p-10 bg-white/50 rounded-2xl border border-dashed border-gray-300">
-          <p>📅 ยังไม่มีผลการแข่งขันที่สรุปได้ในขณะนี้</p>
-          <p className="text-sm mt-2">ต้องกรอกคะแนนในรอบรองชนะเลิศหรือรอบชิงชนะเลิศ เพื่อให้อันดับแสดงผลครับ</p>
+          <p>📅 {t('results.noResults')}</p>
+          <p className="text-sm mt-2">{t('results.noResultsDesc')}</p>
         </div>
       )}
     </main>
@@ -329,6 +331,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
 }
 
 function Section({ title, color, matches }: { title: string; color: string; matches: Match[] }) {
+  const { t } = useLanguage();
   const hasDouble = matches.some((m) => m.player2);
 
   const sortedMatches = [...matches].sort((a, b) => {
@@ -348,12 +351,12 @@ function Section({ title, color, matches }: { title: string; color: string; matc
         <table className="w-full border-collapse text-sm text-center">
           <thead className="bg-gradient-to-r from-pink-100 via-rose-50 to-purple-50">
             <tr className="border-b border-pink-200">
-              <th className="p-3 border-r border-pink-200">ตำแหน่ง</th>
-              <th className="p-3 border-r border-pink-200">ลำดับ</th>
-              <th className="p-3 border-r border-pink-200">ชื่อทีม</th>
-              <th className="p-3 border-r border-pink-200">ผู้เล่น 1</th>
-              {hasDouble && <th className="p-3 border-r border-pink-200">ผู้เล่น 2</th>}
-              <th className="p-3">ลูกใช้</th>
+              <th className="p-3 border-r border-pink-200">{t('results.position')}</th>
+              <th className="p-3 border-r border-pink-200">{t('results.order')}</th>
+              <th className="p-3 border-r border-pink-200">{t('results.teamName')}</th>
+              <th className="p-3 border-r border-pink-200">{t('results.player1')}</th>
+              {hasDouble && <th className="p-3 border-r border-pink-200">{t('results.player2')}</th>}
+              <th className="p-3">{t('results.shuttleUsed')}</th>
             </tr>
           </thead>
           <tbody>
@@ -377,3 +380,4 @@ function Section({ title, color, matches }: { title: string; color: string; matc
     </section>
   );
 }
+

@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "../../../../../lib/api";
 import Photo from "../../../../../../components/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tournament {
   id: number;
@@ -22,14 +23,15 @@ export default function TournamentDetailPage() {
   const { id } = useParams();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   //  Rules fixed as requested
   const fixedRules = [
-    "ผู้เข้าร่วมต้องสวมชุดกีฬาและรองเท้าที่เหมาะสม",
-    "ห้ามใช้อุปกรณ์ช่วยเล่นที่ผิดกติกา",
-    "แพ้คัดออกทันที (Knockout system)",
-    "การตัดสินของกรรมการถือเป็นที่สิ้นสุด",
-    "ผู้สมัครต้องมาถึงก่อนเวลาแข่งขันอย่างน้อย 30 นาที"
+    t('tournamentDetail.rule1') || "ผู้เข้าร่วมต้องสวมชุดกีฬาและรองเท้าที่เหมาะสม",
+    t('tournamentDetail.rule2') || "ห้ามใช้อุปกรณ์ช่วยเล่นที่ผิดกติกา",
+    t('tournamentDetail.rule3') || "แพ้คัดออกทันที (Knockout system)",
+    t('tournamentDetail.rule4') || "การตัดสินของกรรมการถือเป็นที่สิ้นสุด",
+    t('tournamentDetail.rule5') || "ผู้สมัครต้องมาถึงก่อนเวลาแข่งขันอย่างน้อย 30 นาที"
   ];
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function TournamentDetailPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
           <p className="text-gray-600">{formatThaiDate(tournament.date)}</p>
           <div className="text-sm text-gray-500 font-medium">
-            <span className="mr-2">ผู้สมัคร:</span>
+            <span className="mr-2">{t('manage.participants')}:</span>
             {ranks.length > 0 ? (
               ranks.map((r, i) => {
                 const count = tournament.registrationStats?.[r] || 0;
@@ -122,7 +124,7 @@ export default function TournamentDetailPage() {
 
         {/* ❌ ลบส่วน Card ตารางออก (ตามที่ขอให้เอาแบบบรรทัดเดียว) */}
 
-        <h2 className="text-lg font-semibold mb-3 text-pink-600">🏸 กติกาการแข่งขัน</h2>
+        <h2 className="text-lg font-semibold mb-3 text-pink-600">🏸 {t('tournamentDetail.rulesTitle')}</h2>
         <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
           {fixedRules.map((rule, index) => (
             <li key={index}>{rule}</li>
@@ -138,10 +140,10 @@ export default function TournamentDetailPage() {
             }`}
         >
           {tournament.canceled
-            ? "ยกเลิกการแข่งขัน"
+            ? t('tournament.canceled')
             : isAllFull
-              ? "เต็มจำนวนทุกรุ่น"
-              : "สมัครเข้าร่วมการแข่งขัน"}
+              ? t('tournament.full')
+              : t('tournament.join')}
         </button>
       </div>
     </main>

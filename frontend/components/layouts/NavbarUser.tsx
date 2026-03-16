@@ -8,6 +8,7 @@ import SidebarUser from "./SidebarUser";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NavbarUser() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function NavbarUser() {
   const { signOut } = useClerk();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
 
   //  ออกจากระบบด้วย Clerk
   const handleLogout = async () => {
@@ -64,7 +66,20 @@ const handleGoToProfile = () => {
           </Link>
 
           {/* ชื่อผู้ใช้ + avatar */}
-          <div className="relative hidden md:flex items-center text-white">
+          <div className="relative hidden md:flex items-center text-white gap-3">
+            {/* ปุ่มเปลี่ยนภาษา (Toggle Text) */}
+            <div
+              onClick={() => setLanguage(language === "th" ? "en" : "th")}
+              className="flex items-center bg-white/10 p-1.5 rounded-full cursor-pointer border border-white/20 backdrop-blur-md shadow-inner transition-all hover:bg-white/20"
+            >
+              <div className={`flex items-center justify-center px-3 py-1 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-md text-pink-600 font-bold" : "text-white opacity-70 hover:opacity-100 font-medium"}`}>
+                <span className="text-sm">TH</span>
+              </div>
+              <div className={`flex items-center justify-center px-3 py-1 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-md text-pink-600 font-bold" : "text-white opacity-70 hover:opacity-100 font-medium"}`}>
+                <span className="text-sm">EN</span>
+              </div>
+            </div>
+
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-3 px-5 py-2 rounded-full bg-white/25 hover:bg-white/35 transition-all cursor-pointer shadow-md"
@@ -86,7 +101,7 @@ const handleGoToProfile = () => {
               <span className="font-medium tracking-wide">
                 {user?.firstName && user?.lastName 
                   ? `${user.firstName} ${user.lastName}` 
-                  : user?.firstName || user?.username || "ผู้ใช้"}
+                  : user?.firstName || user?.username || t('navbar.user')}
               </span>
 
               {/* ลูกศร */}
@@ -111,14 +126,15 @@ const handleGoToProfile = () => {
                   className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition text-left"
                 >
                   <Settings size={16} />
-                  <span>แก้ไขโปรไฟล์</span>
+                  <span>{t('navbar.editProfile')}</span>
                 </button>
+                <div className="border-t border-gray-100 my-1"></div>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                  className="w-full text-left flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition"
                 >
                   <LogOut size={16} />
-                  <span>ออกจากระบบ</span>
+                  <span>{t('navbar.logout')}</span>
                 </button>
               </div>
             )}

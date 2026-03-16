@@ -5,11 +5,13 @@ import { Edit3, Upload, LogOut, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import api from "@/lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -168,7 +170,7 @@ export default function ProfilePage() {
         <div className="flex-1 p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              ข้อมูลส่วนตัว
+              {t('profile.title')}
               <Edit3
                 size={18}
                 className="text-pink-400 cursor-pointer hover:text-pink-500 transition"
@@ -178,7 +180,7 @@ export default function ProfilePage() {
           </div>
 
           <ProfileField
-            label="ชื่อ–นามสกุล"
+            label={t('profile.fullname')}
             value={profile.fullname}
             editable={isEditing}
             onChange={(v) => handleChange("fullname", v)}
@@ -195,7 +197,7 @@ export default function ProfilePage() {
                 hover:shadow-md transition"
               >
                 <Save size={18} />
-                อัปเดตข้อมูล
+                {t('profile.update')}
               </motion.button>
             )}
 
@@ -208,7 +210,7 @@ export default function ProfilePage() {
               hover:shadow-md transition"
             >
               <LogOut size={18} />
-              ออกจากระบบ
+              {t('profile.logout')}
             </motion.button>
           </div>
         </div>
