@@ -193,7 +193,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
             <div className="absolute inset-0 bg-orange-200 rounded-lg blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
             <div className="relative px-3 py-2 bg-white/80 backdrop-blur-md rounded-lg border border-orange-100 shadow-sm text-center">
               <div className="flex justify-center items-center mb-0.5">
-                <span className="text-orange-600 text-[9px] font-extrabold uppercase tracking-widest">
+                <span className="text-orange-600 text-[13px] font-extrabold uppercase tracking-widest">
                   {t('sidebar.currentTournament')}
                 </span>
               </div>
@@ -275,7 +275,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
             <div className="relative px-4 py-3 bg-white/90 backdrop-blur-xl rounded-xl border border-orange-100/50 shadow-[0_4px_12px_-2px_rgba(249,115,22,0.1)] text-center transform transition-all hover:-translate-y-0.5">
               <div className="flex justify-center items-center gap-2 mb-1 opacity-80">
                 <Trophy size={12} className="text-amber-500" />
-                <span className="text-[9px] font-extrabold text-orange-500 tracking-[0.2em] uppercase">
+                <span className="text-[13px] font-extrabold text-orange-500 tracking-[0.2em] uppercase">
                   {t('sidebar.currentTournament')}
                 </span>
                 <Trophy size={12} className="text-amber-500" />

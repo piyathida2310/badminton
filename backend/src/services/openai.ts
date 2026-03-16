@@ -131,6 +131,39 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number) => 
 };
 
 // ──────────────────────────────────────────────
+// แปลงและขัดเกลาคำสั่งผู้ใช้ (Prompt Translation Pre-processing)
+// ──────────────────────────────────────────────
+const refinePrompt = async (rawDetail: string, numGroups: number): Promise<string> => {
+  if (!rawDetail || rawDetail.trim() === "") return "";
+  
+  const systemMessage = `
+คุณคือนักเขียน Prompt และล่ามแปลภาษา หน้าที่ของคุณคือรับคำสั่งแบบสั้นๆ หรือแบบกำกวมจากผู้ใช้ (ไม่ว่าจะเป็นภาษาไทยหรืออังกฤษ)
+และแปลงให้เป็น "คำสั่งวิเคราะห์ภาษาไทยที่ชัดเจน เป็นขั้นเป็นตอน และเข้ากับกฎระบบจัดกลุ่มแบดมินตัน" เพื่อไปส่งต่อ โดยมีกฎดังนี้:
+1. ผู้ใช้ต้องการให้เรียงตามอะไร (เช่น คะแนน หรือ อายุ) ข้อมูลจะถูกแบ่งเป็น ${numGroups} กลุ่ม (A, B, C...)
+2. ห้ามคิดแทนผู้ใช้เด็ดขาด! ถ้าผู้ใช้สั่งแค่ "เรียงตามอายุ" หรือ "Sort by age" ให้แปลตรงตัวเป็น: "ให้เรียงลำดับข้อมูลตัวเลขทั้งหมดประเมินเป็นเส้นตรงเดียว แล้วทยอยหยิบคนที่หัวแถว 4 คนใส่กลุ่ม A, 4 คนถัดไปใส่กลุ่ม B (แบบเหมากลุ่ม)"
+3. **ห้ามกระจายคละ** ถ้าผู้ใช้ไม่ได้พิมพ์สั่งว่าให้กระจาย (mix evenly/distribute)
+4. แปลงคำสั่งที่เงื่อนไขแยกเพศ ให้เป็นข้อบังคับภาษาไทยที่อ่านแล้วเข้าใจง่ายแจ่มแจ้ง ไม่หักกับกฎอื่นๆ
+5. ห้ามพิมพ์คำตอบรับ ให้ตอบกลับเฉพาะ "คำสั่งที่ถูกแปลงแล้ว" เท่านั้น
+`.trim();
+
+  try {
+    const res = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: `คำสั่งผู้ใช้/User prompt: "${rawDetail}"` },
+      ],
+      temperature: 0.1,
+    });
+    
+    return res.choices[0]?.message?.content?.trim() || rawDetail;
+  } catch (error) {
+    console.error("[refinePrompt error]:", error);
+    return rawDetail; // Fallback กลับไปใช้คำสั่งผู้ใช้
+  }
+};
+
+// ──────────────────────────────────────────────
 // Main: groupPlayers ด้วย OpenAI Tools
 // ──────────────────────────────────────────────
 export const groupPlayers = async (
@@ -140,6 +173,11 @@ export const groupPlayers = async (
 ): Promise<number[][]> => {
   const numGroups = fixedNumGroups ?? getNumGroups(players.length);
   const groupKeys = Array.from({ length: numGroups }, (_, i) => letters[i]).join(", ");
+
+  // ★ นำคำสั่งจากหน้าเว็บเข้าสู่กระบวนการ Pre-processing ★
+  const processedDetail = await refinePrompt(detail, numGroups);
+  console.log(`[groupPlayers] Original Prompt: "${detail}"`);
+  console.log(`[groupPlayers] Refined  Prompt: "${processedDetail}"`);
 
   const teamList = players
     .map(
@@ -153,6 +191,20 @@ export const groupPlayers = async (
     .sort((a, b) => b.score - a.score)
     .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score} Age:${p.age}`)
     .join("\n");
+
+  // Helper ฟังก์ชันสำหรับรวมตัวเลขอายุ กรณีเป็น "40/42"
+  const getAgeSum = (ageVal: string | number): number => {
+    if (typeof ageVal === "number") return ageVal;
+    if (!ageVal) return 0;
+    return String(ageVal).split("/").reduce((sum, v) => sum + (parseFloat(v.trim()) || 0), 0);
+  };
+
+  // โพย: รายชื่อลูกค้าเรียงลำดับตามอายุ จาก มากไปน้อย (Oldest to Youngest)
+  const rankedByAgeDescList = [...players]
+    .sort((a, b) => getAgeSum(b.age) - getAgeSum(a.age))
+    .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score} Age:${p.age} (ผลรวมอายุ:${getAgeSum(p.age)})`)
+    .join("\n");
+
 
   const tool = buildTool(numGroups, groupKeys, players.length);
 
@@ -230,13 +282,16 @@ STEP 4 — ตรวจสอบขั้นสุดท้ายก่อนส
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const userPrompt = `
-detail: "${detail}"
+detail (คำสั่งที่ถูกขัดเกลาแล้ว): "${processedDetail}"
 
 ทีมทั้งหมด:
 ${teamList}
 
-Ranked list (เรียงคะแนนมากไปน้อยแล้ว):
+Ranked list (แนบโพยเรียงคะแนนมากไปน้อยแล้ว):
 ${rankedList}
+
+Ranked list (แนบโพยเรียงอายุมากไปน้อย Oldest to Youngest ให้แล้ว):
+${rankedByAgeDescList}
 
 ${lastError ? ` สัญญาณเตือนจากระบบ (สำคัญมาก ห้ามทำผิดซ้ำ):
 ${lastError}

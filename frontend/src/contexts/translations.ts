@@ -17,7 +17,7 @@ export const translations = {
       results: "ผลการแข่งขัน",
       profile: "ข้อมูลส่วนตัว",
       logout: "ออกจากระบบ",
-      currentTournament: "TOURNAMENT",
+      currentTournament: "ทัวนาเมนต์",
       menu: "เมนู",
     },
     home: {
