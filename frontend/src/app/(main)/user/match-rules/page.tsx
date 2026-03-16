@@ -1,6 +1,7 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import RulesTablesPage from "../../../../../components/rulesTables";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -18,38 +19,28 @@ export default function Page() {
 }
 
 function EmptyRulesView() {
+  const { t } = useLanguage();
+
   const competitionTypeData = [
     {
       color: "bg-[#b3e5fc]",
-      count: "16 คู่",
+      count: t("matchRules.pairs16"),
       desc: (
         <>
-          <p>แบ่งกลุ่มละ 4 ทีม จำนวน 4 กลุ่ม</p>
-          <p>
-            - สายบน: ทีมอันดับที่ 1-2 ของกลุ่ม จำนวน 8 ทีม เข้ารอบก่อนรองชนะเลิศ
-            สายบน (Quarter Finals)
-          </p>
-          <p>
-            - สายล่าง: ทีมอันดับที่ 3-4 ของกลุ่ม จำนวน 8 ทีม
-            เข้ารอบก่อนรองชนะเลิศ สายล่าง (Quarter Finals) (ถ้ามี)
-          </p>
+          <p>{t("matchRules.compTypeDesc1")}</p>
+          <p>{t("matchRules.compTypeDesc2")}</p>
+          <p>{t("matchRules.compTypeDesc3")}</p>
         </>
       ),
     },
     {
       color: "bg-[#ffe1df]",
-      count: "32 คู่",
+      count: t("matchRules.pairs32"),
       desc: (
         <>
-          <p>แบ่งกลุ่มละ 4 ทีม จำนวน 8 กลุ่ม</p>
-          <p>
-            - สายบน: ทีมอันดับที่ 1-2 ของกลุ่ม จำนวน 16 ทีม เข้ารอบ Knock Out 16
-            ทีม
-          </p>
-          <p>
-            - สายล่าง: ทีมอันดับที่ 3-4 ของกลุ่ม จำนวน 16 ทีม เข้ารอบ Knock Out
-            16 ทีม สายล่าง (ถ้ามี)
-          </p>
+          <p>{t("matchRules.compTypeDesc4")}</p>
+          <p>{t("matchRules.compTypeDesc5")}</p>
+          <p>{t("matchRules.compTypeDesc6")}</p>
         </>
       ),
     },
@@ -61,7 +52,7 @@ function EmptyRulesView() {
         {/* ---------------------- ประเภทการแข่งขัน ---------------------- */}
         <div>
           <h2 className="text-[35px] font-bold mb-4 text-[#e07a5f] text-center">
-            ประเภทการแข่งขัน
+            {t("matchRules.pageTitle")}
           </h2>
 
           <div className="overflow-x-auto rounded-2xl shadow-lg border border-[#ffd4c4] bg-white">
@@ -69,10 +60,10 @@ function EmptyRulesView() {
               <thead>
                 <tr className="bg-gradient-to-r from-[#ffe8b0] to-[#ffe07a] text-gray-900 text-center font-semibold">
                   <th className="border border-[#ffd4c4]/70 p-3 w-32 rounded-tl-2xl">
-                    จำนวน
+                    {t("matchRules.count")}
                   </th>
                   <th className="border border-[#ffd4c4]/70 p-3 rounded-tr-2xl">
-                    รูปแบบ
+                    {t("matchRules.format")}
                   </th>
                 </tr>
               </thead>
@@ -98,7 +89,7 @@ function EmptyRulesView() {
         {/* ---------------------- กติกา ---------------------- */}
         <div>
           <h2 className="text-[35px] font-bold mb-4 text-[#e07a5f] text-center">
-            กติกา
+            {t("matchRules.rulesTitle")}
           </h2>
 
           <div className="overflow-x-auto rounded-2xl shadow-lg border border-[#ffd4c4] bg-white">
@@ -106,84 +97,70 @@ function EmptyRulesView() {
               <tbody>
                 <tr className="bg-gradient-to-r from-[#ffe8b0] to-[#ffe07a] font-semibold text-center text-gray-900">
                   <td className="p-3 rounded-tl-2xl border border-[#ffd8c0] w-48">
-                    หมวด
+                    {t("matchRules.category")}
                   </td>
                   <td className="p-3 rounded-tr-2xl border border-[#ffd8c0]">
-                    รายละเอียด
+                    {t("matchRules.detail")}
                   </td>
                 </tr>
 
                 <tr className="border border-[#ffd8c0]">
                   <td className="bg-[#fff6d6] font-semibold text-center align-top border-r border-[#ffd8c0]">
-                    รอบแบ่งกลุ่ม
+                    {t("matchRules.groupStage")}
                   </td>
                   <td className="p-3 bg-[#fffaf7] space-y-1">
-                    <p className="text-red-600 font-semibold">
-                      - แข่งขันแบบ 21 แต้ม 2 เซ็ต ไม่มีดิวส์ ทีมที่ได้แต้มที่ 21
-                      ก่อนเป็นฝ่ายชนะ
-                    </p>
-                    <p>- ทีมชนะ ได้ 2 คะแนน เสมอได้ 1 คะแนน แพ้ได้ 0 คะแนน</p>
-                    <p>- เกณฑ์คะแนน:</p>
+                    <p className="text-red-600 font-semibold">{t("matchRules.ruleGroupDesc1")}</p>
+                    <p>{t("matchRules.ruleGroupDesc2")}</p>
+                    <p>{t("matchRules.ruleGroupDesc3")}</p>
                     <ul className="ml-5 list-disc">
-                      <li>ชนะ 2-0 เซ็ท ได้ 3 คะแนน</li>
-                      <li>ชนะ 2-1 เซ็ท ได้ 2 คะแนน</li>
-                      <li>แพ้ 1-2 เซ็ท ได้ 1 คะแนน</li>
-                      <li>แพ้ 0-2 เซ็ท ได้ 0 คะแนน</li>
+                      <li>{t("matchRules.ruleGroupDesc4")}</li>
+                      <li>{t("matchRules.ruleGroupDesc5")}</li>
+                      <li>{t("matchRules.ruleGroupDesc6")}</li>
+                      <li>{t("matchRules.ruleGroupDesc7")}</li>
                     </ul>
                   </td>
                 </tr>
 
                 <tr className="border border-[#ffd8c0]">
                   <td className="bg-[#fff6d6] font-semibold text-center align-top border-r border-[#ffd8c0]">
-                    รอบ Knock Out
+                    {t("matchRules.knockOut")}
                   </td>
                   <td className="p-3 bg-[#fffaf7]">
-                    แข่งขันแบบ 21 แต้ม 2 ใน 3 เซ็ท มีดิวส์ (สูงสุด 30 แต้ม)
+                    {t("matchRules.ruleKnockOutDesc")}
                   </td>
                 </tr>
 
                 <tr className="border border-[#ffd8c0]">
                   <td className="bg-[#fff6d6] font-semibold text-center align-top border-r border-[#ffd8c0]">
-                    การให้คะแนน BYE
+                    {t("matchRules.byeScore")}
                   </td>
                   <td className="p-3 bg-[#fffaf7] space-y-1">
-                    <p>
-                      - มาไม่ทันแข่งแต่ยังแข่งต่อได้: ทีมชนะได้ 21-11 / 15-7
-                    </p>
-                    <p>
-                      - ไม่มาแข่งทั้งกลุ่ม: ทีมชนะได้ 2-0 / 15-0,
-                      ทีมแพ้หมดสิทธิ์เข้ารอบสายล่าง
-                    </p>
-                    <p>- บาดเจ็บเล่นต่อไม่ได้: ทีมชนะได้ 21-(คะแนนจริง)</p>
-                    <p>- ทุจริต: ทีมอื่นได้ 21-0, ทีมนี้หมดสิทธิ์เข้าสายล่าง</p>
+                    <p>{t("matchRules.ruleByeDesc1")}</p>
+                    <p>{t("matchRules.ruleByeDesc2")}</p>
+                    <p>{t("matchRules.ruleByeDesc3")}</p>
+                    <p>{t("matchRules.ruleByeDesc4")}</p>
                   </td>
                 </tr>
 
                 <tr className="border border-[#ffd8c0]">
                   <td className="bg-[#fff6d6] font-semibold text-center align-top border-r border-[#ffd8c0]">
-                    การเสิร์ฟ
+                    {t("matchRules.serving")}
                   </td>
                   <td className="p-3 bg-[#fffaf7]">
-                    <p>
-                      - เสิร์ฟด้านหน้า: Forehand หรือ Backhand ได้
-                      แต่ห้ามพุ่งใส่ตัว
-                    </p>
-                    <p>
-                      - เสิร์ฟด้านหลัง: ได้เฉพาะ Forehand
-                      ต้องเป็นวิถีโค้งขึ้นสูง
-                    </p>
+                    <p>{t("matchRules.ruleServeDesc1")}</p>
+                    <p>{t("matchRules.ruleServeDesc2")}</p>
                   </td>
                 </tr>
 
                 <tr className="border border-[#ffd8c0]">
                   <td className="bg-[#ffe66f] font-semibold text-center align-top text-[#d6336c] border-r border-[#ffd8c0]">
-                    !!! สำคัญ !!!
+                    {t("matchRules.important")}
                   </td>
                   <td className="p-3 bg-[#fff4f4] font-semibold text-[#d6336c]">
-                    - หลังจบแมตช์ทุกครั้ง ต้องลงคะแนนและเซ็นชื่อในใบคะแนน <br />
-                    - ทีมชนะนำใบคะแนนส่งที่โต๊ะดำเนินการ <br />
-                    - แจ้งแก้คะแนนได้เฉพาะก่อนออกสาย Knock Out เท่านั้น <br />-
-                    หากตรวจสอบพบว่ามีการแก้ไข → ถือว่าทุจริต → ปรับแพ้ 21-0
+                    <p>{t("matchRules.ruleImportDesc1")}</p>
+                    <p>{t("matchRules.ruleImportDesc2")}</p>
+                    <p>{t("matchRules.ruleImportDesc3")}</p>
+                    <p>{t("matchRules.ruleImportDesc4")}</p>
                   </td>
                 </tr>
               </tbody>
@@ -194,14 +171,14 @@ function EmptyRulesView() {
         {/* ---------------------- กติกาแข่งขัน (ว่าง) ---------------------- */}
         <div>
           <h2 className="text-[35px] font-bold mb-4 text-[#e07a5f] text-center">
-            กติกาแข่งขัน
+            {t("matchRules.matchRulesTitle")}
           </h2>
 
           <div className="overflow-x-auto rounded-2xl shadow-lg border bg-white">
             <table className="w-full text-sm leading-relaxed">
               <tbody>
                 <tr className="bg-gradient-to-r from-[#ffe8b0] to-[#ffe07a] font-semibold text-center text-gray-900">
-                  <td className="p-3 border">รายละเอียด</td>
+                  <td className="p-3 border">{t("matchRules.detail")}</td>
                 </tr>
 
                 <tr>
@@ -217,23 +194,23 @@ function EmptyRulesView() {
         {/* ---------------------- เวลารอบการแข่งขัน (ว่าง) ---------------------- */}
         <div>
           <h2 className="text-[35px] font-bold mb-4 text-[#e07a5f] text-center">
-            เวลารอบการแข่งขัน
+            {t("matchRules.scheduleTitle")}
           </h2>
 
           <div className="overflow-x-auto rounded-2xl shadow-lg border bg-white">
             <table className="w-full text-sm border">
               <thead>
                 <tr className="bg-gradient-to-r from-[#ffe8b0] to-[#ffe07a] font-semibold text-center">
-                  <th className="p-3 border">เวลา</th>
-                  <th className="p-3 border">ระดับฝีมือ</th>
-                  <th className="p-3 border">รายละเอียด</th>
+                  <th className="p-3 border">{t("matchRules.time")}</th>
+                  <th className="p-3 border">{t("matchRules.skill")}</th>
+                  <th className="p-3 border">{t("matchRules.detail")}</th>
                 </tr>
               </thead>
 
               <tbody>
                 <tr>
                   <td colSpan={3} className="p-3 text-gray-500 text-center">
-                    ยังไม่มีข้อมูลเวลาการแข่งขัน
+                    {t("matchRules.noSchedule")}
                   </td>
                 </tr>
               </tbody>

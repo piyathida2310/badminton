@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import axios from "../src/lib/api";
 interface tournament {
   name: string;
@@ -28,6 +29,8 @@ export default function Guideline({
   tournament: tournament;
   setTournamentID: any;
 }) {
+  const { t } = useLanguage();
+
   const handelSummit = async () => {
     setPage("schedule");
 
@@ -76,7 +79,7 @@ export default function Guideline({
                p-6 text-slate-700 py-8 mt-12 mb-16"
     >
       <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-slate-800 drop-shadow-sm">
-        กติกาและข้อควรระวัง
+        {t('manageMatch.rulesTitle')}
       </h1>
 
       <div
@@ -92,7 +95,7 @@ export default function Guideline({
                      px-3 py-2 text-slate-700 placeholder:text-slate-400 
                      focus:outline-none focus:ring-2 focus:ring-sky-200 
                      text-sm leading-relaxed shadow-inner"
-          placeholder="พิมพ์กติกาและข้อควรระวังที่นี่"
+          placeholder={t('manageMatch.rulesPlaceholder')}
         />
       </div>
 
@@ -105,7 +108,7 @@ export default function Guideline({
                    bg-gray-200 hover:bg-gray-300
                    shadow-md transition-all duration-300"
         >
-          ย้อนกลับ
+          {t('manageMatch.back')}
         </motion.button>
 
         <motion.button
@@ -113,7 +116,7 @@ export default function Guideline({
           onClick={() => handelSummit()}
           className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#b3e5fc] hover:bg-[#7ccff5]"
         >
-          ถัดไป
+          {t('manageMatch.next')}
         </motion.button>
       </div>
     </motion.div>

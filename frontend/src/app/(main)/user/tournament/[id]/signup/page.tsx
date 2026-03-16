@@ -6,6 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "../../../../../../lib/api";
 import Swal from "sweetalert2";
 import { useLanguage } from "@/contexts/LanguageContext";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { th, enUS } from "date-fns/locale";
+
+registerLocale("th", th);
+registerLocale("en", enUS);
 
 interface Tournament {
   id: number;
@@ -20,7 +26,7 @@ interface Tournament {
 export default function RegisterPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [mode, setMode] = useState<"single" | "double">("single");
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
@@ -336,7 +342,7 @@ export default function RegisterPage() {
                 name="teamName"
                 value={formData.teamName}
                 onChange={handleInputChange}
-                placeholder="เช่น Smash Queen"
+                placeholder={language === "en" ? "e.g. Smash Queen" : "เช่น Smash Queen"}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
                 required
               />
@@ -348,7 +354,7 @@ export default function RegisterPage() {
                 name="managerName"
                 value={formData.managerName}
                 onChange={handleInputChange}
-                placeholder="ชื่อจริง–นามสกุล"
+                placeholder={language === "en" ? "First Name - Last Name" : "ชื่อจริง–นามสกุล"}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
                 required
               />
@@ -367,19 +373,19 @@ export default function RegisterPage() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
               <div>
-                <label className="block mb-1 font-medium">ชื่อ–นามสกุล</label>
+                <label className="block mb-1 font-medium">{t('signup.fullname')}</label>
                 <input
                   type="text"
                   name="player1Name"
                   value={formData.player1Name}
                   onChange={handleInputChange}
-                  placeholder="ชื่อผู้เล่น"
+                  placeholder={language === "en" ? "Player Name" : "ชื่อผู้เล่น"}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">เบอร์โทรศัพท์</label>
+                <label className="block mb-1 font-medium">{t('signup.phone')}</label>
                 <input
                   type="text"
                   name="player1Phone"
@@ -394,40 +400,93 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">อายุ</label>
-                {formData.player1Birthday ? (
-                  <button
-                    type="button"
-                    onClick={() => player1BirthdayRef.current?.showPicker()}
-                    className="w-full border border-pink-300 rounded-xl px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 font-semibold text-left hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                  >
-                    {calculateAge(formData.player1Birthday)} ปี
-                    <span className="text-xs text-pink-400 ml-2">(กดเพื่อเปลี่ยน)</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => player1BirthdayRef.current?.showPicker()}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 text-gray-400 text-left hover:border-pink-300 transition-all cursor-pointer"
-                  >
-                    เลือกวันเกิด
-                  </button>
-                )}
-                <input
-                  ref={player1BirthdayRef}
-                  type="date"
-                  name="player1Birthday"
-                  value={formData.player1Birthday}
-                  onChange={handleInputChange}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="sr-only"
-                  required
-                  tabIndex={-1}
+                <label className="block mb-1 font-medium">{t('signup.age')}</label>
+                {/* DatePicker แทน input type="date" เดิม */}
+                <DatePicker
+                  selected={formData.player1Birthday ? new Date(formData.player1Birthday + "T00:00:00") : null}
+                  onChange={(date: Date | null) => {
+                    if (date) {
+                      const offset = date.getTimezoneOffset() * 60000;
+                      const d = new Date(date.getTime() - offset).toISOString().split("T")[0];
+                      setFormData({ ...formData, player1Birthday: d });
+                    } else {
+                      setFormData({ ...formData, player1Birthday: "" });
+                    }
+                  }}
+                  locale={language === "en" ? "en" : "th"}
+                  maxDate={new Date()}
+                  dateFormat="dd/MM/yyyy"
+                  shouldCloseOnSelect={true}
+                  placeholderText={language === "en" ? "Select Birthday Date" : "เลือกวันเกิด"}
+                  renderCustomHeader={({
+                    date,
+                    changeYear,
+                    changeMonth,
+                    decreaseMonth,
+                    increaseMonth,
+                    prevMonthButtonDisabled,
+                    nextMonthButtonDisabled,
+                  }) => {
+                    const months = language === "en" ? [
+                      "January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December"
+                    ] : [
+                      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+                      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+                    ];
+                    // สร้างรายชื่อปีเกิดย้อนหลังไป 100 ปี เรียงจากปัจจุบันไปอดีต
+                    const currentYear = new Date().getFullYear();
+                    const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+                    return (
+                      <div className="flex justify-between items-center px-4 py-1 bg-white">
+                        <button
+                          onClick={(e) => { e.preventDefault(); decreaseMonth(); }}
+                          disabled={prevMonthButtonDisabled}
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={months[date.getMonth()]}
+                            onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
+                            className="font-semibold text-slate-700 bg-transparent rounded-md px-1 py-1 text-[15px] outline-none cursor-pointer hover:bg-slate-50 transition-all border-none"
+                          >
+                            {months.map((option) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={date.getFullYear()}
+                            onChange={({ target: { value } }) => changeYear(Number(value))}
+                            className="font-semibold text-slate-700 bg-transparent rounded-md px-1 py-1 text-[15px] outline-none cursor-pointer hover:bg-slate-50 transition-all border-none"
+                          >
+                            {years.map((option) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          onClick={(e) => { e.preventDefault(); increaseMonth(); }}
+                          disabled={nextMonthButtonDisabled}
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                      </div>
+                    );
+                  }}
+                  className="w-full border border-pink-300 rounded-xl px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 font-semibold focus:outline-none focus:ring-2 focus:ring-pink-400 hover:shadow-md cursor-pointer"
                 />
+                {formData.player1Birthday && (
+                  <p className="text-xs text-pink-600 mt-1">
+                    {t('signup.age')}: {calculateAge(formData.player1Birthday)} {language === "en" ? "Years old" : "ปี"}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block mb-1 font-medium">เพศ</label>
+                <label className="block mb-1 font-medium">{t('signup.gender')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -437,7 +496,7 @@ export default function RegisterPage() {
                       : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
                       }`}
                   >
-                    ชาย
+                    {t('signup.male')}
                   </button>
                   <button
                     type="button"
@@ -447,7 +506,7 @@ export default function RegisterPage() {
                       : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
                       }`}
                   >
-                    หญิง
+                    {t('signup.female')}
                   </button>
                 </div>
               </div>
@@ -467,19 +526,19 @@ export default function RegisterPage() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
                 <div>
-                  <label className="block mb-1 font-medium">ชื่อ–นามสกุล</label>
+                  <label className="block mb-1 font-medium">{t('signup.fullname')}</label>
                   <input
                     type="text"
                     name="player2Name"
                     value={formData.player2Name}
                     onChange={handleInputChange}
-                    placeholder="ชื่อผู้เล่นอีกคน"
+                    placeholder={language === "en" ? "Player Name" : "ชื่อผู้เล่นอีกคน"}
                     className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">เบอร์โทรศัพท์</label>
+                  <label className="block mb-1 font-medium">{t('signup.phone')}</label>
                   <input
                     type="text"
                     name="player2Phone"
@@ -494,40 +553,92 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">อายุ</label>
-                  {formData.player2Birthday ? (
-                    <button
-                      type="button"
-                      onClick={() => player2BirthdayRef.current?.showPicker()}
-                      className="w-full border border-sky-300 rounded-xl px-4 py-2 bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 font-semibold text-left hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                    >
-                      {calculateAge(formData.player2Birthday)} ปี
-                      <span className="text-xs text-sky-400 ml-2">(กดเพื่อเปลี่ยน)</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => player2BirthdayRef.current?.showPicker()}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 text-gray-400 text-left hover:border-sky-300 transition-all cursor-pointer"
-                    >
-                      เลือกวันเกิด
-                    </button>
-                  )}
-                  <input
-                    ref={player2BirthdayRef}
-                    type="date"
-                    name="player2Birthday"
-                    value={formData.player2Birthday}
-                    onChange={handleInputChange}
-                    max={new Date().toISOString().split("T")[0]}
-                    className="sr-only"
-                    required
-                    tabIndex={-1}
+                  <label className="block mb-1 font-medium">{t('signup.age')}</label>
+                  <DatePicker
+                    selected={formData.player2Birthday ? new Date(formData.player2Birthday + "T00:00:00") : null}
+                    onChange={(date: Date | null) => {
+                      if (date) {
+                        const offset = date.getTimezoneOffset() * 60000;
+                        const d = new Date(date.getTime() - offset).toISOString().split("T")[0];
+                        setFormData({ ...formData, player2Birthday: d });
+                      } else {
+                        setFormData({ ...formData, player2Birthday: "" });
+                      }
+                    }}
+                    locale={language === "en" ? "en" : "th"}
+                    maxDate={new Date()}
+                    dateFormat="dd/MM/yyyy"
+                    shouldCloseOnSelect={true}
+                    placeholderText={language === "en" ? "Select Birthday Date" : "เลือกวันเกิด"}
+                    renderCustomHeader={({
+                      date,
+                      changeYear,
+                      changeMonth,
+                      decreaseMonth,
+                      increaseMonth,
+                      prevMonthButtonDisabled,
+                      nextMonthButtonDisabled,
+                    }) => {
+                      const months = language === "en" ? [
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                      ] : [
+                        "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+                        "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+                      ];
+                      // สร้างรายชื่อปีเกิดย้อนหลังไป 100 ปี เรียงจากปัจจุบันไปอดีต
+                      const currentYear = new Date().getFullYear();
+                      const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+                      return (
+                        <div className="flex justify-between items-center px-4 py-1 bg-white">
+                          <button
+                            onClick={(e) => { e.preventDefault(); decreaseMonth(); }}
+                            disabled={prevMonthButtonDisabled}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <select
+                              value={months[date.getMonth()]}
+                              onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
+                              className="font-semibold text-slate-700 bg-transparent rounded-md px-1 py-1 text-[15px] outline-none cursor-pointer hover:bg-slate-50 transition-all border-none"
+                            >
+                              {months.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={date.getFullYear()}
+                              onChange={({ target: { value } }) => changeYear(Number(value))}
+                              className="font-semibold text-slate-700 bg-transparent rounded-md px-1 py-1 text-[15px] outline-none cursor-pointer hover:bg-slate-50 transition-all border-none"
+                            >
+                              {years.map((option) => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button
+                            onClick={(e) => { e.preventDefault(); increaseMonth(); }}
+                            disabled={nextMonthButtonDisabled}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                          </button>
+                        </div>
+                      );
+                    }}
+                    className="w-full border border-sky-300 rounded-xl px-4 py-2 bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400 hover:shadow-md cursor-pointer"
                   />
+                  {formData.player2Birthday && (
+                    <p className="text-xs text-sky-600 mt-1">
+                      {t('signup.age')}: {calculateAge(formData.player2Birthday)} {language === "en" ? "Years old" : "ปี"}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium">เพศ</label>
+                  <label className="block mb-1 font-medium">{t('signup.gender')}</label>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -537,7 +648,7 @@ export default function RegisterPage() {
                         : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
                         }`}
                     >
-                      ชาย
+                      {t('signup.male')}
                     </button>
                     <button
                       type="button"
@@ -547,7 +658,7 @@ export default function RegisterPage() {
                         : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
                         }`}
                     >
-                      หญิง
+                      {t('signup.female')}
                     </button>
                   </div>
                 </div>
@@ -561,7 +672,7 @@ export default function RegisterPage() {
           <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.rankType')}</h2>
           <div className="flex flex-wrap gap-3">
             {tournamentLoading ? (
-              <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
+              <div className="text-gray-500">{t('signup.loading')}</div>
             ) : tournament && tournament.rank.length > 0 ? (
               tournament.rank.map((rank) => {
                 const count = tournament.registrationStats?.[rank] || 0;
@@ -581,27 +692,27 @@ export default function RegisterPage() {
                       }`}
                   >
                     {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
-                    {isRankFull && " (เต็ม)"}
+                    {isRankFull && " (" + t('signup.full') + ")"}
                   </button>
                 );
               })
             ) : (
-              <div className="text-red-500">ไม่มีข้อมูลประเภทมือ</div>
+              <div className="text-red-500">{t('signup.noRank')}</div>
             )}
           </div>
         </section>
 
         {/* Upload */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">วิดีโอการเล่น</h2>
+          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.video')}</h2>
           <label className="flex flex-col items-center justify-center text-center border-2 border-dashed border-pink-300 rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
             <UploadCloud className="w-10 h-10 text-pink-400 mb-3" />
             {video ? (
               <p className="font-semibold text-pink-600">{video.name}</p>
             ) : (
               <>
-                <p className="font-semibold text-pink-700">อัปโหลดวิดีโอการเล่น</p>
-                <p className="text-xs text-gray-500 mt-1">รองรับไฟล์วิดีโอทุกประเภท</p>
+                <p className="font-semibold text-pink-700">{t('signup.uploadVideo')}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('signup.videoFormats')}</p>
               </>
             )}
             <input

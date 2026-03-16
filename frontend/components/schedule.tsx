@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import axios from "../src/lib/api";
 
 interface CompetType {
@@ -40,6 +41,8 @@ export default function Schedule({
 
   const [compet, setCompet] = useState<CompetType[]>([]);
   const [editingCompetID, setEditingCompetID] = useState<number | null>(null); //  ใช้สำหรับแก้ไข
+
+  const { t } = useLanguage();
 
   //  Format Time สำหรับ Prisma DateTime
   const formatTime = (dateString: string) => {
@@ -130,7 +133,7 @@ export default function Schedule({
         rounded-3xl p-5 text-slate-800 mt-8 mb-4 shadow-md border border-pink-100"
       >
         <h1 className="text-[30px] font-bold text-center mb-1">
-          ตารางการแข่งขัน
+          {t('manageMatch.scheduleTitle')}
         </h1>
 
         <div className="flex justify-end mb-4">
@@ -144,7 +147,7 @@ export default function Schedule({
             className="bg-[#EDE9FE] hover:bg-[#F3E8FF] text-violet-700 font-semibold 
             rounded-lg text-xs px-4 py-1.5 flex items-center gap-1"
           >
-            <Plus size={20} /> เพิ่มรอบ
+            <Plus size={20} /> {t('manageMatch.addRound')}
           </button>
         </div>
 
@@ -154,13 +157,13 @@ export default function Schedule({
           scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb]"
         >
           <div className="grid grid-cols-2 text-sm sm:text-base font-bold text-center bg-[#F9E0EC] border-b-2 border-[#F9CCE3] py-2">
-            <div>เวลาประมาณ</div>
-            <div>กำหนดการ</div>
+            <div>{t('manageMatch.estTime')}</div>
+            <div>{t('manageMatch.scheduleDesc')}</div>
           </div>
 
           {compet.length === 0 ? (
             <div className="text-center py-5 text-slate-500 italic border-t">
-              ยังไม่มีข้อมูลรอบการแข่งขัน
+              {t('manageMatch.noSchedule')}
             </div>
           ) : (
             compet.map((r, index) => (
@@ -185,7 +188,7 @@ export default function Schedule({
                       setShowAddModal(true);
                     }}
                   >
-                    แก้ไข
+                    {t('manageMatch.edit')}
                   </button>
                 </div>
 
@@ -210,14 +213,14 @@ export default function Schedule({
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={async () => {
-                        if (confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) {
+                        if (confirm(t('manageMatch.confirmDelete'))) {
                           await axios.delete(`/api/compet/${r.id}`);
                           fetCompet();
                         }
                       }}
                       className="px-2 py-1 text-xs bg-red-200 text-red-700 rounded-lg hover:bg-red-300 flex items-center gap-1"
                     >
-                      <Trash2 size={14} /> ลบ
+                      <Trash2 size={14} /> {t('manageMatch.delete')}
                     </button>
                   </div>
                 </div>
@@ -233,7 +236,7 @@ export default function Schedule({
             onClick={() => setPage("rules")}
             className="px-6 py-2 rounded-xl bg-gray-200 hover:bg-gray-300"
           >
-            ย้อนกลับ
+            {t('manageMatch.back')}
           </motion.button>
 
           <motion.button
@@ -242,7 +245,7 @@ export default function Schedule({
             onClick={() => router.push("/manage")}
             className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]"
           >
-            ลงทะเบียน
+            {t('manageMatch.register')}
           </motion.button>
         </div>
       </motion.div>
@@ -266,13 +269,13 @@ export default function Schedule({
             >
               <h2 className="text-lg font-bold mb-4 text-center">
                 {editingCompetID !== null
-                  ? "แก้ไขรอบการแข่งขัน"
-                  : "เพิ่มรอบการแข่งขัน"}
+                  ? t('manageMatch.editRoundModal')
+                  : t('manageMatch.addRoundModal')}
               </h2>
 
               <div className="space-y-4 text-sm">
                 <label className="block">
-                  <div className="mb-1 font-semibold">เวลาโดยประมาณ</div>
+                  <div className="mb-1 font-semibold">{t('manageMatch.timeLabel')}</div>
                   <input
                     type="time"
                     value={safeTime}
@@ -282,18 +285,18 @@ export default function Schedule({
                 </label>
 
                 <label className="block">
-                  <div className="mb-1 font-semibold">รายละเอียดกำหนดการ</div>
+                  <div className="mb-1 font-semibold">{t('manageMatch.descLabel')}</div>
                   <textarea
                     rows={6}
                     value={safeDesc}
                     onChange={(e) => setNewRoundDesc(e.target.value)}
-                    placeholder="เช่น ลงทะเบียนไม่เกิน 08:45 น."
+                    placeholder={t('manageMatch.descPlaceholder')}
                     className="w-full rounded-lg border px-3 py-2"
                   />
                 </label>
 
                 <div>
-                  <div className="mb-1 font-semibold">รายการระดับมือ</div>
+                  <div className="mb-1 font-semibold">{t('manageMatch.levelLabel')}</div>
                   <div className="flex flex-wrap gap-2">
                     {levelOptions.map((opt: any) => {
                       const value = opt.value ?? opt; // ถ้าเป็น object → ใช้ opt.value
@@ -330,7 +333,7 @@ export default function Schedule({
                   onClick={handleSubmitCom}
                   className="px-6 py-2 rounded-lg bg-pink-200 hover:bg-pink-300"
                 >
-                  {editingCompetID !== null ? "บันทึกการแก้ไข" : "บันทึก"}
+                  {editingCompetID !== null ? t('manageMatch.saveChanges') : t('manageMatch.save')}
                 </button>
 
                 <button
@@ -341,7 +344,7 @@ export default function Schedule({
                   }}
                   className="px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
                 >
-                  ยกเลิก
+                  {t('manageMatch.cancel')}
                 </button>
               </div>
             </motion.div>
