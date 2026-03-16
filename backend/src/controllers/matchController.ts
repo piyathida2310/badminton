@@ -902,6 +902,11 @@ export const getMatchHistory = async (req: Request, res: Response) => {
         };
 
         for (const m of bracketMatches) {
+            // ซ่อนแมตช์ในรอบสายการแข่งขันที่ยังไม่ได้แข่ง (ผู้เล่นยังไม่ครบ) เว้นแต่จะแข่งเสร็จแล้ว (เช่น ชนะบาย)
+            if ((!m.player1Id || !m.player2Id) && m.status !== 'FINISHED') {
+                continue;
+            }
+
             const handType = m.handType ? (HAND_TYPE_DISPLAY[m.handType] || m.handType) : "-";
             let status = MATCH_STATUS_MAP[m.status] || m.status;
 
