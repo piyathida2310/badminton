@@ -105,9 +105,9 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         if (tId) setTournamentId(tId);
       }
     } else {
-        // 'manage' standard
-        setTournamentName("");
-        setTournamentId(null);
+      // 'manage' standard
+      setTournamentName("");
+      setTournamentId(null);
     }
   }, [id, variant, pathname]);
 
@@ -145,11 +145,11 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         return !!tournamentId;
       });
     } else {
-        // 'manage'
-        return [
-            { href: "/manage", icon: <Trophy size={18} />, label: t('sidebar.tournaments') },
-            { href: "/manage/profile", icon: <UserCircle2 size={18} />, label: t('sidebar.profile') }
-        ];
+      // 'manage'
+      return [
+        { href: "/manage", icon: <Trophy size={18} />, label: t('sidebar.tournaments') },
+        { href: "/manage/profile", icon: <UserCircle2 size={18} />, label: t('sidebar.profile') }
+      ];
     }
   };
 
@@ -221,10 +221,10 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
             <span className="font-medium text-gray-800">
               {displayName}
             </span>
-            <Link 
-                href={variant === 'user' ? "/user/profile" : "/manage/profile"} 
-                className="text-sm text-pink-600 hover:underline" 
-                onClick={onClose}
+            <Link
+              href={variant === 'user' ? "/user/profile" : "/manage/profile"}
+              className="text-sm text-pink-600 hover:underline"
+              onClick={onClose}
             >
               {t('sidebar.profile')}
             </Link>
@@ -234,33 +234,33 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         {/* Sidebar มือถือ */}
         <nav className="flex flex-col gap-4 text-gray-700 font-medium">
           {displayedLinks.map((link) => (
-             <SidebarMobileLink 
-                key={link.href} 
-                href={link.href} 
-                icon={link.icon as React.ReactNode} 
-                label={link.label} 
-                onClick={onClose} 
-             />
+            <SidebarMobileLink
+              key={link.href}
+              href={link.href}
+              icon={link.icon as React.ReactNode}
+              label={link.label}
+              onClick={onClose}
+            />
           ))}
         </nav>
 
         {/* Logout on Mobile for User Variant */}
         {variant === 'user' && (
-             <button
-             onClick={async () => {
-               localStorage.removeItem("accessToken");
-               localStorage.removeItem("userRole");
-               localStorage.removeItem("role"); 
-               if(clerkUser) {
-                   await signOut();
-               }
-               router.push("/");
-             }}
-             className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
-           >
-             <LogOut size={18} />
-             <span>{t('sidebar.logout')}</span>
-           </button>
+          <button
+            onClick={async () => {
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("userRole");
+              localStorage.removeItem("role");
+              if (clerkUser) {
+                await signOut();
+              }
+              router.push("/");
+            }}
+            className="mt-8 flex items-center gap-3 px-3 py-2 text-pink-700 hover:bg-pink-200 rounded-lg transition-all"
+          >
+            <LogOut size={18} />
+            <span>{t('sidebar.logout')}</span>
+          </button>
         )}
       </motion.aside>
 
@@ -288,14 +288,14 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         )}
 
         <nav className="flex flex-col gap-5 text-gray-700 font-medium">
-            {displayedLinks.map((link) => (
-                <SidebarDesktopLink 
-                    key={link.href} 
-                    href={link.href} 
-                    icon={link.icon} 
-                    label={link.label} 
-                />
-            ))}
+          {displayedLinks.map((link) => (
+            <SidebarDesktopLink
+              key={link.href}
+              href={link.href}
+              icon={link.icon}
+              label={link.label}
+            />
+          ))}
         </nav>
       </aside>
     </>
@@ -342,36 +342,36 @@ function SidebarDesktopLink({
 }
 
 function SidebarMobileLink({
-    href,
-    icon,
-    label,
-    onClick,
-  }: {
-    href: string;
-    icon: React.ReactNode;
-    label: string;
-    onClick?: () => void;
-  }) {
-    const pathname = usePathname();
-    const isActive = pathname === href.split('?')[0];
+  href,
+  icon,
+  label,
+  onClick,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
+  const pathname = usePathname();
+  const isActive = pathname === href.split('?')[0];
 
-    return (
-        <motion.div
-            whileHover={{ x: 6 }}
-            transition={{ type: "spring", stiffness: 300 }}
-        >
-            <Link
-                href={href}
-                onClick={onClick}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
+  return (
+    <motion.div
+      whileHover={{ x: 6 }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
+      <Link
+        href={href}
+        onClick={onClick}
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group
                 ${isActive
-                    ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
-                    : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
-                }`}
-            >
-                <span>{icon}</span>
-                <span>{label}</span>
-            </Link>
-        </motion.div>
-    )
+            ? "bg-gradient-to-r from-pink-200 to-amber-100 text-pink-700 font-semibold shadow-md"
+            : "hover:bg-gradient-to-r hover:from-pink-100 hover:to-amber-50 hover:text-pink-600 hover:shadow-md"
+          }`}
+      >
+        <span>{icon}</span>
+        <span>{label}</span>
+      </Link>
+    </motion.div>
+  )
 }
