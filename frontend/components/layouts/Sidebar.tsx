@@ -265,8 +265,8 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
       </motion.aside>
 
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 w-[240px] h-screen bg-white shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] p-6 z-40 border-r border-slate-100">
-        <h2 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 mt-[70px] mb-6 tracking-wide drop-shadow-sm">{t('sidebar.menu')}</h2>
+      <aside className="hidden md:flex flex-col fixed left-0 top-[70px] w-[250px] h-[calc(100vh-70px)] bg-white shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] p-6 z-40 border-r border-slate-100 overflow-y-auto overflow-x-hidden">
+        <h2 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 mb-6 tracking-wide drop-shadow-sm">{t('sidebar.menu')}</h2>
 
         {/* Tournament Name Display (Desktop) */}
         {tournamentName && (
@@ -287,7 +287,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
           </div>
         )}
 
-        <nav className="flex flex-col gap-3 text-gray-700 font-medium text-sm">
+        <nav className="flex flex-col gap-2 text-gray-700 font-medium text-sm">
           {displayedLinks.map((link) => (
             <SidebarDesktopLink
               key={link.href}

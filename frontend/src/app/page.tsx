@@ -147,9 +147,7 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="flex flex-col gap-4 sm:gap-6 text-center lg:text-left max-w-md sm:max-w-lg lg:max-w-xl xl:max-w-2xl"
         >
-          <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 text-sm font-semibold tracking-wide uppercase">
-            Elevate Your Game ✨
-          </div>
+          
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-800 leading-[1.15] tracking-tight">
             {t('home.title')} <br className="hidden md:block" />
             <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
