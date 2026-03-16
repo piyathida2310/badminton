@@ -79,7 +79,7 @@ export const organizeTournamentGroups = async (
         const age2 = calculateAge(reg.player2Birthday);
         const age = tournament.playType === "SINGLE"
             ? age1
-            : Math.round((age1 + age2) / 2); // เฉลี่ยอายุ 2 คนสำหรับคู่
+            : `${age1}/${age2}`; // บอกอายุเป็นรายบุคคลสำหรับคู่ เช่น 40/42
 
         return {
             id: reg.id,
