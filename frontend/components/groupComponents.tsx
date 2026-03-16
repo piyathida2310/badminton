@@ -1,9 +1,12 @@
-"use client";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 export function BackButton({ target }: { target: string }) {
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = translations[language].groupManage;
 
   return (
     <button
@@ -12,7 +15,7 @@ export function BackButton({ target }: { target: string }) {
       font-semibold text-gray-700 shadow-sm hover:scale-110 hover:bg-white 
       hover:shadow-md transition"
     >
-      กลับไปหน้ากลุ่ม
+      {t.backToGroup}
     </button>
   );
 }
@@ -102,15 +105,18 @@ export function GroupTable({
 //  ข้อมูลคำอธิบายสายบน/สายล่าง
 //  ข้อมูลคำอธิบายสายบน/สายล่าง
 export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
+  const { language } = useLanguage();
+  const t = translations[language].groupManage;
+
   return (
     <div className="text-center mb-8">
-      <p className="font-semibold text-red-500 text-base mb-1">สายบน</p>
+      <p className="font-semibold text-red-500 text-base mb-1">{t.upperBracket}</p>
       <p className="text-gray-600 text-sm mb-4">
-        ทีมอันดับ 1–2 ของกลุ่ม เข้ารอบก่อนรองชนะเลิศสายบน (Quarter Finals)
+        {t.upperBracketDesc}
       </p>
-      <p className="font-semibold text-red-500 text-base mb-1">สายล่าง</p>
+      <p className="font-semibold text-red-500 text-base mb-1">{t.lowerBracket}</p>
       <p className="text-gray-600 text-sm">
-        ทีมอันดับ 3–4 ของกลุ่ม เข้ารอบก่อนรองชนะเลิศสายล่าง (Quarter Finals)
+        {t.lowerBracketDesc}
       </p>
     </div>
   );

@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import axios from "../../../../../lib/api";
 
 export default function TournamentGroupPage() {
   const router = useRouter();
   const { id } = useParams();
+  const { t, language } = useLanguage();
 
   const [matchType, setMatchType] = useState<"single" | "double">("single");
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -96,7 +98,7 @@ export default function TournamentGroupPage() {
 
   // ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = async () => {
-    if (!selectedHandType) return alert("กรุณาเลือกประเภทมือ");
+    if (!selectedHandType) return alert(t("groupManage.selectHandType"));
 
     setLoading(true);
     try {
@@ -123,10 +125,10 @@ export default function TournamentGroupPage() {
         : (resData?.message || "Failed to organize groups");
 
       Swal.fire({
-        title: "เงื่อนไขมีปัญหา",
+        title: t("groupManage.conditionError"),
         text: errorMessage.replace("Something went wrong! - ", ""),
         icon: "warning",
-        confirmButtonText: "รับทราบ",
+        confirmButtonText: t("groupManage.acknowledge"),
         confirmButtonColor: "#3085d6",
       });
     } finally {
@@ -156,13 +158,13 @@ export default function TournamentGroupPage() {
         className="text-center mb-10 z-10 w-full flex flex-col items-center"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
-          รายการแข่ง {tournamentTitle || "-"} ประเภท{" "}
-          {matchType === "single" ? "เดี่ยว" : "คู่"}
+          {t("groupManage.pageTitle")} {tournamentTitle || "-"} {t("groupManage.type")}{" "}
+          {matchType === "single" ? t("groupManage.single") : t("groupManage.double")}
         </h1>
 
         <p className="text-blue-700 font-semibold text-base sm:text-lg mt-2 mb-6">
-          วันที่{" "}
-          {new Date(selectedDate).toLocaleDateString("th-TH", {
+          {t("groupManage.date")}{" "}
+          {new Date(selectedDate).toLocaleDateString(language === "en" ? "en-US" : "th-TH", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -174,7 +176,7 @@ export default function TournamentGroupPage() {
           <div className="space-y-5">
             {/* Row 1: Hand Type Selector */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <label className="text-sm font-semibold text-gray-600 min-w-[100px]">ประเภทมือ:</label>
+              <label className="text-sm font-semibold text-gray-600 min-w-[100px]">{t("groupManage.handTypeL")}</label>
               <div className="relative w-full sm:w-auto flex-1">
                 <select
                   value={selectedHandType}
@@ -188,7 +190,7 @@ export default function TournamentGroupPage() {
                       </option>
                     ))
                   ) : (
-                    <option value="">ไม่พบรุ่นการแข่งขัน</option>
+                    <option value="">{t("groupManage.noCategory")}</option>
                   )}
                 </select>
               </div>
@@ -196,7 +198,7 @@ export default function TournamentGroupPage() {
               {tournamentStats && isOrganizer && (
                 <span className={`text-xs px-3 py-1 rounded-full font-bold ${isEnoughPlayers ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                   }`}>
-                  {tournamentStats.registrationStats?.[selectedHandType] || 0} / {tournamentStats.maxPlayers} ทีม
+                  {tournamentStats.registrationStats?.[selectedHandType] || 0} / {tournamentStats.maxPlayers} {t("groupManage.teamLabel")}
                 </span>
               )}
             </div>
@@ -207,12 +209,12 @@ export default function TournamentGroupPage() {
                 {/* Row 2: Detail Input (AI Prompt) */}
                 <div className="flex flex-col gap-2 text-left">
                   <label className="text-sm font-semibold text-gray-600">
-                    รายละเอียดเพิ่มเติม (Prompt):
+                    {t("groupManage.promptDetail")}
                   </label>
                   <textarea
                     value={detailInput}
                     onChange={(e) => setDetailInput(e.target.value)}
-                    placeholder="พิมพ์คำสั่งเพิ่มเติมให้ AI ที่นี่..."
+                    placeholder={t("groupManage.promptPlaceholder")}
                     className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-none transition-all"
                   />
                 </div>
@@ -235,16 +237,16 @@ export default function TournamentGroupPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        กำลังประมวลผล (AI)...
+                        {t("groupManage.processing")}
                       </>
                     ) : (
-                      "เริ่มจัดกลุ่มแข่งขัน"
+                      t("groupManage.startGrouping")
                     )}
                   </motion.button>
 
                   {!isEnoughPlayers && tournamentStats && (
                     <p className="text-xs text-red-500 font-medium mt-2 bg-red-50 px-3 py-1 rounded-md border border-red-100">
-                      จำนวนผู้สมัครยังถึงเกณฑ์ไม่สามารถจัดได้
+                      {t("groupManage.notEnoughPlayers")}
                     </p>
                   )}
                 </div>
@@ -254,7 +256,7 @@ export default function TournamentGroupPage() {
             {/* Show message for Non-Organizer if no groups */}
             {!hasCurrentTypeGroups && !isOrganizer && (
               <div className="text-center py-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-500">
-                ยังไม่มีการจับกลุ่มสายการแข่งขัน
+                {t("groupManage.noBracketCreated")}
               </div>
             )}
           </div>
@@ -337,7 +339,7 @@ export default function TournamentGroupPage() {
           </motion.div>
         ) : (
           <p className="text-gray-500 text-lg font-medium mt-10">
-            ยังไม่มีการสร้าง Group
+            {t("groupManage.noGroupCreated")}
           </p>
         )
       }

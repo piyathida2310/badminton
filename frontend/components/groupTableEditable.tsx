@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 export function GroupTableEditable({
   title,
@@ -14,6 +16,9 @@ export function GroupTableEditable({
   onSave?: (data: any[][]) => void;
   isAdmin?: boolean;
 }) {
+  const { language } = useLanguage();
+  const t = translations[language].groupManage;
+
   console.log("GroupTableEditable rows prop changed:", rows);
   const [data, setData] = useState(rows);
   const [editing, setEditing] = useState(false);
@@ -28,7 +33,7 @@ export function GroupTableEditable({
     if (value !== "" && parseInt(value) < 0) return;
 
     const newData = [...data];
-    const colIdx = headers.indexOf("SET");
+    const colIdx = headers.indexOf(t.setCol); // use translated setCol
     let valStr = newData[rowIndex][colIdx];
 
     // Normalize to array
@@ -60,8 +65,8 @@ export function GroupTableEditable({
 
   const handleSimpleChange = (rowIndex: number, colIndex: number, value: string) => {
     if (!isAdmin) return;
-    // Prevent negative numbers for "ลูกแบต" or any numeric field
-    if (headers[colIndex] === "ลูกแบต" && value !== "" && parseInt(value) < 0) return;
+    // Prevent negative numbers for "ลูกแบต" (shuttle) or any numeric field
+    if (headers[colIndex] === t.shuttleCol && value !== "" && parseInt(value) < 0) return;
 
     const newData = [...data];
     newData[rowIndex][colIndex] = value;
@@ -88,7 +93,7 @@ export function GroupTableEditable({
                   : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
                 }`}
             >
-              {editing ? "บันทึก" : "แก้ไข"}
+              {editing ? t.saveBtn : t.edit}
             </button>
           )}
         </div>
@@ -132,7 +137,7 @@ export function GroupTableEditable({
                     className={`border border-gray-200 px-2 sm:px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
                       }`}
                   >
-                    {headers[j] === "SET" ? (
+                    {headers[j] === t.setCol ? (
                       editing && isAdmin ? (
                         (() => {
                           const sets = v.includes(",") ? v.split(",") : [v];
@@ -176,13 +181,13 @@ export function GroupTableEditable({
                           );
                         })()
                       )
-                    ) : (headers[j] === "ลูกแบต" || headers[j] === "เวลา") && (editing && isAdmin) ? (
+                    ) : (headers[j] === t.shuttleCol || headers[j] === t.timeCol) && (editing && isAdmin) ? (
                       <input
-                        type={headers[j] === "เวลา" ? "time" : "number"}
-                        min={headers[j] !== "เวลา" ? 0 : undefined}
+                        type={headers[j] === t.timeCol ? "time" : "number"}
+                        min={headers[j] !== t.timeCol ? 0 : undefined}
                         value={v}
                         onChange={(e) => handleSimpleChange(i, j, e.target.value)}
-                        className={`text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300 bg-white ${headers[j] === "เวลา" ? "w-20" : "w-16"
+                        className={`text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300 bg-white ${headers[j] === t.timeCol ? "w-20" : "w-16"
                           }`}
                       />
                     ) : (

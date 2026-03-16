@@ -10,11 +10,15 @@ import {
 import { GroupTableEditable } from "../../../../../../../components/groupTableEditable";
 import api from "../../../../../../lib/api";
 import Swal from "sweetalert2"; //  เพิ่มแค่นี้เพื่อใช้แจ้งเตือน
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
   const { id } = useParams();
+  const { language } = useLanguage();
+  const t = translations[language].groupManage;
 
   //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
@@ -117,8 +121,8 @@ export default function GroupStageScoresPage() {
       //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
       Swal.fire({
         icon: "success",
-        title: "บันทึกเรียบร้อย",
-        confirmButtonText: "ตกลง",
+        title: t.saveSuccess,
+        confirmButtonText: t.ok,
       });
     } catch (e) {
       console.error("Save error:", e);
@@ -126,8 +130,8 @@ export default function GroupStageScoresPage() {
       //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนผิดพลาด)
       Swal.fire({
         icon: "error",
-        title: "เกิดข้อผิดพลาดในการบันทึก",
-        confirmButtonText: "ตกลง",
+        title: t.saveError,
+        confirmButtonText: t.ok,
       });
     }
   };
@@ -142,18 +146,18 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target={`/manage/${id}/group`} />
 
-        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} - ตารางการแข่งขัน`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${t.matchTableSuffix}`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         <GroupTable
-          title="อันดับคะแนนกลุ่ม"
-          headers={["Rank", "Team", "__MERGE__", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+          title={t.rankTitle}
+          headers={t.rankHeadings}
           rows={selected.rank}
         />
 
         <GroupTableEditable
-          title="ตารางการแข่งขันแต่ละรอบ"
-          headers={["เวลา", "รอบ", "แมตช์", "ทีม", "__MERGE__", "ผู้เล่น", "P", "SET", "P", "ทีม", "__MERGE__", "ผู้เล่น", "ลูกแบต"]}
+          title={t.matchTitle}
+          headers={t.matchHeadings}
           rows={selected.matches}
           onSave={handleSave}
           isAdmin={isOrganizer}

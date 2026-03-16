@@ -8,10 +8,14 @@ import {
   GroupInfo,
 } from "../../../../../../components/groupComponents";
 import api from "../../../../../lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/contexts/translations";
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
+  const { language } = useLanguage();
+  const t = translations[language].groupManage;
 
   //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
@@ -66,7 +70,7 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target="/user/group" />
 
-        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} - ตารางการแข่งขัน`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${t.matchTableSuffix}`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         {loading ? (
@@ -91,19 +95,19 @@ export default function GroupStageScoresPage() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            กำลังโหลดข้อมูล...
+            {t.loading}
           </div>
         ) : (
           <>
             <GroupTable
-              title="อันดับคะแนนกลุ่ม"
-              headers={["Rank", "Team", "__MERGE__", "ผู้เล่น", "คะแนนรวม", "ได้", "เสีย", "ผลต่าง"]}
+              title={t.rankTitle}
+              headers={t.rankHeadings}
               rows={selected.rank}
             />
 
             <GroupTable
-              title="ตารางการแข่งขันแต่ละรอบ"
-              headers={["เวลา", "รอบ", "แมตช์", "ทีม", "__MERGE__", "ผู้เล่น", "P", "SET", "P", "ทีม", "__MERGE__", "ผู้เล่น", "ลูกแบต"]}
+              title={t.matchTitle}
+              headers={t.matchHeadings}
               rows={selected.matches.map((row) => {
                 const cleaned = row.slice(0, 13);
                 // Clean SET column (index 7) — ลบ ", :" ที่ไม่มีตัวเลขออก
