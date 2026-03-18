@@ -445,7 +445,9 @@ export const translations = {
       loading: "กำลังโหลดข้อมูล...",
       timeCol: "เวลา",
       shuttleCol: "ลูกแบต",
-      setCol: "SET"
+      setCol: "SET",
+      explainReasoning: "อธิบายเหตุผลการจัดกลุ่ม (Explain reasoning)",
+      aiThinkingProcess: "เหตุผลและกระบวนการคิดของ AI",
     },
   },
   en: {
@@ -894,7 +896,9 @@ export const translations = {
       loading: "Loading data...",
       timeCol: "Time",
       shuttleCol: "Shuttle",
-      setCol: "SET"
+      setCol: "SET",
+      explainReasoning: "Explain grouping reasoning",
+      aiThinkingProcess: "AI Reasoning and Thinking Process",
     },
   }
 };

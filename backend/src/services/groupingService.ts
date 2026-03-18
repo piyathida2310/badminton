@@ -17,7 +17,9 @@ const calculateAge = (birthday: Date | null): number => {
 export const organizeTournamentGroups = async (
     tournamentId: number,
     playType: string,
-    detail: string
+    detail: string,
+    requireReason: boolean = false,
+    language: string = "th"
 ) => {
     console.log("\n" + "#".repeat(60));
     console.log("[GROUPING SERVICE] START");
@@ -104,7 +106,9 @@ export const organizeTournamentGroups = async (
 
     // 5. Run AI
     console.log("\n[CALLING AI] Sending players to AI for grouping...");
-    const groupedIds = await groupPlayers(players, detail, numGroups);
+    const aiResult = await groupPlayers(players, detail, numGroups, requireReason, language);
+    const groupedIds = aiResult.groups;
+    const reasoning = aiResult.reason;
     console.log(`[AI RETURNED] ${groupedIds.length} groups from AI`);
 
     // 6. Map to groupsMap & Failsafe
@@ -315,5 +319,5 @@ export const organizeTournamentGroups = async (
     });
     console.log("#".repeat(60) + "\n");
 
-    return enrichedGroups;
+    return { groups: enrichedGroups, reason: reasoning };
 };

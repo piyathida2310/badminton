@@ -421,6 +421,8 @@ export const managegroup = async (req: Request, res: Response) => {
     const tournamentId = Number(req.params.id);
     const detail = req.body.detail || "ไม่มีรายละเอียดเพิ่มเติม";
     const playType = req.body.playType; //  รับค่า playType
+    const requireReason = req.body.requireReason === true; // รับค่า option
+    const language = req.body.language || "th"; // รับค่าภาษาเพื่อใช้ในการอธิบาย
 
     if (!playType) {
       return res
@@ -429,15 +431,18 @@ export const managegroup = async (req: Request, res: Response) => {
     }
 
     // เรียกใช้ Service เพื่อจัดกลุ่ม
-    const enrichedGroups = await organizeTournamentGroups(
+    const { groups: enrichedGroups, reason: groupingReason } = await organizeTournamentGroups(
       tournamentId,
       playType,
-      detail
+      detail,
+      requireReason,
+      language
     );
 
     return res.status(200).json({
       message: `Groups organized for ${playType} successfully`,
       groups: enrichedGroups,
+      reason: groupingReason
     });
   } catch (error) {
     console.error(error);

@@ -95,6 +95,25 @@ export default function TournamentGroupPage() {
 
   // เก็บรายละเอียดเพิ่มเติมสำหรับ AI
   const [detailInput, setDetailInput] = useState("");
+  const [requireReason, setRequireReason] = useState(false);
+  const [groupingReason, setGroupingReason] = useState("");
+
+  useEffect(() => {
+    if (id && selectedHandType) {
+      const savedDetail = localStorage.getItem(`detailInput-${id}-${selectedHandType}`);
+      if (savedDetail) {
+        setDetailInput(savedDetail);
+      } else {
+        setDetailInput("");
+      }
+
+      const savedRequireReason = localStorage.getItem(`requireReason-${id}-${selectedHandType}`);
+      setRequireReason(savedRequireReason === "true");
+
+      const savedReasoning = localStorage.getItem(`groupingReason-${id}-${selectedHandType}`);
+      setGroupingReason(savedReasoning || "");
+    }
+  }, [id, selectedHandType]);
 
   // ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = async () => {
@@ -106,7 +125,9 @@ export default function TournamentGroupPage() {
         `/api/tournament/managegroup/${id}`,
         {
           detail: detailInput || "Balance skill levels", //  ส่ง detail ที่ user พิมพ์
-          playType: selectedHandType
+          playType: selectedHandType,
+          requireReason: requireReason,
+          language: language
         },
         { timeout: 120000 }
       );
@@ -115,7 +136,14 @@ export default function TournamentGroupPage() {
         setGroups(res.data.groups);
         setShowGroups(true);
         localStorage.setItem("showGroups", "true");
-        window.location.reload();
+        
+        if (res.data.reason) {
+          setGroupingReason(res.data.reason);
+          localStorage.setItem(`groupingReason-${id}-${selectedHandType}`, res.data.reason);
+        } else {
+          setGroupingReason("");
+          localStorage.removeItem(`groupingReason-${id}-${selectedHandType}`);
+        }
       }
     } catch (error: any) {
       console.error("Manage group error:", error);
@@ -203,8 +231,8 @@ export default function TournamentGroupPage() {
               )}
             </div>
 
-            {/* Render Controls ONLY If Organizer and No Groups Yet */}
-            {!hasCurrentTypeGroups && isOrganizer && (
+            {/* Render Controls If Organizer */}
+            {isOrganizer && (
               <>
                 {/* Row 2: Detail Input (AI Prompt) */}
                 <div className="flex flex-col gap-2 text-left">
@@ -213,14 +241,34 @@ export default function TournamentGroupPage() {
                   </label>
                   <textarea
                     value={detailInput}
-                    onChange={(e) => setDetailInput(e.target.value)}
+                    onChange={(e) => {
+                      setDetailInput(e.target.value);
+                      localStorage.setItem(`detailInput-${id}-${selectedHandType}`, e.target.value);
+                    }}
                     placeholder={t("groupManage.promptPlaceholder")}
                     className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-none transition-all"
                   />
                 </div>
 
+                {/* Require Reason Checkbox */}
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="requireReasonCheckbox"
+                    checked={requireReason}
+                    onChange={(e) => {
+                      setRequireReason(e.target.checked);
+                      localStorage.setItem(`requireReason-${id}-${selectedHandType}`, e.target.checked.toString());
+                    }}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="requireReasonCheckbox" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    {t("groupManage.explainReasoning")}
+                  </label>
+                </div>
+
                 {/* Row 3: Action Button */}
-                <div className="flex flex-col items-center pt-2">
+                <div className="flex flex-col items-center pt-4">
                   <motion.button
                     whileHover={isEnoughPlayers ? { scale: 1.02 } : {}}
                     whileTap={isEnoughPlayers ? { scale: 0.98 } : {}}
@@ -250,6 +298,22 @@ export default function TournamentGroupPage() {
                     </p>
                   )}
                 </div>
+
+                {groupingReason && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-6 p-5 bg-blue-50/80 border border-blue-200 rounded-xl text-left shadow-md"
+                  >
+                    <h3 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+                      <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                      {t("groupManage.aiThinkingProcess")}
+                    </h3>
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                      {groupingReason}
+                    </div>
+                  </motion.div>
+                )}
               </>
             )}
 

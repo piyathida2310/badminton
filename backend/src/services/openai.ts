@@ -79,7 +79,7 @@ const validateGroups = (
 // ──────────────────────────────────────────────
 // สร้าง Tool Schema แบบ dynamic ตาม numGroups
 // ──────────────────────────────────────────────
-const buildTool = (numGroups: number, groupKeys: string, numPlayers: number) => {
+const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, language: string = "th") => {
   const groupProperties: Record<string, any> = {};
   const requiredGroups: string[] = [];
 
@@ -105,7 +105,7 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number) => 
         properties: {
           thinking_process: {
             type: "string",
-            description: "อธิบายวิธีการคิดและการแจกจ่าย ID ผู้เล่นอย่างเป็นลำดับขั้นตอน (Step-by-step) โดยให้จดลิสต์ ID ทั้งหมดที่ว่างอยู่ แล้วหักออกทีละตัวเมื่อนำไปจัดเข้ากลุ่ม เพื่อทำตัวเป็นกระดาษทดป้องกันการเติม ID ซ้ำอย่างเด็ดขาด!",
+            description: `อธิบายวิธีการคิดและการแจกจ่าย ID ผู้เล่นอย่างเป็นลำดับขั้นตอน (Step-by-step) โดยให้จดลิสต์ ID ทั้งหมดที่ว่างอยู่ แล้วหักออกทีละตัวเมื่อนำไปจัดเข้ากลุ่ม เพื่อทำตัวเป็นกระดาษทดป้องกันการเติม ID ซ้ำอย่างเด็ดขาด! (CRITICAL: You must write this field entirely in ${language === "en" ? "English" : "Thai"}!)`,
           },
           interpreted: {
             type: "string",
@@ -169,8 +169,10 @@ const refinePrompt = async (rawDetail: string, numGroups: number): Promise<strin
 export const groupPlayers = async (
   players: Player[],
   detail: string,
-  fixedNumGroups?: number
-): Promise<number[][]> => {
+  fixedNumGroups?: number,
+  requireReason?: boolean,
+  language: string = "th"
+): Promise<{ groups: number[][]; reason: string }> => {
   const numGroups = fixedNumGroups ?? getNumGroups(players.length);
   const groupKeys = Array.from({ length: numGroups }, (_, i) => letters[i]).join(", ");
 
@@ -206,10 +208,11 @@ export const groupPlayers = async (
     .join("\n");
 
 
-  const tool = buildTool(numGroups, groupKeys, players.length);
+  const tool = buildTool(numGroups, groupKeys, players.length, language);
 
   const systemPrompt = `
 คุณคือระบบจัดกลุ่มทีมแบดมินตัน
+**สำคัญมาก: คุณต้องเขียนอธิบายกระบวนการและเหตุผลทั้งหมดลงในช่อง \`thinking_process\` ด้วยภาษา${language === "en" ? "อังกฤษ (English)" : "ไทย (Thai)"} เท่านั้น!**
 
 ═══════════════════════════════════════
 กฎตายตัว (ห้ามฝ่าฝืนเด็ดขาด):
@@ -333,7 +336,10 @@ ${lastError}
     try {
       const result = validateGroups(players, numGroups, parsed);
       console.log(`[groupPlayers] interpreted: ${parsed.interpreted}`);
-      return result;
+      return {
+        groups: result,
+        reason: requireReason ? parsed.thinking_process : ""
+      };
     } catch (e: any) {
       lastError = e?.message || "validate failed";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
