@@ -2,7 +2,6 @@
 import { useSearchParams, useParams } from "next/navigation";
 import RulesTablesPage from "../../../../../../../components/rulesTables";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -186,7 +185,7 @@ function EmptyRulesView() {
 
                 <tr>
                   <td className="p-3 bg-[#fffaf7] space-y-2 h-72 overflow-y-auto whitespace-pre-line text-gray-700">
-                    {(translations[language]?.manageMatch as any)?.defaultRules?.join('\n\n')}
+                    {Array.isArray(t("manageMatch.defaultRules")) ? (t("manageMatch.defaultRules") as string[]).join('\n\n') : ''}
                   </td>
                 </tr>
               </tbody>

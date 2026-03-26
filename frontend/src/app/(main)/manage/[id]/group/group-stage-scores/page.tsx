@@ -11,14 +11,23 @@ import { GroupTableEditable } from "../../../../../../../components/groupTableEd
 import api from "../../../../../../lib/api";
 import Swal from "sweetalert2"; //  เพิ่มแค่นี้เพื่อใช้แจ้งเตือน
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
+
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
   const { id } = useParams();
-  const { language } = useLanguage();
-  const t = translations[language].groupManage;
+  const { language, t } = useLanguage();
+  const gm = {
+    matchTableSuffix: t("groupManage.matchTableSuffix"),
+    rankTitle: t("groupManage.rankTitle"),
+    rankHeadings: t("groupManage.rankHeadings"),
+    matchTitle: t("groupManage.matchTitle"),
+    matchHeadings: t("groupManage.matchHeadings"),
+    saveSuccess: t("groupManage.saveSuccess"),
+    saveError: t("groupManage.saveError"),
+    ok: t("groupManage.ok"),
+  };
 
   //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
@@ -121,8 +130,8 @@ export default function GroupStageScoresPage() {
       //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนสำเร็จ)
       Swal.fire({
         icon: "success",
-        title: t.saveSuccess,
-        confirmButtonText: t.ok,
+        title: gm.saveSuccess,
+        confirmButtonText: gm.ok,
       });
     } catch (e) {
       console.error("Save error:", e);
@@ -130,8 +139,8 @@ export default function GroupStageScoresPage() {
       //  เปลี่ยนจาก alert เป็น Swal (แจ้งเตือนผิดพลาด)
       Swal.fire({
         icon: "error",
-        title: t.saveError,
-        confirmButtonText: t.ok,
+        title: gm.saveError,
+        confirmButtonText: gm.ok,
       });
     }
   };
@@ -146,18 +155,18 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target={`/manage/${id}/group`} />
 
-        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${t.matchTableSuffix}`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${gm.matchTableSuffix}`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         <GroupTable
-          title={t.rankTitle}
-          headers={t.rankHeadings}
+          title={gm.rankTitle}
+          headers={gm.rankHeadings}
           rows={selected.rank}
         />
 
         <GroupTableEditable
-          title={t.matchTitle}
-          headers={t.matchHeadings}
+          title={gm.matchTitle}
+          headers={gm.matchHeadings}
           rows={selected.matches}
           onSave={handleSave}
           isAdmin={isOrganizer}

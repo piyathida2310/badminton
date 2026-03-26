@@ -9,13 +9,20 @@ import {
 } from "../../../../../../../../components/groupComponents";
 import api from "../../../../../../../lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
+
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
   const groupName = params.get("group") || "Group A";
-  const { language } = useLanguage();
-  const t = translations[language].groupManage;
+  const { language, t } = useLanguage();
+  const gm = {
+    matchTableSuffix: t("groupManage.matchTableSuffix"),
+    rankTitle: t("groupManage.rankTitle"),
+    rankHeadings: t("groupManage.rankHeadings"),
+    matchTitle: t("groupManage.matchTitle"),
+    matchHeadings: t("groupManage.matchHeadings"),
+    loading: t("groupManage.loading"),
+  };
 
   //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
@@ -70,7 +77,7 @@ export default function GroupStageScoresPage() {
       <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
         <BackButton target="/user/group" />
 
-        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${t.matchTableSuffix}`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${gm.matchTableSuffix}`} color={theme.accent} />
         <GroupInfo totalTeams={selected.rank.length} />
 
         {loading ? (
@@ -95,19 +102,19 @@ export default function GroupStageScoresPage() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            {t.loading}
+            {gm.loading}
           </div>
         ) : (
           <>
             <GroupTable
-              title={t.rankTitle}
-              headers={t.rankHeadings}
+              title={gm.rankTitle}
+              headers={gm.rankHeadings}
               rows={selected.rank}
             />
 
             <GroupTable
-              title={t.matchTitle}
-              headers={t.matchHeadings}
+              title={gm.matchTitle}
+              headers={gm.matchHeadings}
               rows={selected.matches.map((row) => {
                 const cleaned = row.slice(0, 13);
                 // Clean SET column (index 7) — ลบ ", :" ที่ไม่มีตัวเลขออก

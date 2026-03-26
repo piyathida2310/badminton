@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import api from "../src/lib/api";
 import { useLanguage } from "../src/contexts/LanguageContext";
-import { translations } from "../src/contexts/translations";
 
 interface Match {
   id: number;
@@ -44,8 +43,38 @@ interface MatchTableProps {
 }
 
 export default function MatchTable({ tournamentId }: MatchTableProps) {
-  const { language } = useLanguage();
-  const t = translations[language].matchHistory;
+  const { t } = useLanguage();
+  const mh = {
+    loadFailed: t("matchHistory.loadFailed"),
+    allMatchNum: t("matchHistory.allMatchNum"),
+    matchNum: t("matchHistory.matchNum"),
+    filterWait: t("matchHistory.filterWait"),
+    filterPlaying: t("matchHistory.filterPlaying"),
+    filterDone: t("matchHistory.filterDone"),
+    filterCancel: t("matchHistory.filterCancel"),
+    loading: t("matchHistory.loading"),
+    noMatches: t("matchHistory.noMatches"),
+    filterTitle: t("matchHistory.filterTitle"),
+    filterAll: t("matchHistory.filterAll"),
+    colMatch: t("matchHistory.colMatch"),
+    colCategory: t("matchHistory.colCategory"),
+    colRound: t("matchHistory.colRound"),
+    colStatus: t("matchHistory.colStatus"),
+    colTime: t("matchHistory.colTime"),
+    colGroup: t("matchHistory.colGroup"),
+    colTeamA: t("matchHistory.colTeamA"),
+    colPlayerA: t("matchHistory.colPlayerA"),
+    colScore: t("matchHistory.colScore"),
+    colTeamB: t("matchHistory.colTeamB"),
+    colPlayerB: t("matchHistory.colPlayerB"),
+    colShuttle: t("matchHistory.colShuttle"),
+    mobSingle: t("matchHistory.mobSingle"),
+    mobDouble: t("matchHistory.mobDouble"),
+    mobCategory: t("matchHistory.mobCategory"),
+    mobTime: t("matchHistory.mobTime"),
+    mobScore: t("matchHistory.mobScore"),
+    mobTeam: t("matchHistory.mobTeam"),
+  };
 
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +95,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
         setMatches(data);
       } catch (err: any) {
         console.error("Failed to fetch match history:", err);
-        setError(t.loadFailed);
+        setError(mh.loadFailed);
       } finally {
         setLoading(false);
       }
@@ -81,18 +110,18 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
 
   const countLabel =
     filter === "ทั้งหมด"
-      ? `${matches.length} ${t.allMatchNum}`
-      : `${filteredMatches.length} ${t.matchNum}`;
+      ? `${matches.length} ${mh.allMatchNum}`
+      : `${filteredMatches.length} ${mh.matchNum}`;
 
   const renderStatusBadge = (status: string) => {
     const base =
       "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border backdrop-blur-sm";
     
     let label = status;
-    if (status === "รอแข่ง") label = t.filterWait;
-    if (status === "กำลังแข่ง") label = t.filterPlaying;
-    if (status === "แข่งสำเร็จ") label = t.filterDone;
-    if (status === "ยกเลิก") label = t.filterCancel;
+    if (status === "รอแข่ง") label = mh.filterWait;
+    if (status === "กำลังแข่ง") label = mh.filterPlaying;
+    if (status === "แข่งสำเร็จ") label = mh.filterDone;
+    if (status === "ยกเลิก") label = mh.filterCancel;
 
     if (status === "รอแข่ง")
       return (
@@ -154,7 +183,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
         <Loader2 className="w-8 h-8 animate-spin mb-3 text-pink-500" />
-        <p className="text-sm font-medium">{t.loading}</p>
+        <p className="text-sm font-medium">{mh.loading}</p>
       </div>
     );
   }
@@ -170,7 +199,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
   if (matches.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
-        <p className="font-medium">{t.noMatches}</p>
+        <p className="font-medium">{mh.noMatches}</p>
       </div>
     );
   }
@@ -181,7 +210,7 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
         <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
           <Filter className="text-pink-600" size={18} />
-          <span className="font-semibold">{t.filterTitle}</span>
+          <span className="font-semibold">{mh.filterTitle}</span>
           <span className="text-gray-500 text-xs">({countLabel})</span>
         </div>
 
@@ -203,10 +232,10 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
           >
             {["ทั้งหมด", "รอแข่ง", "กำลังแข่ง", "แข่งสำเร็จ"].map((item) => {
               let label = item;
-              if (item === "ทั้งหมด") label = t.filterAll;
-              if (item === "รอแข่ง") label = t.filterWait;
-              if (item === "กำลังแข่ง") label = t.filterPlaying;
-              if (item === "แข่งสำเร็จ") label = t.filterDone;
+              if (item === "ทั้งหมด") label = mh.filterAll;
+              if (item === "รอแข่ง") label = mh.filterWait;
+              if (item === "กำลังแข่ง") label = mh.filterPlaying;
+              if (item === "แข่งสำเร็จ") label = mh.filterDone;
               return (
                 <option key={item} value={item}>
                   {label}
@@ -228,18 +257,18 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
             <thead className="bg-gradient-to-r from-amber-200 via-pink-200 to-rose-200 text-gray-900">
               <tr>
                 {[
-                  t.colMatch,
-                  t.colCategory,
-                  t.colRound,
-                  t.colStatus,
-                  t.colTime,
-                  t.colGroup,
-                  t.colTeamA,
-                  t.colPlayerA,
-                  t.colScore,
-                  t.colTeamB,
-                  t.colPlayerB,
-                  t.colShuttle,
+                  mh.colMatch,
+                  mh.colCategory,
+                  mh.colRound,
+                  mh.colStatus,
+                  mh.colTime,
+                  mh.colGroup,
+                  mh.colTeamA,
+                  mh.colPlayerA,
+                  mh.colScore,
+                  mh.colTeamB,
+                  mh.colPlayerB,
+                  mh.colShuttle,
                 ].map((h, i) => (
                   <th
                     key={i}
@@ -303,20 +332,20 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
           >
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold text-pink-700 text-sm">
-                {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? t.mobSingle : t.mobDouble})
+                {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? mh.mobSingle : mh.mobDouble})
               </h3>
               {renderStatusBadge(m.status)}
             </div>
 
             <p className="text-gray-700 text-xs">
-              <span className="font-semibold">{t.mobCategory} </span> {m.type}
+              <span className="font-semibold">{mh.mobCategory} </span> {m.type}
             </p>
             <p className="text-gray-700 text-xs">
-              <span className="font-semibold">{t.mobTime} </span> {m.timeIn}
+              <span className="font-semibold">{mh.mobTime} </span> {m.timeIn}
             </p>
             {m.score && m.score !== "-" && (
               <p className="text-gray-700 text-xs">
-                <span className="font-semibold">{t.mobScore} </span> {m.score}
+                <span className="font-semibold">{mh.mobScore} </span> {m.score}
               </p>
             )}
 
@@ -325,12 +354,12 @@ export default function MatchTable({ tournamentId }: MatchTableProps) {
                 {m.group !== "-" ? `${m.group.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")} | ` : ""}{m.type} ({m.round})
               </p>
               <div className="mt-1">
-                <p className="text-gray-500 text-[10px] mb-0.5">{t.mobTeam} {m.team1}</p>
+                <p className="text-gray-500 text-[10px] mb-0.5">{mh.mobTeam} {m.team1}</p>
                 {renderPlayers(m.matchType, m.player1A, m.player1B)}
               </div>
               <p className="text-center font-bold text-gray-600 mt-1 mb-1">⚔️ VS ⚔️</p>
               <div>
-                <p className="text-gray-500 text-[10px] mb-0.5">{t.mobTeam} {m.team2}</p>
+                <p className="text-gray-500 text-[10px] mb-0.5">{mh.mobTeam} {m.team2}</p>
                 {renderPlayers(m.matchType, m.player2A, m.player2B)}
               </div>
             </div>

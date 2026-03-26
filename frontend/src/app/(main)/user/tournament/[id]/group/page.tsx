@@ -5,12 +5,20 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../../../../lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
+
 
 export default function TournamentGroupPage() {
   const router = useRouter();
-  const { language } = useLanguage();
-  const t = translations[language].groupManage;
+  const { language, t } = useLanguage();
+  const gm = {
+    pageTitle: t("groupManage.pageTitle"),
+    type: t("groupManage.type"),
+    single: t("groupManage.single"),
+    double: t("groupManage.double"),
+    teamLabel: t("groupManage.teamLabel"),
+    loading: t("groupManage.loading"),
+    noGroupCreated: t("groupManage.noGroupCreated"),
+  };
   const [matchType, setMatchType] = useState<"single" | "double">("single");
 
   // ข้อมูลจริงจาก API
@@ -104,9 +112,9 @@ export default function TournamentGroupPage() {
         className="text-center mb-10 z-10"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
-          {t.pageTitle} {tournamentTitle || "-"} {t.type}{" "}
-          {matchType === "single" ? t.single : t.double}{" "}
-          {totalTeams > 0 && `${totalTeams} ${t.teamLabel}`}
+          {gm.pageTitle} {tournamentTitle || "-"} {gm.type}{" "}
+          {matchType === "single" ? gm.single : gm.double}{" "}
+          {totalTeams > 0 && `${totalTeams} ${gm.teamLabel}`}
         </h1>
 
         {/* ประเภท + ตัวเลือกรุ่น */}
@@ -118,7 +126,7 @@ export default function TournamentGroupPage() {
               : "bg-white text-blue-700 border border-blue-300 opacity-50"
               }`}
           >
-            {t.type} {t.single}
+            {gm.type} {gm.single}
           </span>
           <span
             className={`px-5 py-2 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 ${matchType === "double"
@@ -126,7 +134,7 @@ export default function TournamentGroupPage() {
               : "bg-white text-amber-600 border border-amber-300 opacity-50"
               }`}
           >
-            {t.type} {t.double}
+            {gm.type} {gm.double}
           </span>
 
           {/* ตัวเลือกรุ่น */}
@@ -173,7 +181,7 @@ export default function TournamentGroupPage() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          {t.loading}
+          {gm.loading}
         </div>
       )}
 
@@ -257,7 +265,7 @@ export default function TournamentGroupPage() {
       ) : (
         !loading && (
           <p className="text-gray-500 text-lg font-medium mt-10 z-10">
-            {t.noGroupCreated}
+            {gm.noGroupCreated}
           </p>
         )
       )}

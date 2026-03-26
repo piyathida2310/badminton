@@ -1,12 +1,12 @@
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
+
 
 export function BackButton({ target }: { target: string }) {
   const router = useRouter();
-  const { language } = useLanguage();
-  const t = translations[language].groupManage;
+  const { t } = useLanguage();
+  const backToGroupLabel = t("groupManage.backToGroup");
 
   return (
     <button
@@ -15,7 +15,7 @@ export function BackButton({ target }: { target: string }) {
       font-semibold text-gray-700 shadow-sm hover:scale-110 hover:bg-white 
       hover:shadow-md transition"
     >
-      {t.backToGroup}
+      {backToGroupLabel}
     </button>
   );
 }
@@ -105,18 +105,23 @@ export function GroupTable({
 //  ข้อมูลคำอธิบายสายบน/สายล่าง
 //  ข้อมูลคำอธิบายสายบน/สายล่าง
 export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
-  const { language } = useLanguage();
-  const t = translations[language].groupManage;
+  const { t } = useLanguage();
+  const gm = {
+    upperBracket: t("groupManage.upperBracket"),
+    upperBracketDesc: t("groupManage.upperBracketDesc"),
+    lowerBracket: t("groupManage.lowerBracket"),
+    lowerBracketDesc: t("groupManage.lowerBracketDesc"),
+  };
 
   return (
     <div className="text-center mb-8">
-      <p className="font-semibold text-red-500 text-base mb-1">{t.upperBracket}</p>
+      <p className="font-semibold text-red-500 text-base mb-1">{gm.upperBracket}</p>
       <p className="text-gray-600 text-sm mb-4">
-        {t.upperBracketDesc}
+        {gm.upperBracketDesc}
       </p>
-      <p className="font-semibold text-red-500 text-base mb-1">{t.lowerBracket}</p>
+      <p className="font-semibold text-red-500 text-base mb-1">{gm.lowerBracket}</p>
       <p className="text-gray-600 text-sm">
-        {t.lowerBracketDesc}
+        {gm.lowerBracketDesc}
       </p>
     </div>
   );

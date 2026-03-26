@@ -4,7 +4,6 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import axios from "../src/lib/api";
 import Swal from "sweetalert2";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { translations } from "@/contexts/translations";
 
 interface mathRules {
   id: string;
@@ -40,16 +39,18 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
     // Normalize newlines and trim completely (remove all whitespaces for exact check)
     const cleanContent = content.replace(/\s+/g, '');
     
-    // Get language default rules from translations
-    const cleanTh = (translations["th"].manageMatch as any).defaultRules.join("").replace(/\s+/g, '');
-    const cleanEn = (translations["en"].manageMatch as any).defaultRules.join("").replace(/\s+/g, '');
-
-    // Check if it starts with a significant portion of the default rules (first 100 non-whitespace chars)
-    // or if it matches perfectly without spaces.
-    if (cleanContent === cleanTh || cleanContent === cleanEn || 
-        cleanContent.startsWith(cleanTh.substring(0, 50)) || 
-        cleanContent.startsWith(cleanEn.substring(0, 50))) {
-      return (translations[language].manageMatch as any).defaultRules.join("\n\n");
+    // Get default rules from i18n
+    const thRules = t("manageMatch.defaultRules");
+    const enRules = t("manageMatch.defaultRules");
+    const currentRules = t("manageMatch.defaultRules");
+    
+    if (Array.isArray(thRules)) {
+      const cleanDefault = thRules.join("").replace(/\s+/g, '');
+      
+      if (cleanContent === cleanDefault || 
+          cleanContent.startsWith(cleanDefault.substring(0, 50))) {
+        return (currentRules as string[]).join("\n\n");
+      }
     }
     
     // Otherwise return custom rules
