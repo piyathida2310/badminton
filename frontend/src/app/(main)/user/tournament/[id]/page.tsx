@@ -23,7 +23,7 @@ export default function TournamentDetailPage() {
   const { id } = useParams();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   //  Rules fixed as requested
   const fixedRules = [
@@ -61,6 +61,12 @@ export default function TournamentDetailPage() {
   function formatThaiDate(dateStr: string) {
     if (!dateStr) return "";
     const date = new Date(dateStr);
+    if (language === "en") {
+      const month = date.toLocaleString("en-US", { month: "long" });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
     return date.toLocaleDateString("th-TH", {
       year: "numeric",
       month: "long",

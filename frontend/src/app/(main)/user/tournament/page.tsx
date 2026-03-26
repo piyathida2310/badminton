@@ -21,7 +21,7 @@ interface Tournament {
 
 export default function TournamentPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -54,6 +54,12 @@ export default function TournamentPage() {
 
   function formatThaiDate(dateStr: string) {
     const date = new Date(dateStr);
+    if (language === "en") {
+      const month = date.toLocaleString("en-US", { month: "long" });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
     return date.toLocaleDateString("th-TH", {
       year: "numeric",
       month: "long",
