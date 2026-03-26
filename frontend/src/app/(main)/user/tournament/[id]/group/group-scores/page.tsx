@@ -6,8 +6,8 @@ import {
   SectionTitle,
   GroupTable,
   GroupInfo,
-} from "../../../../../../components/groupComponents";
-import api from "../../../../../lib/api";
+} from "../../../../../../../../components/groupComponents";
+import api from "../../../../../../../lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/contexts/translations";
 

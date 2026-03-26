@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { Upload, XCircle } from "lucide-react";
 import api from "@/lib/api";
 import Swal from "sweetalert2";
@@ -98,7 +98,8 @@ const alertConfirm = (t: any, title: string, text?: string) =>
 
 export default function StatusPage() {
   const searchParams = useSearchParams();
-  const tournamentIdFromUrl = searchParams ? (searchParams.get("tournamentId") || searchParams.get("id")) : null;
+  const params = useParams();
+  const tournamentIdFromUrl = params?.id || (searchParams ? (searchParams.get("tournamentId") || searchParams.get("id")) : null);
   const { t } = useLanguage();
 
   // คำนวณอายุจากวันเกิด

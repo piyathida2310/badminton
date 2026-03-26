@@ -242,7 +242,7 @@ export default function RegisterPage() {
           confirmButtonText: "ไปต่อ",
         });
 
-        router.push(`/user/match-rules?id=${id}`);
+        router.push(`/user/tournament/${id}/match-rules`);
       } else {
         Swal.close();
         await Swal.fire({

@@ -108,7 +108,7 @@ export default function TournamentPage() {
                     onClick={() => {
                       localStorage.setItem("selectedTournamentName", item.title);
                       localStorage.setItem("selectedTournamentId", item.id.toString());
-                      router.push(`/user/match-rules?id=${item.id}`);
+                      router.push(`/user/tournament/${item.id}/match-rules`);
                     }}
                   >
                     <Photo
@@ -129,7 +129,7 @@ export default function TournamentPage() {
                       onClick={() => {
                         localStorage.setItem("selectedTournamentName", item.title);
                         localStorage.setItem("selectedTournamentId", item.id.toString());
-                        router.push(`/user/match-rules?id=${item.id}`);
+                        router.push(`/user/tournament/${item.id}/match-rules`);
                       }}
                       className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
                     >

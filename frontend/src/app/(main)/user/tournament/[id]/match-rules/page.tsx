@@ -1,12 +1,14 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import RulesTablesPage from "../../../../../components/rulesTables";
+import { useSearchParams, useParams } from "next/navigation";
+import RulesTablesPage from "../../../../../../../components/rulesTables";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/contexts/translations";
 
 export default function Page() {
   const searchParams = useSearchParams();
-  const tournamentId = searchParams.get("id");
+  const params = useParams();
+  const rawId = params?.id || searchParams.get("id");
+  const tournamentId = Array.isArray(rawId) ? rawId[0] : rawId;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff7f3] to-[#ffeae3] py-6 px-4">

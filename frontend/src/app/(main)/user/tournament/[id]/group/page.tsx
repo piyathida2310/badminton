@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api from "../../../../lib/api";
+import api from "../../../../../../lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { translations } from "@/contexts/translations";
 

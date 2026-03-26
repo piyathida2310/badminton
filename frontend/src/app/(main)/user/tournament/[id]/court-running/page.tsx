@@ -1,12 +1,14 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import MatchTableUser from "../../../../../components/matchTableUser"; // Consistent path
+import { useSearchParams, useParams } from "next/navigation";
+import MatchTableUser from "../../../../../../../components/matchTableUser"; // Consistent path
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const id = searchParams.get("id") || searchParams.get("tournamentId");
+  const params = useParams();
+  const rawId = params?.id || searchParams.get("id") || searchParams.get("tournamentId");
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
   const { t } = useLanguage();
 
   return (

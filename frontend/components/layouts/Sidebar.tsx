@@ -112,7 +112,12 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
   }, [id, variant, pathname]);
 
   const getUserLink = (path: string) => {
-    return tournamentId ? `${path}?id=${tournamentId}` : path;
+    if (!tournamentId) return path;
+    if (path.startsWith("/user/")) {
+      const subPath = path.replace("/user/", "");
+      return `/user/tournament/${tournamentId}/${subPath}`;
+    }
+    return `${path}?id=${tournamentId}`;
   };
 
   // Determine which links to show based on standard logic from original files
