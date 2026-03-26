@@ -9,6 +9,8 @@ import Form from "../../../../../../components/form";
 import Schedule from "../../../../../../components/schedule";
 import Guideline from "../../../../../../components/guideline";
 import { useLanguage } from "@/contexts/LanguageContext";
+import axios from "@/lib/api";
+import Swal from "sweetalert2";
 export default function TournamentManagePage() {
   const [page, setPage] = useState<"organize" | "rules" | "schedule">(
     "organize"
@@ -225,6 +227,63 @@ export default function TournamentManagePage() {
     );
   }, []);
 
+  // --- ฟังก์ชันบันทึกข้อมูลทั้งหมด ---
+  const handleFinalRegister = async () => {
+    if (!tournament) return;
+
+    try {
+      // 1. สร้างกติกา
+      const rulesRes = await axios.post("/api/rules", { content: rulesText });
+      const ruleId = rulesRes.data.data.id;
+
+      // 2. สร้างรายการแข่งขัน
+      const formData = new FormData();
+      formData.append("name", tournament.name);
+      formData.append("playType", tournament.playType);
+      formData.append("rank", JSON.stringify(tournament.rank));
+      formData.append("location", tournament.location);
+      formData.append("shuttlePrice", String(tournament.shuttlePrice));
+      formData.append("maxPlayers", String(tournament.maxPlayers));
+      if (tournament.posterImg) formData.append("posterImg", tournament.posterImg);
+      if (tournament.qrCodeImg) formData.append("qrCodeImg", tournament.qrCodeImg);
+      formData.append("startDate", tournament.startDate);
+      formData.append("ruleId", String(ruleId));
+      formData.append("isLowerBracket", String(tournament.isLowerBracket));
+
+      const tourRes = await axios.post("/api/tournament", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const newTournamentID = tourRes.data.data.id;
+
+      // 3. สร้างรอบการแข่งขัน
+      for (const round of rounds) {
+        const payload = {
+          time: round.time.replace(" น.", "").trim(), // แปลง "08:30 น." -> "08:30"
+          detail: round.desc,
+          rank: round.levels || [],
+          tournamentId: newTournamentID,
+        };
+        await axios.post("/api/compet", payload);
+      }
+
+      Swal.fire({
+        title: "ลงทะเบียนสำเร็จ!",
+        text: "สร้างรายการแข่งขันเรียบร้อยแล้ว",
+        icon: "success",
+        confirmButtonColor: "#b3e5fc",
+      });
+
+      router.push("/manage");
+    } catch (error) {
+      console.error("Final registration failed:", error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+        icon: "error",
+      });
+    }
+  };
+
   // --- render ---
   return (
     <div
@@ -293,6 +352,7 @@ export default function TournamentManagePage() {
             handleAddRound={handleAddRound}
             showAddModal={showAddModal}
             tournamentID={tournamentID}
+            onFinalSubmit={handleFinalRegister}
           />
         )}
       </AnimatePresence>

@@ -33,6 +33,7 @@ export default function Schedule({
   setEditIndex,
   handleAddRound,
   tournamentID,
+  onFinalSubmit,
 }: any) {
   const router = useRouter();
   const safeTime = newRoundTime || "";
@@ -41,6 +42,9 @@ export default function Schedule({
 
   const [compet, setCompet] = useState<CompetType[]>([]);
   const [editingCompetID, setEditingCompetID] = useState<number | null>(null); //  ใช้สำหรับแก้ไข
+
+  // ใช้ rounds จาก props ถ้าไม่มี tournamentID (Flow สร้างใหม่)
+  const displayRounds = tournamentID ? compet : (rounds || []);
 
   const { t } = useLanguage();
 
@@ -81,6 +85,12 @@ export default function Schedule({
 
   //  บันทึก (รองรับเพิ่มใหม่ + แก้ไข)
   const handleSubmitCom = async () => {
+    // กรณีสร้างใหม่ (ยังไม่มี tournamentID) -> จัดการผ่าน state ใน parent
+    if (!tournamentID) {
+      handleAddRound(); // เรียกฟังก์ชันจาก parent (page.tsx)
+      return;
+    }
+
     try {
       const payload = {
         time: safeTime,
@@ -161,30 +171,35 @@ export default function Schedule({
             <div>{t('manageMatch.scheduleDesc')}</div>
           </div>
 
-          {compet.length === 0 ? (
+          {displayRounds.length === 0 ? (
             <div className="text-center py-5 text-slate-500 italic border-t">
               {t('manageMatch.noSchedule')}
             </div>
           ) : (
-            compet.map((r, index) => (
+            displayRounds.map((r: any, index: number) => (
               <div
-                key={r.id}
+                key={r.id || index}
                 className={`grid grid-cols-2 items-center py-4 px-4 border-t hover:bg-pink-50
                 ${index % 2 === 0 ? "bg-[#FFF9FC]" : "bg-[#FFFDFE]"}`}
               >
                 {/* เวลา */}
                 <div className="flex flex-col items-center border-r">
                   <span className="font-bold text-[20px]">
-                    {formatTime(r.time)}
+                    {r.time.includes('น.') ? r.time : formatTime(r.time)}
                   </span>
 
                   <button
                     className="mt-2 text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300"
                     onClick={() => {
-                      setEditingCompetID(r.id); // กำลังแก้ตัวนี้
-                      setNewRoundTime(formatTime(r.time));
-                      setNewRoundDesc(r.detail);
-                      setNewRoundLevels(r.rank);
+                      if (tournamentID) {
+                        setEditingCompetID(r.id);
+                        setNewRoundTime(formatTime(r.time));
+                      } else {
+                        setEditIndex(index);
+                        setNewRoundTime(r.time.replace(" น.", ""));
+                      }
+                      setNewRoundDesc(r.detail || r.desc);
+                      setNewRoundLevels(r.rank || r.levels);
                       setShowAddModal(true);
                     }}
                   >
@@ -194,11 +209,11 @@ export default function Schedule({
 
                 {/* รายละเอียด */}
                 <div className="flex flex-col gap-1 pl-4">
-                  <p className="text-[14px] font-semibold">{r.detail}</p>
+                  <p className="text-[14px] font-semibold">{r.detail || r.desc}</p>
 
-                  {r.rank?.length > 0 && (
+                  {(r.rank || r.levels)?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-1">
-                      {r.rank.map((lv, i) => (
+                      {(r.rank || r.levels).map((lv: any, i: number) => (
                         <span
                           key={i}
                           className="px-2.5 py-0.5 rounded-full text-[13px] bg-[#f1f9c1] border"
@@ -214,8 +229,12 @@ export default function Schedule({
                     <button
                       onClick={async () => {
                         if (confirm(t('manageMatch.confirmDelete'))) {
-                          await axios.delete(`/api/compet/${r.id}`);
-                          fetCompet();
+                          if (tournamentID) {
+                            await axios.delete(`/api/compet/${r.id}`);
+                            fetCompet();
+                          } else {
+                            handleDeleteRound(index);
+                          }
                         }
                       }}
                       className="px-2 py-1 text-xs bg-red-200 text-red-700 rounded-lg hover:bg-red-300 flex items-center gap-1"
@@ -242,7 +261,13 @@ export default function Schedule({
           <motion.button
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/manage")}
+            onClick={() => {
+              if (tournamentID) {
+                router.push("/manage");
+              } else {
+                onFinalSubmit();
+              }
+            }}
             className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]"
           >
             {t('manageMatch.register')}

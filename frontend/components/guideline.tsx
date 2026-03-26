@@ -33,36 +33,6 @@ export default function Guideline({
 
   const handelSummit = async () => {
     setPage("schedule");
-
-    const rules = await axios.post("/api/rules", { content: rulesText });
-    console.log(tournament);
-
-    const formData = new FormData();
-
-    formData.append("name", tournament.name);
-    formData.append("playType", tournament.playType);
-    formData.append("rank", JSON.stringify(tournament.rank));
-    formData.append("location", tournament.location);
-
-    formData.append("shuttlePrice", String(tournament.shuttlePrice));
-    formData.append("maxPlayers", String(tournament.maxPlayers));
-    formData.append("posterImg", tournament.posterImg); // ถ้าเป็นไฟล์ ต้องเป็น File object
-    formData.append("qrCodeImg", tournament.qrCodeImg);
-    formData.append("startDate", tournament.startDate);
-    formData.append("ruleId", String(rules.data.data.id));
-    formData.append("isLowerBracket", String(tournament.isLowerBracket));
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-    await axios
-      .post("/api/tournament", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((res) => {
-        console.log(res.data.data.id + "hello world!!!!!!!");
-
-        setTournamentID(res.data.data.id);
-      });
   };
 
   return (
