@@ -91,6 +91,16 @@ export default function TournamentGroupPage() {
       (g.name && g.name.includes(selectedHandType))
   );
 
+  const [groupingReason, setGroupingReason] = useState("");
+
+  useEffect(() => {
+    const tournamentId = localStorage.getItem("selectedTournamentId");
+    if (tournamentId && selectedHandType) {
+      const savedReasoning = localStorage.getItem(`groupingReason-${tournamentId}-${selectedHandType}`);
+      setGroupingReason(savedReasoning || "");
+    }
+  }, [selectedHandType]);
+
   const totalTeams = filteredGroups.reduce(
     (sum, g) => sum + (g?.teams?.length || 0),
     0
@@ -160,7 +170,7 @@ export default function TournamentGroupPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 text-blue-600 font-semibold z-10">
+        <div className="flex items-center gap-2 text-blue-600 font-semibold z-10 mb-10">
           <svg
             className="animate-spin h-5 w-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -183,6 +193,33 @@ export default function TournamentGroupPage() {
           </svg>
           {gm.loading}
         </div>
+      )}
+
+      {/* Reasoning Box (If available) */}
+      {!loading && hasCurrentTypeGroups && groupingReason && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-10 p-5 bg-white/60 backdrop-blur-md border border-blue-200 rounded-2xl max-w-4xl w-full shadow-lg z-10"
+        >
+          <div className="flex items-center gap-2 mb-3 text-blue-800 font-bold text-lg md:text-xl">
+            <svg
+              className="w-6 h-6 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <h3>{t("groupManage.aiThinkingProcess")}</h3>
+          </div>
+          <div className="text-sm md:text-base text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {groupingReason}
+          </div>
+        </motion.div>
       )}
 
       {/* กล่อง Group */}

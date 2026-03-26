@@ -392,8 +392,8 @@
     "timeCol": "เวลา",
     "shuttleCol": "ลูกแบต",
     "setCol": "SET",
-    "explainReasoning": "อธิบายเหตุผลการจัดกลุ่ม (Explain reasoning)",
-    "aiThinkingProcess": "เหตุผลและกระบวนการคิดของ AI"
+    "explainReasoning": "คำสั่งในการจัดกลุ่ม (AI Prompt)",
+    "aiThinkingProcess": "เหตุผลที่จัดแข่ง"
   },
   "matchRules": {
     "pageTitle": "ประเภทการแข่งขัน",

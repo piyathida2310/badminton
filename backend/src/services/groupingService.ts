@@ -83,11 +83,16 @@ export const organizeTournamentGroups = async (
             ? age1
             : `${age1}/${age2}`; // บอกอายุเป็นรายบุคคลสำหรับคู่ เช่น 40/42
 
+        const teamName = reg.teamName 
+            ? reg.teamName 
+            : (reg.player2Name ? `${reg.player1Name} & ${reg.player2Name}` : (reg.player1Name || "Unnamed Team"));
+
         return {
             id: reg.id,
             score: reg.score ?? 0,
             comment: reg.comment ?? "",
             age,
+            teamName,
             gender:
                 tournament.playType === "SINGLE"
                     ? reg.player1Gender ?? "Unknown"

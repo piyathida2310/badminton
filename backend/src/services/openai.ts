@@ -6,6 +6,7 @@ export interface Player {
   gender: string;
   comment: string;
   age: number | string;
+  teamName: string;
 }
 
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -98,14 +99,14 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, lan
     function: {
       name: "assign_groups",
       description:
-        "จัดกลุ่มทีมแบดมินตันตามเงื่อนไขที่ผู้ใช้กำหนด " +
+        "จัดกลุ่มทีมแบดมินตันพร้อมอธิบายเหตุผลของแต่ละกลุ่ม " +
         "ต้องใส่ ID จริงทุกตัว ห้ามซ้ำ ห้ามหาย กระจายผู้เล่นให้แต่ละกลุ่มมีจำนวนเท่าๆ กันหรือใกล้เคียงกันที่สุด",
       parameters: {
         type: "object",
         properties: {
           thinking_process: {
             type: "string",
-            description: `อธิบายวิธีการคิดและการแจกจ่าย ID ผู้เล่นอย่างเป็นลำดับขั้นตอน (Step-by-step) โดยให้จดลิสต์ ID ทั้งหมดที่ว่างอยู่ แล้วหักออกทีละตัวเมื่อนำไปจัดเข้ากลุ่ม เพื่อทำตัวเป็นกระดาษทดป้องกันการเติม ID ซ้ำอย่างเด็ดขาด! (CRITICAL: You must write this field entirely in ${language === "en" ? "English" : "Thai"}!)`,
+            description: `อธิบายเหตุผลการแบ่งกลุ่มสำหรับทุกกลุ่ม โดยต้องลิสต์ "ชื่อชื่อทีม (Team Name)" ทุกตัวลงไป และบอกว่าทำไมทีมเหล่านี้ถึงได้อยู่ร่วมกัน (ตัวอย่าง: 'กลุ่ม A ประกอบไปด้วยทีมพี่ใหญ่ [ทีม 1], [ทีม 2] ...', ส่วนที่เหลือกระจายคะแนนให้เท่ากัน') ห้ามใส่ ID เด็ดขาด (CRITICAL: You must write this field entirely in ${language === "en" ? "English" : "Thai"}!)`,
           },
           interpreted: {
             type: "string",
@@ -135,7 +136,7 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, lan
 // ──────────────────────────────────────────────
 const refinePrompt = async (rawDetail: string, numGroups: number): Promise<string> => {
   if (!rawDetail || rawDetail.trim() === "") return "";
-  
+
   const systemMessage = `
 คุณคือนักเขียน Prompt และล่ามแปลภาษา หน้าที่ของคุณคือรับคำสั่งแบบสั้นๆ หรือแบบกำกวมจากผู้ใช้ (ไม่ว่าจะเป็นภาษาไทยหรืออังกฤษ)
 และแปลงให้เป็น "คำสั่งวิเคราะห์ภาษาไทยที่ชัดเจน เป็นขั้นเป็นตอน และเข้ากับกฎระบบจัดกลุ่มแบดมินตัน" เพื่อไปส่งต่อ โดยมีกฎดังนี้:
@@ -155,7 +156,7 @@ const refinePrompt = async (rawDetail: string, numGroups: number): Promise<strin
       ],
       temperature: 0.1,
     });
-    
+
     return res.choices[0]?.message?.content?.trim() || rawDetail;
   } catch (error) {
     console.error("[refinePrompt error]:", error);
@@ -184,14 +185,14 @@ export const groupPlayers = async (
   const teamList = players
     .map(
       (p) =>
-        `ID:${p.id} | Gender:${normalizeGender(p.gender)} | Score:${p.score} | Age:${p.age} | Note:${p.comment || "-"}`
+        `ทีม: [${p.teamName}] (ID:${p.id}) | Gender:${normalizeGender(p.gender)} | Score:${p.score} | Age:${p.age} | Note:${p.comment || "-"}`
     )
     .join("\n");
 
   // ranked list สำหรับอ้างอิงการเรียงคะแนน
   const rankedList = [...players]
     .sort((a, b) => b.score - a.score)
-    .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score} Age:${p.age}`)
+    .map((p, i) => `อันดับ ${i + 1}: [${p.teamName}] ID:${p.id} Score:${p.score} Age:${p.age}`)
     .join("\n");
 
   // Helper ฟังก์ชันสำหรับรวมตัวเลขอายุ กรณีเป็น "40/42"
@@ -204,7 +205,7 @@ export const groupPlayers = async (
   // โพย: รายชื่อลูกค้าเรียงลำดับตามอายุ จาก มากไปน้อย (Oldest to Youngest)
   const rankedByAgeDescList = [...players]
     .sort((a, b) => getAgeSum(b.age) - getAgeSum(a.age))
-    .map((p, i) => `อันดับ ${i + 1}: ID:${p.id} Score:${p.score} Age:${p.age} (ผลรวมอายุ:${getAgeSum(p.age)})`)
+    .map((p, i) => `อันดับ ${i + 1}: [${p.teamName}] ID:${p.id} Score:${p.score} Age:${p.age} (ผลรวมอายุ:${getAgeSum(p.age)})`)
     .join("\n");
 
 
@@ -212,7 +213,11 @@ export const groupPlayers = async (
 
   const systemPrompt = `
 คุณคือระบบจัดกลุ่มทีมแบดมินตัน
-**สำคัญมาก: คุณต้องเขียนอธิบายกระบวนการและเหตุผลทั้งหมดลงในช่อง \`thinking_process\` ด้วยภาษา${language === "en" ? "อังกฤษ (English)" : "ไทย (Thai)"} เท่านั้น!**
+**สำคัญมาก (CRITICAL RULES):**
+1. **ห้ามระบุเลข ID ในช่อง \`thinking_process\` และ \`interpreted\` โดยเด็ดขาด!** ให้เปลี่ยนไปใช้ "ชื่อทีม (Team Name)" แทนเสมอ
+2. **คุณต้องระบุ "รายชื่อทีม" ทุกกลุ่มลงในเหตุผล** โดยเลือกอ้างอิงชื่อทีมในก้ามปู เช่น "[ชื่อทีม]" (ตัวอย่าง: "กลุ่ม A ประกอบไปด้วยทีมอายุน้อยที่สุด 4 ทีมคือ [ทีม ก], [ทีม ข], [ทีม ค] และ [ทีม ง]")
+3. **ห้ามใช้คำศัพท์เทคนิค** เช่น "Pool" หรือ "Candidate" หรือคำเชิงโปรแกรมมิ่งในช่องที่ผู้ใช้มองเห็น
+4. **ใช้ภาษา${language === "en" ? "อังกฤษ (English)" : "ไทย (Thai)"} เท่านั้น!** ในการอธิบายเหตุผล
 
 ═══════════════════════════════════════
 กฎตายตัว (ห้ามฝ่าฝืนเด็ดขาด):
@@ -336,9 +341,21 @@ ${lastError}
     try {
       const result = validateGroups(players, numGroups, parsed);
       console.log(`[groupPlayers] interpreted: ${parsed.interpreted}`);
+
+      let refinedReason = (parsed.thinking_process || "").trim();
+      if (requireReason && refinedReason) {
+        // Post-process: Replace ID:XX or ID XX with [TeamName]
+        players.forEach((p) => {
+          const idPattern1 = new RegExp(`ID\\s*:\\s*${p.id}\\b`, "gi");
+          const idPattern2 = new RegExp(`ID\\s+${p.id}\\b`, "gi");
+          refinedReason = refinedReason.replace(idPattern1, `ทีม [${p.teamName}]`);
+          refinedReason = refinedReason.replace(idPattern2, `ทีม [${p.teamName}]`);
+        });
+      }
+
       return {
         groups: result,
-        reason: requireReason ? parsed.thinking_process : ""
+        reason: requireReason ? refinedReason : ""
       };
     } catch (e: any) {
       lastError = e?.message || "validate failed";
