@@ -9,7 +9,7 @@ export type Language = "th" | "en";
 interface LanguageContextProps {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string) => any;
 }
 
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
@@ -33,9 +33,9 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // คง API เดิม t("section.key") ไว้ → ทุก component ไม่ต้องแก้
-  const t = (path: string): string => {
-    const result = i18nT(path);
-    // ถ้าไม่เจอ key คืน path เดิม (เหมือน custom เดิม)
+  // รองรับทั้ง string และ array (เช่น defaultRules, rankHeadings)
+  const t = (path: string): any => {
+    const result = i18nT(path, { returnObjects: true }) as any;
     return result === path ? path : result;
   };
 
