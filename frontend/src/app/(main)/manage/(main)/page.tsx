@@ -37,7 +37,7 @@ export default function TournamentPage() {
 
   //  โหลดข้อมูลจาก backend แบบมี pagination
   const fetchTournament = async (page = 1) => {
-    const res = await axios.get(`/api/tournament?page=${page}&limit=${limit}`);
+    const res = await axios.get(`/api/tournament?page=${page}&limit=${limit}&myOnly=true`);
 
     setTournaments(res.data.data || []);
 

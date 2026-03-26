@@ -211,12 +211,24 @@ export const getTournaments = async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 6;
     const skip = (page - 1) * limit;
+    const myOnly = req.query.myOnly === "true";
 
-    const total = await prisma.tournament.count({
-      where: { organizerId: Number(req.user.sub) },
-    });
+    // 1) Define "where" clause based on myOnly flag
+    const where: any = {};
+    if (myOnly && req.user?.sub) {
+      where.organizerId = Number(req.user.sub);
+    }
+    // Only show non-cancelled tournaments to users unless they are looking at their own
+    if (!myOnly) {
+      where.isCancel = false;
+    }
 
+    // 2) Count total documents matching the criteria
+    const total = await prisma.tournament.count({ where });
+
+    // 3) Fetch the actual data with the same criteria
     const data = await prisma.tournament.findMany({
+      where,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
