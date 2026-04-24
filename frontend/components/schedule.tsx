@@ -139,10 +139,10 @@ export default function Schedule({
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-[90%] max-w-4xl mx-auto bg-gradient-to-br from-[#FFF8FA] via-[#FFFDF9] to-[#FFF8F5]
-        rounded-3xl p-5 text-slate-800 mt-8 mb-4 shadow-md border border-pink-100"
+        className="w-[90%] max-w-4xl mx-auto bg-gradient-to-br from-[#2ED3B7]/10 via-white to-[#194185]/5
+        rounded-3xl p-5 text-slate-800 mt-8 mb-4 shadow-md border border-[#194185]/10"
       >
-        <h1 className="text-[30px] font-bold text-center mb-1">
+        <h1 className="text-[30px] font-bold text-center mb-1 text-[#194185]">
           {t('manageMatch.scheduleTitle')}
         </h1>
 
@@ -154,19 +154,19 @@ export default function Schedule({
               setEditIndex(null);
               setEditingCompetID(null);
             }}
-            className="bg-[#EDE9FE] hover:bg-[#F3E8FF] text-violet-700 font-semibold 
-            rounded-lg text-xs px-4 py-1.5 flex items-center gap-1"
+            className="bg-[#2ED3B7]/10 hover:bg-[#2ED3B7]/20 text-[#194185] font-semibold 
+            rounded-lg text-xs px-4 py-1.5 flex items-center gap-1 transition-colors"
           >
             <Plus size={20} /> {t('manageMatch.addRound')}
           </button>
         </div>
 
         <div
-          className="border-2 border-[#F9CCE3] rounded-xl 
+          className="border-2 border-[#194185]/20 rounded-xl 
           overflow-y-auto max-h-[55vh]
-          scrollbar-thin scrollbar-thumb-[#f0a2c4]/50 hover:scrollbar-thumb-[#fbc2eb]"
+          scrollbar-thin scrollbar-thumb-[#194185]/20 hover:scrollbar-thumb-[#194185]/40"
         >
-          <div className="grid grid-cols-2 text-sm sm:text-base font-bold text-center bg-[#F9E0EC] border-b-2 border-[#F9CCE3] py-2">
+          <div className="grid grid-cols-2 text-sm sm:text-base font-bold text-center bg-[#194185]/10 border-b-2 border-[#194185]/20 py-2 text-[#194185]">
             <div>{t('manageMatch.estTime')}</div>
             <div>{t('manageMatch.scheduleDesc')}</div>
           </div>
@@ -179,8 +179,8 @@ export default function Schedule({
             displayRounds.map((r: any, index: number) => (
               <div
                 key={r.id || index}
-                className={`grid grid-cols-2 items-center py-4 px-4 border-t hover:bg-pink-50
-                ${index % 2 === 0 ? "bg-[#FFF9FC]" : "bg-[#FFFDFE]"}`}
+                className={`grid grid-cols-2 items-center py-4 px-4 border-t hover:bg-[#2ED3B7]/10
+                ${index % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"}`}
               >
                 {/* เวลา */}
                 <div className="flex flex-col items-center border-r">
@@ -189,7 +189,7 @@ export default function Schedule({
                   </span>
 
                   <button
-                    className="mt-2 text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300"
+                    className="mt-2 text-xs px-2 py-1 bg-[#2ED3B7]/20 text-[#194185] rounded-lg hover:bg-[#2ED3B7]/30 transition-colors font-medium"
                     onClick={() => {
                       if (tournamentID) {
                         setEditingCompetID(r.id);
@@ -216,7 +216,7 @@ export default function Schedule({
                       {(r.rank || r.levels).map((lv: any, i: number) => (
                         <span
                           key={i}
-                          className="px-2.5 py-0.5 rounded-full text-[13px] bg-[#f1f9c1] border"
+                          className="px-2.5 py-0.5 rounded-full text-[13px] bg-[#2ED3B7]/10 border border-[#2ED3B7]/30 text-[#194185] font-medium"
                         >
                           {formatRank(lv)}
                         </span>
@@ -268,7 +268,7 @@ export default function Schedule({
                 onFinalSubmit();
               }
             }}
-            className="px-10 py-2.5 rounded-2xl bg-[#b3e5fc] hover:bg-[#7ccff5]"
+            className="px-10 py-2.5 rounded-2xl bg-[#194185] text-white hover:bg-[#2ED3B7] shadow-lg shadow-[#194185]/20"
           >
             {t('manageMatch.register')}
           </motion.button>
@@ -289,10 +289,10 @@ export default function Schedule({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gradient-to-br from-pink-100 via-pink-200 to-yellow-100 
-              border rounded-xl p-6 w-[95%] max-w-md text-slate-700"
+              className="bg-gradient-to-br from-[#2ED3B7]/10 to-white 
+              border border-[#2ED3B7]/30 rounded-xl p-6 w-[95%] max-w-md text-slate-700 shadow-2xl"
             >
-              <h2 className="text-lg font-bold mb-4 text-center">
+              <h2 className="text-lg font-bold mb-4 text-center text-[#194185]">
                 {editingCompetID !== null
                   ? t('manageMatch.editRoundModal')
                   : t('manageMatch.addRoundModal')}
@@ -338,11 +338,11 @@ export default function Schedule({
                                 : [...prev, value]
                             )
                           }
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border 
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
         ${safeLevels.includes(value)
-                              ? "bg-pink-200 border-pink-300"
-                              : "bg-white border-gray-300"
-                            }`}
+                                ? "bg-[#2ED3B7] border-[#2ED3B7] text-[#194185]"
+                                : "bg-white border-gray-300 text-gray-600"
+                              }`}
                         >
                           {label}
                         </button>
@@ -356,7 +356,7 @@ export default function Schedule({
                 <button
                   type="button"
                   onClick={handleSubmitCom}
-                  className="px-6 py-2 rounded-lg bg-pink-200 hover:bg-pink-300"
+                  className="px-6 py-2 rounded-lg bg-[#194185] text-white hover:bg-[#2ED3B7] shadow-md transition-all font-bold"
                 >
                   {editingCompetID !== null ? t('manageMatch.saveChanges') : t('manageMatch.save')}
                 </button>

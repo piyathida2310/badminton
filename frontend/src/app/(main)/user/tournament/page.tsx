@@ -75,10 +75,10 @@ export default function TournamentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10">
+    <main className="min-h-screen bg-[#2ED3B7]/5 px-6 py-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-center items-center mb-10 gap-4">
-        <h1 className="text-3xl font-extrabold text-center text-[#0040C1]">
+        <h1 className="text-3xl font-extrabold text-center text-[#194185]">
           {t('tournament.pageTitle')}
         </h1>
       </div>
@@ -143,7 +143,7 @@ export default function TournamentPage() {
                         localStorage.setItem("selectedTournamentId", item.id.toString());
                         router.push(`/user/tournament/${item.id}/match-rules`);
                       }}
-                      className="text-base sm:text-lg font-semibold text-[#0040C1] mb-1 transition-colors cursor-pointer"
+                      className="text-base sm:text-lg font-semibold text-[#194185] mb-1 transition-colors cursor-pointer"
                     >
                       {item.title}
                     </h2>
@@ -167,7 +167,7 @@ export default function TournamentPage() {
                           disabled={isDisabled}
                           className={`w-full py-2 rounded-lg font-medium text-sm shadow-sm transition-all ${isDisabled
                             ? "bg-gray-400 cursor-not-allowed text-gray-200"
-                            : "bg-[#0040C1] hover:bg-[#2ED3B7] text-white"
+                            : "bg-[#194185] hover:bg-[#2ED3B7] text-white"
                             }`}
                         >
                           {item.canceled
@@ -193,7 +193,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(Math.max(currentPage - 1, 1))}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === 1
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
+                : "bg-[#194185] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('tournament.prev')}
@@ -204,7 +204,7 @@ export default function TournamentPage() {
                 key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${currentPage === i + 1
-                  ? "bg-[#2ED3B7] text-white"
+                  ? "bg-[#2ED3B7] text-[#194185]"
                   : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                   }`}
               >
@@ -217,7 +217,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === totalPages
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
+                : "bg-[#194185] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('tournament.next')}

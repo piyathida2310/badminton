@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import api from "../../../../../../lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function TournamentGroupPage() {
+  const { id } = useParams();
   const router = useRouter();
   const { language, t } = useLanguage();
   const gm = {
@@ -109,10 +110,10 @@ export default function TournamentGroupPage() {
   const hasCurrentTypeGroups = filteredGroups.length > 0;
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
       {/* พื้นหลังตกแต่ง */}
-      <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-blue-200/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-yellow-200/30 rounded-full blur-3xl"></div>
+      <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-[#2ED3B7]/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-[#194185]/5 rounded-full blur-3xl"></div>
 
       {/* ส่วนหัว */}
       <motion.div
@@ -121,7 +122,7 @@ export default function TournamentGroupPage() {
         transition={{ duration: 0.8 }}
         className="text-center mb-10 z-10"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#194185] drop-shadow-sm leading-snug">
           {gm.pageTitle} {tournamentTitle || "-"} {gm.type}{" "}
           {matchType === "single" ? gm.single : gm.double}{" "}
           {totalTeams > 0 && `${totalTeams} ${gm.teamLabel}`}
@@ -132,16 +133,16 @@ export default function TournamentGroupPage() {
           {/* แสดงประเภทเดี่ยว/คู่ (read-only จาก API) */}
           <span
             className={`px-5 py-2 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 ${matchType === "single"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-white text-blue-700 border border-blue-300 opacity-50"
+              ? "bg-[#194185] text-white shadow-md"
+              : "bg-white text-[#194185] border border-[#194185]/30 opacity-50"
               }`}
           >
             {gm.type} {gm.single}
           </span>
           <span
             className={`px-5 py-2 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 ${matchType === "double"
-              ? "bg-amber-500 text-white shadow-md"
-              : "bg-white text-amber-600 border border-amber-300 opacity-50"
+              ? "bg-[#2ED3B7] text-[#194185] shadow-md"
+              : "bg-white text-[#2ED3B7] border border-[#2ED3B7]/30 opacity-50"
               }`}
           >
             {gm.type} {gm.double}
@@ -152,7 +153,7 @@ export default function TournamentGroupPage() {
             <select
               value={selectedHandType}
               onChange={(e) => setSelectedHandType(e.target.value)}
-              className="px-4 py-2 rounded-full border border-gray-300 text-gray-700 font-medium text-sm sm:text-base shadow-sm focus:ring-2 focus:ring-blue-300 transition-all duration-300 bg-white"
+              className="px-4 py-2 rounded-full border border-gray-300 text-[#194185] font-medium text-sm sm:text-base shadow-sm focus:ring-2 focus:ring-[#2ED3B7] transition-all duration-300 bg-white outline-none"
             >
               {availableRanks.map((type) => (
                 <option key={type} value={type}>
@@ -170,7 +171,7 @@ export default function TournamentGroupPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 text-blue-600 font-semibold z-10 mb-10">
+        <div className="flex items-center gap-2 text-[#194185] font-semibold z-10 mb-10">
           <svg
             className="animate-spin h-5 w-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -202,7 +203,7 @@ export default function TournamentGroupPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="mb-10 p-5 bg-white/60 backdrop-blur-md border border-blue-200 rounded-2xl max-w-4xl w-full shadow-lg z-10"
         >
-          <div className="flex items-center gap-2 mb-3 text-blue-800 font-bold text-lg md:text-xl">
+          <div className="flex items-center gap-2 mb-3 text-[#194185] font-bold text-lg md:text-xl">
             <svg
               className="w-6 h-6 flex-shrink-0"
               fill="currentColor"
@@ -236,20 +237,20 @@ export default function TournamentGroupPage() {
               { color: string; header: string }
             > = {
               "Group A": {
-                color: "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
-                header: "bg-yellow-400/80 text-yellow-900",
+                color: "from-[#194185]/5 to-white border-[#194185]/10 shadow-[#194185]/5",
+                header: "bg-[#194185]/80 text-white",
               },
               "Group B": {
-                color: "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
-                header: "bg-blue-400/80 text-blue-900",
+                color: "from-[#2ED3B7]/5 to-white border-[#2ED3B7]/10 shadow-[#2ED3B7]/5",
+                header: "bg-[#2ED3B7]/60 text-[#194185]",
               },
               "Group C": {
-                color: "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
-                header: "bg-pink-400/80 text-pink-900",
+                color: "from-[#194185]/5 to-white border-[#194185]/15 shadow-[#194185]/5",
+                header: "bg-[#194185]/70 text-white",
               },
               "Group D": {
-                color: "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
-                header: "bg-green-400/80 text-green-900",
+                color: "from-[#2ED3B7]/5 to-white border-[#2ED3B7]/15 shadow-[#2ED3B7]/5",
+                header: "bg-[#2ED3B7]/50 text-[#194185]",
               },
             };
 
@@ -265,7 +266,7 @@ export default function TournamentGroupPage() {
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 onClick={() =>
                   router.push(
-                    `/user/group/group-scores?group=${encodeURIComponent(
+                    `/user/tournament/${id}/group/group-scores?group=${encodeURIComponent(
                       group.name
                     )}`
                   )

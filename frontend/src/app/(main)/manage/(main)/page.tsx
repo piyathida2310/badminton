@@ -62,7 +62,7 @@ export default function TournamentPage() {
       showCancelButton: true,
       confirmButtonText: "ตกลง",
       cancelButtonText: "ยกเลิก",
-      confirmButtonColor: "#10b981",
+      confirmButtonColor: "#194185",
       cancelButtonColor: "#6b7280",
     });
 
@@ -77,7 +77,7 @@ export default function TournamentPage() {
         text: `Rank ${formatRank(rank)} ถูกยกเลิกเรียบร้อยแล้ว`,
         icon: "success",
         confirmButtonText: "ตกลง",
-        confirmButtonColor: "#10b981"
+        confirmButtonColor: "#194185"
       });
 
     } catch (error: any) {
@@ -101,7 +101,7 @@ export default function TournamentPage() {
       showCancelButton: true,
       confirmButtonText: "ตกลง",
       cancelButtonText: "ยกเลิก",
-      confirmButtonColor: "#10b981", // สีเขียว (emerald green)
+      confirmButtonColor: "#194185", // สีเขียว (emerald green)
       cancelButtonColor: "#6b7280",
     });
 
@@ -117,7 +117,7 @@ export default function TournamentPage() {
         text: "รายการถูกยกเลิกเรียบร้อยแล้ว",
         icon: "success",
         confirmButtonText: "ตกลง",
-        confirmButtonColor: "#10b981"
+        confirmButtonColor: "#194185"
       });
 
     } catch (error: any) {
@@ -176,15 +176,15 @@ export default function TournamentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10">
+    <main className="min-h-screen bg-[#2ED3B7]/5 px-6 py-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0040C1] drop-shadow-sm">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#194185] drop-shadow-sm">
           {t('manage.pageTitle')}
         </h1>
         <button
           onClick={() => router.push("/manage/manage-match")}
-          className="bg-[#0040C1] text-white px-4 py-2 rounded-lg font-medium shadow-md hover:bg-[#2ED3B7] transition-all"
+          className="bg-[#194185] text-white px-4 py-2 rounded-lg font-medium shadow-md hover:bg-[#2ED3B7] transition-all"
         >
           {t('manage.createTournament')}
         </button>
@@ -197,7 +197,7 @@ export default function TournamentPage() {
             key={item.id}
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            className="relative bg-white/30 backdrop-blur-sm rounded-2xl shadow-md overflow-hidden group border border-white/20 transition-all duration-300 hover:shadow-lg hover:rotate-[0.5deg]"
+            className="relative bg-white rounded-2xl shadow-sm overflow-hidden group border border-[#2ED3B7]/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
           >
             <div
               className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
@@ -219,7 +219,7 @@ export default function TournamentPage() {
             <div className="p-4 text-center">
               <h2
                 onClick={() => rules(item.id)}
-                className="text-base sm:text-lg font-semibold text-[#0040C1] mb-1 transition-colors cursor-pointer"
+                className="text-base sm:text-lg font-semibold text-[#194185] mb-1 transition-colors cursor-pointer"
               >
                 {item.title}
               </h2>
@@ -237,7 +237,7 @@ export default function TournamentPage() {
                       onClick={item.IsOwner && isActive ? () => handleCancelRank(item.id, r) : undefined}
                       className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
                         ${isActive
-                          ? "bg-[#0040C1]/10 text-[#0040C1] hover:bg-[#0040C1]/20"
+                          ? "bg-[#194185]/10 text-[#194185] hover:bg-[#194185]/20"
                           : "bg-red-50 text-red-600 cursor-not-allowed"}
                       `}
                       title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
@@ -252,7 +252,7 @@ export default function TournamentPage() {
               <button
                 disabled={item.canceled}
                 onClick={item.IsOwner ? () => handleCancel(item.id) : () => null}
-                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${item.IsOwner ? item.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-[#0040C1] hover:bg-[#2ED3B7] text-white"
+                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${item.IsOwner ? item.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-[#194185] hover:bg-[#2ED3B7] text-white"
                   : "bg-gray-400 cursor-not-allowed text-gray-200"
                   }`}
               >
@@ -271,7 +271,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(currentPage - 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === 1
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
+                : "bg-[#194185] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('manage.prev')}
@@ -282,8 +282,8 @@ export default function TournamentPage() {
                 key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${currentPage === i + 1
-                  ? "bg-[#2ED3B7] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+                  ? "bg-[#194185] text-white border-[#194185]"
+                  : "bg-white text-gray-700 hover:bg-slate-50 border-gray-200"
                   }`}
               >
                 {i + 1}
@@ -295,7 +295,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(currentPage + 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === totalPages
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
+                : "bg-[#194185] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('manage.next')}

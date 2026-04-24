@@ -109,7 +109,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#F3F8FF] via-[#FFF4F6] to-[#FFFDF0] flex justify-center items-center">
+    <div className="h-screen overflow-hidden bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white flex justify-center items-center">
   <motion.div
     initial={{ opacity: 0, y: 25 }}
     animate={{ opacity: 1, y: 0 }}
@@ -118,7 +118,7 @@ export default function ProfilePage() {
   >
 
         {/* LEFT SIDE: AVATAR */}
-        <div className=" bg-[#f1cfff]  flex flex-col items-center justify-center p-10 relative">
+        <div className=" bg-[#194185]/5 flex flex-col items-center justify-center p-10 relative">
           <div className="relative group">
             {/* ถ้ามีรูป ให้โชว์รูป */}
             {profile.avatar ? (
@@ -130,12 +130,12 @@ export default function ProfilePage() {
               />
             ) : (
               // ถ้ายังไม่มีรูป ให้โชว์ไอคอน default 
-              <div className="w-36 h-36 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-md border-4 border-white">
+              <div className="w-36 h-36 rounded-full bg-gradient-to-br from-[#194185]/10 to-[#194185]/20 flex items-center justify-center shadow-md border-4 border-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  fill="#9ca3af"
+                  fill="#194185"
                   viewBox="0 0 24 24"
-                  className="w-16 h-16"
+                  className="w-16 h-16 opacity-30"
                 >
                   <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
                 </svg>
@@ -153,14 +153,14 @@ export default function ProfilePage() {
             />
             <label
               htmlFor="avatar"
-              className={`absolute bottom-2 right-2 bg-white/90 border border-pink-200 p-2 rounded-full shadow-sm cursor-pointer transition ${
-                uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-pink-50"
+              className={`absolute bottom-2 right-2 bg-white/90 border border-[#194185]/10 p-2 rounded-full shadow-sm cursor-pointer transition ${
+                uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2ED3B7]/10"
               }`}
             >
               {uploading ? (
-                <div className="w-4 h-4 border-2 border-pink-300 border-t-pink-500 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-[#2ED3B7] border-t-[#194185] rounded-full animate-spin"></div>
               ) : (
-                <Upload size={18} className="text-pink-500" />
+                <Upload size={18} className="text-[#194185]" />
               )}
             </label>
           </div>
@@ -169,11 +169,11 @@ export default function ProfilePage() {
         {/* RIGHT SIDE: INFO */}
         <div className="flex-1 p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-[#194185] flex items-center gap-2">
               {t('profile.title')}
               <Edit3
                 size={18}
-                className="text-pink-400 cursor-pointer hover:text-pink-500 transition"
+                className="text-[#2ED3B7] cursor-pointer hover:text-[#2ED3B7]/80 transition"
                 onClick={() => setIsEditing(!isEditing)}
               />
             </h2>
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleUpdate}
                 className="flex items-center justify-center gap-2 px-6 py-2.5 
-                bg-gradient-to-r from-[#D8EEFF] to-[#C5E4FF] text-gray-800 font-medium rounded-xl shadow-sm 
+                bg-[#194185] text-white font-bold rounded-xl shadow-sm 
                 hover:shadow-md transition"
               >
                 <Save size={18} />
@@ -206,7 +206,7 @@ export default function ProfilePage() {
               whileTap={{ scale: 0.97 }}
               onClick={handleLogout}
               className="flex items-center justify-center gap-2 px-6 py-2.5 
-              bg-gradient-to-r from-[#FFD6E0] to-[#FFB6C1] text-gray-700 font-medium rounded-xl shadow-sm 
+              bg-[#ef4444] text-white font-bold rounded-xl shadow-sm 
               hover:shadow-md transition"
             >
               <LogOut size={18} />
@@ -232,18 +232,18 @@ function ProfileField({
   onChange?: (v: string) => void;
 }) {
   return (
-    <div className="border-b border-pink-200/50 pb-3 mb-4">
-      <span className="text-gray-600 text-sm block mb-1">{label}</span>
+    <div className="border-b border-[#194185]/10 pb-3 mb-4">
+      <span className="text-[#194185]/60 text-sm block mb-1">{label}</span>
       {editable ? (
         <input
           type="text"
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
-          className="w-full bg-transparent border-none border-b border-pink-200/70 focus:border-pink-400 
-          focus:ring-0 text-gray-800 py-1 outline-none transition"
+          className="w-full bg-transparent border-none border-b border-[#194185]/20 focus:border-[#2ED3B7] 
+          focus:ring-0 text-[#194185] py-1 outline-none transition font-medium"
         />
       ) : (
-        <span className="text-gray-800 font-medium">{value}</span>
+        <span className="text-[#194185] font-bold">{value}</span>
       )}
     </div>
   );

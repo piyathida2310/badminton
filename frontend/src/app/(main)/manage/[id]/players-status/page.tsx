@@ -85,7 +85,7 @@ const evaluationStatusLabel: Record<EvaluationStatus, string> = {
 
 const evaluationStatusColor: Record<EvaluationStatus, string> = {
   WAITING: "text-gray-500",
-  PASSED: "text-green-600",
+  PASSED: "text-[#10B981]",
   FAILED: "text-red-500",
 };
 
@@ -97,7 +97,7 @@ const paymentStatusLabel: Record<PaymentStatus, string> = {
 
 const paymentStatusColor: Record<PaymentStatus, string> = {
   PENDING: "text-gray-500",
-  CONFIRMED: "text-green-600",
+  CONFIRMED: "text-[#10B981]",
   REJECTED: "text-red-500",
 };
 
@@ -434,6 +434,8 @@ export default function RegisterStatusPage() {
     }
   };
 
+
+
   const filteredPlayers = players.filter((p) => {
     const rankMatch = !selectedRank || p.rank === selectedRank;
     const typeMatch = !selectedType || p.typeRaw === selectedType;
@@ -451,8 +453,8 @@ export default function RegisterStatusPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF] py-10 px-4 sm:px-6 text-[#2F3E46]">
-      <h1 className="text-center text-3xl sm:text-4xl font-bold mb-10 text-[#1E293B] drop-shadow-sm">
+    <div className="min-h-screen bg-[#2ED3B7]/5 py-10 px-4 sm:px-6 text-slate-800">
+      <h1 className="text-center text-3xl sm:text-4xl font-extrabold mb-10 text-[#194185] drop-shadow-sm">
         {t('status.pageTitle')}
       </h1>
 
@@ -460,11 +462,11 @@ export default function RegisterStatusPage() {
       {!error && (
         <div className="max-w-6xl mx-auto mb-8 flex flex-wrap justify-center gap-4">
           <div className="flex items-center gap-2 text-sm sm:text-base">
-            <label className="font-medium text-[#334155]">{t('status.rankType')}</label>
+            <label className="font-medium text-[#194185]">{t('status.rankType')}</label>
             <select
               value={selectedRank}
               onChange={(e) => setSelectedRank(e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
+              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-[#2ED3B7]"
             >
 
               {rankOptions.map((r) => (
@@ -476,11 +478,11 @@ export default function RegisterStatusPage() {
           </div>
 
           <div className="flex items-center gap-2 text-sm sm:text-base">
-            <label className="font-medium text-[#334155]">{t('status.type')}</label>
+            <label className="font-medium text-[#194185]">{t('status.type')}</label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
+              className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-[#2ED3B7]"
             >
 
               {typeOptions.map((tRaw) => (
@@ -523,19 +525,19 @@ export default function RegisterStatusPage() {
         {Object.entries(groupedPlayers).map(([teamName, members]) => (
           <div
             key={teamName}
-            className="rounded-2xl shadow-lg border border-slate-200 bg-gradient-to-br from-[#FFFFFF] to-[#E6F3F9] backdrop-blur-sm"
+            className="rounded-2xl shadow-lg border border-slate-100 bg-white overflow-hidden"
           >
             {/* หัวทีม */}
-            <div className="relative rounded-t-2xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
-              <div className="relative py-3 text-center text-base sm:text-xl font-semibold text-white tracking-wide z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#194185]" />
+              <div className="relative py-3 text-center text-base sm:text-xl font-bold text-white tracking-wide z-10">
                 {t('status.team')} {teamName}
               </div>
             </div>
 
             <div className="overflow-x-auto rounded-b-2xl">
               <table className="w-full border-collapse text-sm md:text-base text-center min-w-[600px]">
-                <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
+                <thead className="bg-[#194185]/5 text-[#194185] font-bold">
                   <tr>
                     <th className="border p-2">{t('status.name')}</th>
                     <th className="border p-2">{t('status.gender')}</th>
@@ -600,13 +602,13 @@ export default function RegisterStatusPage() {
                               setSelectedPlayerIndex(safeIndex);
                             }}
                             disabled={!hasVideo || p.status === "PASSED" || p.status === "FAILED"}
-                            className={`whitespace-nowrap px-3 py-1 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                            className={`whitespace-nowrap px-3 py-1 bg-[#194185] text-white rounded-md shadow-sm ${hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
                             {t('playersStatus.watchVideo')}
                           </button>
                         </td>
-                        <td className="border p-2 text-pink-700 font-semibold">
+                        <td className="border p-2 text-[#194185] font-bold">
                           {p.score !== undefined && p.score !== null ? `${p.score} / 10` : "-"}
                         </td>
                         <td className="border p-2">
@@ -634,7 +636,7 @@ export default function RegisterStatusPage() {
                                     e.preventDefault();
                                     handleStatusChange(safeIndex, "status", "PASSED");
                                   }}
-                                  className="px-3 py-1 rounded-lg shadow-sm bg-green-100 text-green-700 hover:bg-green-200"
+                                  className="px-3 py-1 rounded-lg shadow-sm bg-[#2ED3B7]/20 text-[#194185] hover:bg-[#2ED3B7]/40"
                                 >
                                   {t('playersStatus.confirm')}
                                 </button>
@@ -656,7 +658,7 @@ export default function RegisterStatusPage() {
                           <button
                             onClick={() => hasSlip && setModalImage(p.slipUrl || null)}
                             disabled={!hasSlip}
-                            className={`px-3 py-1 bg-gradient-to-r from-[#a882f5] to-[#c874d6] text-white rounded-md shadow-sm ${hasSlip ? "hover:opacity-90" : "opacity-50 cursor-not-allowed"
+                            className={`px-3 py-1 bg-[#2ED3B7] text-[#194185] rounded-md shadow-sm ${hasSlip ? "hover:opacity-90 font-bold" : "opacity-50 cursor-not-allowed"
                               }`}
                           >
                             {t('playersStatus.viewImage')}
@@ -738,7 +740,7 @@ export default function RegisterStatusPage() {
                                 <button
                                   onClick={() => handleRefundAction(safeIndex, "REFUNDED")}
                                   disabled={refunding}
-                                  className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 shadow-sm disabled:opacity-50 min-w-[70px] transition-colors"
+                                  className="px-3 py-1.5 bg-[#2ED3B7]/20 text-[#194185] rounded-lg text-xs font-semibold hover:bg-[#2ED3B7]/40 shadow-sm disabled:opacity-50 min-w-[70px] transition-colors"
                                 >
                                   {t('playersStatus.refund')}
                                 </button>
@@ -793,7 +795,7 @@ export default function RegisterStatusPage() {
               </div>
 
               <div className="text-center">
-                <p className="mb-2 font-semibold text-pink-700">
+                <p className="mb-2 font-semibold text-[#194185]">
                   {t('playersStatus.rateVideo')}
                 </p>
 
@@ -803,8 +805,8 @@ export default function RegisterStatusPage() {
                       key={idx}
                       onClick={() => setVideoScore(idx + 1)}
                       className={`w-8 h-8 rounded-full border ${videoScore === idx + 1
-                        ? "bg-pink-500 text-white"
-                        : "bg-white hover:bg-pink-100"
+                        ? "bg-[#194185] text-white"
+                        : "bg-white hover:bg-[#2ED3B7]/20"
                         }`}
                     >
                       {idx + 1}
@@ -816,7 +818,7 @@ export default function RegisterStatusPage() {
                   onClick={handleConfirmScore}
                   disabled={videoScore === 0}
                   className={`mt-4 px-6 py-2 rounded-lg text-white font-semibold transition-all ${videoScore > 0
-                    ? "bg-pink-500 hover:bg-pink-600"
+                    ? "bg-[#194185] hover:bg-[#2ED3B7]"
                     : "bg-gray-300 cursor-not-allowed"
                     }`}
                 >

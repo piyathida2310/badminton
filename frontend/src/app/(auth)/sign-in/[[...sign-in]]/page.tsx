@@ -107,7 +107,7 @@ return (
      <h1
   className="
     text-[45px] font-extrabold font-prompt tracking-wide
-    text-[#0040C1]
+    text-[#194185]
     drop-shadow-sm
   "
 >
@@ -138,19 +138,19 @@ return (
                     padding: "0.6rem",
                     fontSize: "0.95rem",
                     transition: "0.2s",
-                    "&:hover": { backgroundColor: "#F8FAFC", borderColor: "#0040C1" },
+                    "&:hover": { backgroundColor: "#F8FAFC", borderColor: "#194185" },
                   },
 
                   // Continue button
                   formButtonPrimary: {
-                    backgroundColor: "#0040C1",
+                    backgroundColor: "#194185",
                     color: "white",
                     fontWeight: "700",
                     borderRadius: "0.9rem",
                     padding: "0.7rem 1.1rem",
                     fontSize: "1rem",
                     letterSpacing: "0.3px",
-                    boxShadow: "0 4px 12px rgba(0, 64, 193, 0.2)",
+                    boxShadow: "0 4px 12px rgba(25, 65, 133, 0.2)",
                     "&:hover": { backgroundColor: "#2ED3B7", transform: "scale(1.03)" },
                   },
 
@@ -161,8 +161,8 @@ return (
                     borderRadius: "0.8rem",
                     padding: "0.7rem",
                     "&:focus": {
-                      borderColor: "#0040C1",
-                      boxShadow: "0 0 0 3px rgba(0, 64, 193, 0.1)",
+                      borderColor: "#194185",
+                      boxShadow: "0 0 0 3px rgba(25, 65, 133, 0.1)",
                     },
                   },
 
@@ -192,7 +192,7 @@ return (
 
                   // Show password button
                   formFieldInputShowPasswordButton: {
-                    color: "#0040C1",
+                    color: "#194185",
                   },
 
                   // Footer

@@ -56,7 +56,7 @@ export default function Form({
       </div>
 
       {/* ฟอร์มเนื้อหาหลัก */}
-      <div className="p-6 grid gap-6 md:grid-cols-2 text-slate-700 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#E5D9FF] hover:scrollbar-thumb-[#F1E9FF] scrollbar-track-transparent scrollbar-thumb-rounded-full">
+      <div className="p-6 grid gap-6 md:grid-cols-2 text-slate-700 overflow-y-auto max-h-[55vh] scrollbar-thin scrollbar-thumb-[#194185]/20 hover:scrollbar-thumb-[#194185]/40 scrollbar-track-transparent scrollbar-thumb-rounded-full">
 
         {/* ฝั่งซ้าย */}
         <div className="space-y-4">
@@ -143,7 +143,7 @@ export default function Form({
           className={`w-full sm:w-auto px-10 py-2.5 rounded-2xl font-semibold text-white text-base transition-all duration-300
                   ${
                     isFormComplete && isImagesUploaded
-                      ? "bg-[#0040C1] hover:bg-[#2ED3B7] hover:scale-105"
+                      ? "bg-[#194185] hover:bg-[#2ED3B7] hover:scale-105"
                       : "bg-gray-300/50 text-gray-500 cursor-not-allowed"
                   }`}
           onClick={handleNext}
@@ -237,7 +237,7 @@ function LabeledInput({ label, type = "text", value, onChange, language }: any) 
             }}
             className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
             border border-slate-200 px-3 pl-10 placeholder:text-slate-400 
-            focus:outline-none focus:ring-2 focus:ring-[#0040C1]/20 text-sm shadow-inner cursor-pointer"
+            focus:outline-none focus:ring-2 focus:ring-[#194185]/20 text-sm shadow-inner cursor-pointer"
           />
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
@@ -250,7 +250,7 @@ function LabeledInput({ label, type = "text", value, onChange, language }: any) 
           onChange={onChange}
           className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
           border border-slate-200 px-3 placeholder:text-slate-400 
-          focus:outline-none focus:ring-2 focus:ring-[#0040C1]/20 text-sm shadow-inner"
+          focus:outline-none focus:ring-2 focus:ring-[#194185]/20 text-sm shadow-inner"
         />
       )}
     </div>
@@ -290,7 +290,7 @@ function RadioBox({ active, children, onClick }: any) {
       className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium border transition-all duration-300
         ${
           active
-            ? "bg-[#0040C1] text-white border-[#0040C1] shadow-sm"
+            ? "bg-[#194185] text-white border-[#194185] shadow-sm"
             : "bg-white/80 text-slate-600 border-slate-200 hover:bg-white/90"
         }`}
     >
@@ -328,7 +328,7 @@ function UploadPreview({ title, onUpload, preview, t }: any) {
   return (
     <label
       className="group relative flex flex-col items-center justify-center 
-      w-full rounded-2xl border-2 border-dashed border-[#0040C1]/20 
+      w-full rounded-2xl border-2 border-dashed border-[#194185]/20 
       bg-slate-50 
       hover:bg-slate-100
       cursor-pointer overflow-hidden transition-all duration-300 shadow-sm"
@@ -348,10 +348,10 @@ function UploadPreview({ title, onUpload, preview, t }: any) {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-2">
-          <div className="w-14 h-14 rounded-full bg-[#0040C1]/5 flex items-center justify-center border border-[#0040C1]/10 shadow-inner">
+          <div className="w-14 h-14 rounded-full bg-[#194185]/10 flex items-center justify-center border border-[#194185]/20 shadow-inner">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-[#0040C1]"
+              className="h-6 w-6 text-[#194185]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

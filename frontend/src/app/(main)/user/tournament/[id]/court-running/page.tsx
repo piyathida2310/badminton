@@ -12,8 +12,8 @@ export default function Home() {
   const { t } = useLanguage();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 p-6">
-      <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">
+    <main className="min-h-screen bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white p-6">
+      <h1 className="text-2xl font-bold text-center mb-4 text-[#194185]">
         {t("matchHistory.pageTitle")}
       </h1>
 

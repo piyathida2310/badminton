@@ -11,9 +11,9 @@ export function BackButton({ target }: { target: string }) {
   return (
     <button
       onClick={() => router.push(target)}
-      className="mb-6 px-6 py-2 rounded-full bg-white/80 border border-gray-300 
-      font-semibold text-gray-700 shadow-sm hover:scale-110 hover:bg-white 
-      hover:shadow-md transition"
+      className="mb-6 px-6 py-2 rounded-full bg-[#2ED3B7]/10 border border-[#194185]/20 
+      font-bold text-[#194185] shadow-sm hover:scale-110 hover:bg-[#2ED3B7]/20 
+      hover:shadow-md transition-all active:scale-95"
     >
       {backToGroupLabel}
     </button>
@@ -49,10 +49,10 @@ export function GroupTable({
   rows: any[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-sm p-5 border border-gray-200 shadow-md mb-10 transition hover:shadow-lg">
-      <h3 className="font-bold text-lg mb-3 text-gray-800">{title}</h3>
+    <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-sm p-5 border border-[#2ED3B7]/20 shadow-md mb-10 transition hover:shadow-lg">
+      <h3 className="font-bold text-lg mb-3 text-[#194185]">{title}</h3>
       <table className="w-full text-sm text-gray-700 border-collapse">
-        <thead className="bg-[#0040C1]/5 text-[#0040C1] font-semibold">
+        <thead className="bg-[#194185] text-white font-bold">
           <tr>
             {headers.map((h, i) => {
               if (h === "__MERGE__") return null;
@@ -63,7 +63,7 @@ export function GroupTable({
                 <th
                   key={i}
                   colSpan={span}
-                  className="border border-gray-200 px-3 py-2 text-center"
+                  className="border border-white/20 px-3 py-2 text-center"
                 >
                   {h}
                 </th>
@@ -78,13 +78,13 @@ export function GroupTable({
             return (
               <tr
                 key={i}
-                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
-                  } hover:bg-gray-100/60 transition`}
+                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"
+                  } hover:bg-[#2ED3B7]/5 transition`}
               >
                 {visibleCells.map((v, j) => (
                   <td
                     key={j}
-                    className={`border border-gray-200 px-3 py-2 text-center ${j === 0 ? "font-semibold text-gray-900" : ""
+                    className={`border border-[#2ED3B7]/20 px-3 py-2 text-center ${j === 0 ? "font-semibold text-[#194185]" : ""
                       } ${headers[j] === "SET"
                         ? "whitespace-nowrap font-mono min-w-[80px]"
                         : ""
@@ -115,11 +115,11 @@ export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
 
   return (
     <div className="text-center mb-8">
-      <p className="font-semibold text-[#0040C1] text-base mb-1">{gm.upperBracket}</p>
+      <p className="font-bold text-[#194185] text-base mb-1">{gm.upperBracket}</p>
       <p className="text-gray-600 text-sm mb-4">
         {gm.upperBracketDesc}
       </p>
-      <p className="font-semibold text-[#0040C1] text-base mb-1">{gm.lowerBracket}</p>
+      <p className="font-bold text-[#2ED3B7] text-base mb-1">{gm.lowerBracket}</p>
       <p className="text-gray-600 text-sm">
         {gm.lowerBracketDesc}
       </p>

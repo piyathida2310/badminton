@@ -272,8 +272,8 @@ export default function RegisterPage() {
 
   if (isFull) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6E2FF] via-[#FEE5F1] to-[#E2F1FF] p-6">
-        <div className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-xl p-8 text-center">
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#2ED3B7]/10 via-white to-[#194185]/5 p-6">
+        <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-[#2ED3B7]/20 rounded-[2rem] shadow-xl p-8 text-center">
           <h1 className="text-3xl font-extrabold text-red-500 mb-4">
             {t('signup.fullMessage')}
           </h1>
@@ -282,7 +282,7 @@ export default function RegisterPage() {
           </p>
           <button
             onClick={() => router.push("/user/tournament")}
-            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all"
+            className="bg-[#194185] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#2ED3B7] transition-all"
           >
             {t('signup.backToTournament')}
           </button>
@@ -292,13 +292,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#F6E2FF] via-[#FEE5F1] to-[#E2F1FF] p-6">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-[#2ED3B7]/10 via-white to-[#194185]/5 p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-3xl bg-white/85 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-[0_0_40px_rgba(150,100,255,0.25)] p-8 md:p-10"
+        className="w-full max-w-3xl bg-white/80 backdrop-blur-xl border border-[#2ED3B7]/20 rounded-[2rem] shadow-2xl p-8 md:p-10"
       >
         {/* Header */}
-        <h1 className="text-center text-3xl md:text-4xl font-extrabold text-[#5E4B8A] mb-10 flex items-center justify-center gap-3">
+        <h1 className="text-center text-3xl md:text-4xl font-extrabold text-[#194185] mb-10 flex items-center justify-center gap-3">
           {t('signup.pageTitle')}
         </h1>
 
@@ -311,7 +311,7 @@ export default function RegisterPage() {
             {tournamentLoading ? (
               <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
             ) : tournament ? (
-              <label className="flex items-center gap-2 text-lg cursor-pointer text-[#5E4B8A]">
+              <label className="flex items-center gap-2 text-lg cursor-pointer text-[#194185]">
                 <input
                   type="radio"
                   name="mode"
@@ -320,7 +320,7 @@ export default function RegisterPage() {
                     (tournament.playType === "SINGLE" ? "single" : "double")
                   }
                   onChange={() => { }}
-                  className="accent-pink-500 w-4 h-4"
+                  className="accent-[#2ED3B7] w-4 h-4"
                   disabled
                 />
                 {tournament.playType === "SINGLE" ? t('signup.single') : t('signup.double')}
@@ -333,7 +333,7 @@ export default function RegisterPage() {
 
         {/* ข้อมูลทีม */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.teamInfo')}</h2>
+          <h2 className="font-bold text-lg text-[#194185] mb-3">{t('signup.teamInfo')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
             <div>
               <label className="block mb-1 font-medium">{t('signup.teamName')}</label>
@@ -343,7 +343,7 @@ export default function RegisterPage() {
                 value={formData.teamName}
                 onChange={handleInputChange}
                 placeholder={language === "en" ? "e.g. Smash Queen" : "เช่น Smash Queen"}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                 required
               />
             </div>
@@ -355,7 +355,7 @@ export default function RegisterPage() {
                 value={formData.managerName}
                 onChange={handleInputChange}
                 placeholder={language === "en" ? "First Name - Last Name" : "ชื่อจริง–นามสกุล"}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                 required
               />
             </div>
@@ -364,11 +364,11 @@ export default function RegisterPage() {
 
         {/* ข้อมูลผู้เล่น */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.playerInfo')}</h2>
+          <h2 className="font-bold text-lg text-[#194185] mb-3">{t('signup.playerInfo')}</h2>
 
           {/* ผู้เล่นคนที่ 1 */}
-          <div className="bg-[#FBC9DC]/70 border border-[#F7A2BC] rounded-2xl p-5 mb-6 shadow-sm hover:shadow-md transition-all">
-            <p className="font-semibold text-[#4A3C7A] mb-3 text-base">
+          <div className="bg-[#194185]/5 border border-[#194185]/10 rounded-2xl p-5 mb-6 shadow-sm hover:shadow-md transition-all">
+            <p className="font-semibold text-[#194185] mb-3 text-base">
               {t('signup.player1')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
@@ -380,7 +380,7 @@ export default function RegisterPage() {
                   value={formData.player1Name}
                   onChange={handleInputChange}
                   placeholder={language === "en" ? "Player Name" : "ชื่อผู้เล่น"}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                   required
                 />
               </div>
@@ -395,7 +395,7 @@ export default function RegisterPage() {
                   onChange={handleInputChange}
                   placeholder="08x-xxx-xxxx"
                   maxLength={10}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-pink-400 outline-none"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                   required
                 />
               </div>
@@ -476,10 +476,10 @@ export default function RegisterPage() {
                       </div>
                     );
                   }}
-                  className="w-full border border-pink-300 rounded-xl px-4 py-2 bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 font-semibold focus:outline-none focus:ring-2 focus:ring-pink-400 hover:shadow-md cursor-pointer"
+                  className="w-full border border-[#194185]/20 rounded-xl px-4 py-2 bg-white text-[#194185] font-semibold focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] hover:shadow-md cursor-pointer"
                 />
                 {formData.player1Birthday && (
-                  <p className="text-xs text-pink-600 mt-1">
+                  <p className="text-xs text-[#194185]/60 mt-1">
                     {t('signup.age')}: {calculateAge(formData.player1Birthday)} {language === "en" ? "Years old" : "ปี"}
                   </p>
                 )}
@@ -492,8 +492,8 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setFormData({ ...formData, player1Gender: "Male" })}
                     className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player1Gender === "Male"
-                      ? "bg-blue-100 border-blue-400 text-blue-700 shadow-sm ring-2 ring-blue-200"
-                      : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+                      ? "bg-[#194185]/10 border-[#194185]/40 text-[#194185] shadow-sm ring-2 ring-[#194185]/20"
+                      : "bg-white border-gray-200 text-gray-500 hover:border-[#194185]/30 hover:text-[#194185]"
                       }`}
                   >
                     {t('signup.male')}
@@ -502,8 +502,8 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setFormData({ ...formData, player1Gender: "Female" })}
                     className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player1Gender === "Female"
-                      ? "bg-pink-100 border-pink-400 text-pink-700 shadow-sm ring-2 ring-pink-200"
-                      : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
+                      ? "bg-[#2ED3B7]/10 border-[#2ED3B7] text-[#194185] shadow-sm ring-2 ring-[#2ED3B7]/20"
+                      : "bg-white border-gray-200 text-gray-500 hover:border-[#2ED3B7] hover:text-[#2ED3B7]"
                       }`}
                   >
                     {t('signup.female')}
@@ -519,9 +519,9 @@ export default function RegisterPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-[#D6E6FF]/80 border border-[#9CC5FF] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+              className="bg-[#194185]/5 border border-[#194185]/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
             >
-              <p className="font-semibold text-[#364C8A] mb-3 text-base">
+              <p className="font-semibold text-[#194185] mb-3 text-base">
                 ผู้เล่นคนที่ 2
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
@@ -533,7 +533,7 @@ export default function RegisterPage() {
                     value={formData.player2Name}
                     onChange={handleInputChange}
                     placeholder={language === "en" ? "Player Name" : "ชื่อผู้เล่นอีกคน"}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                     required
                   />
                 </div>
@@ -548,7 +548,7 @@ export default function RegisterPage() {
                     onChange={handleInputChange}
                     placeholder="08x-xxx-xxxx"
                     maxLength={10}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-sky-400 outline-none"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2 bg-white/90 focus:ring-2 focus:ring-[#2ED3B7] outline-none"
                     required
                   />
                 </div>
@@ -628,10 +628,10 @@ export default function RegisterPage() {
                         </div>
                       );
                     }}
-                    className="w-full border border-sky-300 rounded-xl px-4 py-2 bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400 hover:shadow-md cursor-pointer"
+                    className="w-full border border-[#194185]/20 rounded-xl px-4 py-2 bg-white text-[#194185] font-semibold focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] hover:shadow-md cursor-pointer"
                   />
                   {formData.player2Birthday && (
-                    <p className="text-xs text-sky-600 mt-1">
+                    <p className="text-xs text-[#194185]/60 mt-1">
                       {t('signup.age')}: {calculateAge(formData.player2Birthday)} {language === "en" ? "Years old" : "ปี"}
                     </p>
                   )}
@@ -644,8 +644,8 @@ export default function RegisterPage() {
                       type="button"
                       onClick={() => setFormData({ ...formData, player2Gender: "Male" })}
                       className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player2Gender === "Male"
-                        ? "bg-blue-100 border-blue-400 text-blue-700 shadow-sm ring-2 ring-blue-200"
-                        : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
+                        ? "bg-[#194185]/10 border-[#194185]/40 text-[#194185] shadow-sm ring-2 ring-[#194185]/20"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-[#194185]/30 hover:text-[#194185]"
                         }`}
                     >
                       {t('signup.male')}
@@ -654,8 +654,8 @@ export default function RegisterPage() {
                       type="button"
                       onClick={() => setFormData({ ...formData, player2Gender: "Female" })}
                       className={`px-6 py-2 rounded-full text-sm font-medium border transition-all ${formData.player2Gender === "Female"
-                        ? "bg-pink-100 border-pink-400 text-pink-700 shadow-sm ring-2 ring-pink-200"
-                        : "bg-white border-gray-200 text-gray-500 hover:border-pink-300 hover:text-pink-600"
+                        ? "bg-[#2ED3B7]/10 border-[#2ED3B7] text-[#194185] shadow-sm ring-2 ring-[#2ED3B7]/20"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-[#2ED3B7] hover:text-[#2ED3B7]"
                         }`}
                     >
                       {t('signup.female')}
@@ -669,7 +669,7 @@ export default function RegisterPage() {
 
         {/* แรงค์ */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.rankType')}</h2>
+          <h2 className="font-bold text-lg text-[#194185] mb-3">{t('signup.rankType')}</h2>
           <div className="flex flex-wrap gap-3">
             {tournamentLoading ? (
               <div className="text-gray-500">{t('signup.loading')}</div>
@@ -687,8 +687,8 @@ export default function RegisterPage() {
                     className={`px-5 py-2 rounded-full text-sm font-medium transition-all border ${isRankFull
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
                       : selectedRank === rank
-                        ? "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE] text-slate-800 shadow"
-                        : "bg-white border-gray-200 hover:border-pink-300 text-slate-600"
+                        ? "bg-[#194185] text-white shadow-lg scale-105"
+                        : "bg-white border-gray-200 hover:border-[#2ED3B7] text-[#194185]"
                       }`}
                   >
                     {rank === "P_PLUS" ? "P+" : rank === "P_MINUS" ? "P-" : rank}
@@ -704,14 +704,14 @@ export default function RegisterPage() {
 
         {/* Upload */}
         <section className="mb-8">
-          <h2 className="font-bold text-lg text-[#5E4B8A] mb-3">{t('signup.video')}</h2>
-          <label className="flex flex-col items-center justify-center text-center border-2 border-dashed border-pink-300 rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
-            <UploadCloud className="w-10 h-10 text-pink-400 mb-3" />
+          <h2 className="font-bold text-lg text-[#194185] mb-3">{t('signup.video')}</h2>
+          <label className="flex flex-col items-center justify-center text-center border-2 border-dashed border-[#194185]/20 rounded-2xl p-6 bg-[#194185]/5 hover:bg-[#194185]/10 hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer">
+            <UploadCloud className="w-10 h-10 text-[#194185]/40 mb-3" />
             {video ? (
-              <p className="font-semibold text-pink-600">{video.name}</p>
+              <p className="font-semibold text-[#194185]">{video.name}</p>
             ) : (
               <>
-                <p className="font-semibold text-pink-700">{t('signup.uploadVideo')}</p>
+                <p className="font-semibold text-[#194185]">{t('signup.uploadVideo')}</p>
                 <p className="text-xs text-gray-500 mt-1">{t('signup.videoFormats')}</p>
               </>
             )}
@@ -729,7 +729,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={!isFormValid() || loading}
-            className={`bg-gradient-to-r from-[#C084FC] via-[#F472B6] to-[#FBBF24] text-white font-semibold px-12 py-3 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-base ${(!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
+            className={`bg-[#194185] hover:bg-[#2ED3B7] text-white font-bold px-12 py-3.5 rounded-full shadow-lg hover:scale-105 transition-all text-base ${(!isFormValid() || loading) && "opacity-50 cursor-not-allowed"
               }`}
           >
             {loading ? t('signup.registering') : t('signup.registerBtn')}

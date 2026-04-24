@@ -86,15 +86,15 @@ export default function TournamentDetailPage() {
   if (!tournament) return <div className="min-h-screen flex items-center justify-center">Tournament not found</div>;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#FFFDF6] via-[#F9F6EE] to-[#EDEAE3] px-6 py-10">
+    <main className="min-h-screen bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white px-6 py-10">
       <button
         onClick={() => router.back()}
-        className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white px-4 py-2 rounded-lg shadow hover:scale-105 transition-all"
+        className="mb-6 bg-[#194185] text-white px-4 py-2 rounded-lg shadow hover:bg-[#2ED3B7] transition-all"
       >
-        ⬅ ย้อนกลับ
+        ⬅ {language === "en" ? "Back" : "ย้อนกลับ"}
       </button>
 
-      <div className="max-w-3xl mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-lg p-6">
+      <div className="max-w-3xl mx-auto bg-white/60 backdrop-blur-md rounded-3xl shadow-lg p-6 border border-[#2ED3B7]/20">
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4">
           <Photo
             src={tournament.image}
@@ -103,11 +103,11 @@ export default function TournamentDetailPage() {
           />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">{tournament.title}</h1>
+        <h1 className="text-2xl font-bold text-[#194185] mb-2">{tournament.title}</h1>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
-          <p className="text-gray-600">{formatThaiDate(tournament.date)}</p>
+          <p className="text-gray-600 font-medium">{formatThaiDate(tournament.date)}</p>
           <div className="text-sm text-gray-500 font-medium">
-            <span className="mr-2">{t('manage.participants')}:</span>
+            <span className="mr-2 text-[#2ED3B7]">{t('manage.participants')}:</span>
             {ranks.length > 0 ? (
               ranks.map((r, i) => {
                 const count = tournament.registrationStats?.[r] || 0;
@@ -116,33 +116,33 @@ export default function TournamentDetailPage() {
                 // ✅ แปลงชื่อให้สวยงาม (P_PLUS -> P+, P_MINUS -> P-)
                 const label = r === "P_PLUS" ? "P+" : r === "P_MINUS" ? "P-" : r;
                 return (
-                  <span key={r} className={`mr-3 ${isFull ? "text-red-500 font-bold" : ""}`}>
+                  <span key={r} className={`mr-3 ${isFull ? "text-red-500 font-bold" : "text-[#194185]"}`}>
                     {label}: {count}/{max}
                     {i < ranks.length - 1 ? "," : ""}
                   </span>
                 );
               })
             ) : (
-              <span>{tournament.currentPlayers}/{tournament.maxPlayers}</span>
+              <span className="text-[#194185]">{tournament.currentPlayers}/{tournament.maxPlayers}</span>
             )}
           </div>
         </div>
 
         {/* ❌ ลบส่วน Card ตารางออก (ตามที่ขอให้เอาแบบบรรทัดเดียว) */}
 
-        <h2 className="text-lg font-semibold mb-3 text-pink-600">🏸 {t('tournamentDetail.rulesTitle')}</h2>
+        <h2 className="text-lg font-semibold mb-3 text-[#2ED3B7]">🏸 {t('tournamentDetail.rulesTitle')}</h2>
         <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
           {fixedRules.map((rule, index) => (
-            <li key={index}>{rule}</li>
+            <li key={index} className="hover:text-[#194185] transition-colors">{rule}</li>
           ))}
         </ul>
 
         <button
           onClick={() => !isDisabled && router.push(`/user/tournament/${id}/signup`)}
           disabled={isDisabled}
-          className={`w-full text-white py-3 rounded-xl font-medium text-lg shadow transition-all ${isDisabled
+          className={`w-full text-white py-3 rounded-xl font-bold text-lg shadow-lg transition-all ${isDisabled
             ? "bg-gray-400 cursor-not-allowed"
-            : "bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-105"
+            : "bg-[#194185] hover:bg-[#2ED3B7] hover:shadow-[#194185]/30 scale-[1.01] hover:scale-[1.03]"
             }`}
         >
           {tournament.canceled

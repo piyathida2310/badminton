@@ -42,7 +42,7 @@ interface TwentyFourBracketProps {
 export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
   return (
     //  เพิ่มส่วนนี้เท่านั้น: overflow-x-scroll → overflow-x-auto + custom scrollbar-hide
-    <div className="h-full w-[1380px] overflow-x-auto bg-[#f9f9f0] flex flex-col items-center py-10 relative scrollbar-hide">
+    <div className="h-full w-[1380px] overflow-x-auto bg-[#2ED3B7]/5 flex flex-col items-center py-10 relative scrollbar-hide">
       <style jsx>{`
         /* ซ่อน scrollbar แนวนอน */
         .scrollbar-hide::-webkit-scrollbar {
@@ -54,7 +54,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
         }
       `}</style>
 
-      <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center">
+      <h1 className="text-3xl font-bold text-[#194185] mb-10 text-center">
         🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 24 ทีม ({level})
       </h1>
 
@@ -93,7 +93,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
               </span>
               <div
                 className={`w-4 h-4 rounded-sm ${
-                  win ? "bg-green-500" : "bg-red-500"
+                  win ? "bg-[#2ED3B7]" : "bg-red-400"
                 }`}
               ></div>
             </div>
@@ -119,7 +119,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
               </span>
               <div
                 className={`w-4 h-4 rounded-sm ${
-                  win ? "bg-green-500" : "bg-red-500"
+                  win ? "bg-[#2ED3B7]" : "bg-red-400"
                 }`}
               ></div>
             </div>
@@ -142,7 +142,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
               </span>
               <div
                 className={`w-4 h-4 rounded-sm ${
-                  win ? "bg-green-500" : "bg-red-500"
+                  win ? "bg-[#2ED3B7]" : "bg-red-400"
                 }`}
               ></div>
             </div>
@@ -155,7 +155,7 @@ export default function TwentyFourBracket({ level }: TwentyFourBracketProps) {
             <span className="text-sm font-medium text-gray-800">
               Smash Warriors
             </span>
-            <div className="w-4 h-4 rounded-sm bg-green-500"></div>
+            <div className="w-4 h-4 rounded-sm bg-[#2ED3B7]"></div>
           </div>
         </div>
       </div>

@@ -33,10 +33,10 @@ const MatchTable = () => {
           {/* แถวผลรวมคะแนน */}
           <tr className="border border-black">
             <td colSpan={5}></td>
-            <td className="border border-black w-8 bg-green-400 font-bold text-white">
+            <td className="border border-black w-8 bg-[#2ED3B7] font-bold text-[#194185]">
               {scores.totalA}
             </td>
-            <td className="border border-black w-8 font-semibold">
+            <td className="border border-black w-8 font-semibold text-[#194185]">
               {scores.totalB}
             </td>
           </tr>
@@ -45,26 +45,26 @@ const MatchTable = () => {
           <tr className="border border-black">
             <td
               rowSpan={8}
-              className="text-left text-red-600 pl-2 py-[2px] border border-black bg-red-100 font-semibold"
+              className="text-left text-[#194185] pl-2 py-[2px] border border-black bg-[#194185]/5 font-semibold"
             >
               249
             </td>
-            <td className="border border-black w-12 font-semibold bg-yellow-300 py-[2px]">
+            <td className="border border-black w-12 font-semibold bg-[#2ED3B7]/10 py-[2px]">
               N1A
             </td>
-            <td className="border border-black text-left px-1 bg-yellow-300 font-semibold truncate max-w-[180px]">
+            <td className="border border-black text-left px-1 bg-[#2ED3B7]/10 font-semibold truncate max-w-[180px]">
               JPLBYTHITIPONG/MASTERPIECE
             </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
+            <td className="border border-black bg-[#2ED3B7]/10 font-semibold py-[2px]">
               ดลสิทธิ์
             </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
+            <td className="border border-black bg-[#2ED3B7]/10 font-semibold py-[2px]">
               ภาคภูมิ
             </td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
+            <td className="border border-black w-8 bg-[#194185]/10 font-semibold py-[2px] text-[#194185]">
               {scores.set1A}
             </td>
-            <td className="border border-black w-8 font-semibold py-[2px]">
+            <td className="border border-black w-8 font-semibold py-[2px] text-[#194185]">
               {scores.set1B}
             </td>
           </tr>
@@ -72,10 +72,10 @@ const MatchTable = () => {
           {/*  เซตถัดไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
+            <td className="border border-black w-8 bg-[#194185]/10 font-semibold py-[2px] text-[#194185]">
               {scores.set2A}
             </td>
-            <td className="border border-black w-8 font-semibold py-[2px]">
+            <td className="border border-black w-8 font-semibold py-[2px] text-[#194185]">
               {scores.set2B}
             </td>
           </tr>
@@ -155,12 +155,12 @@ interface SixteenBracketProps {
 export default function SixteenBracketStu({ level }: SixteenBracketProps) {
   return (
     <div
-      className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+      className="h-[1200px] w-full overflow-x-auto overflow-y-hidden bg-[#2ED3B7]/5 flex flex-col items-start py-10 relative"
       
     >
       
 
-      <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
+      <h1 className="text-3xl font-bold text-[#194185] mb-10 text-center w-full">
         🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
       </h1>
 

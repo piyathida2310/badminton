@@ -23,12 +23,12 @@ interface SectionData {
 }
 
 const RANK_COLORS: Record<string, string> = {
-  BG: "from-purple-100 to-pink-100",
-  NB: "from-pink-100 to-rose-100",
-  N: "from-orange-100 to-pink-100",
-  S: "from-sky-100 to-indigo-100",
-  "P+": "from-green-100 to-emerald-100",
-  "P-": "from-amber-100 to-yellow-100",
+  BG: "from-[#194185]/5 to-white",
+  NB: "from-[#2ED3B7]/5 to-white",
+  N: "from-[#194185]/10 to-white",
+  S: "from-[#2ED3B7]/10 to-white",
+  "P+": "from-[#194185]/15 to-white",
+  "P-": "from-[#2ED3B7]/15 to-white",
 };
 
 export default function UserResultSummaryPage() {
@@ -231,24 +231,24 @@ export default function UserResultSummaryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <p className="text-pink-500 font-bold animate-pulse text-xl">{t('results.loading')}</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-[#194185] font-bold animate-pulse text-xl">{t('results.loading')}</p>
       </div>
     );
   }
 
   if (!tournamentId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <p className="text-gray-500 font-bold text-xl">{t('results.selectFirst')}</p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
+    <main className="min-h-screen bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white px-4 sm:px-8 md:px-16 py-10">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-pink-500 tracking-tight drop-shadow-md">
+        <h1 className="text-4xl font-extrabold text-[#194185] tracking-tight drop-shadow-md">
           🏆 {t('results.pageTitle')}
         </h1>
 
@@ -261,7 +261,7 @@ export default function UserResultSummaryPage() {
                 id="filter-type"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
-                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">{t('results.all')}</option>
                 <option value="double">{t('results.double')}</option>
@@ -275,7 +275,7 @@ export default function UserResultSummaryPage() {
                 id="rank-filter"
                 value={selectedRank}
                 onChange={(e) => setSelectedRank(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">ทั้งหมด</option>
                 {availableRanks.map(r => (
@@ -285,7 +285,7 @@ export default function UserResultSummaryPage() {
             </div>
           </div>
 
-          <p className="text-pink-600 font-semibold mt-2">
+          <p className="text-[#194185] font-semibold mt-2">
             {t('results.totalShuttle')}: {totalShuttles} ลูก
           </p>
         </div>
@@ -324,22 +324,22 @@ function Section({ title, color, matches }: { title: string; color: string; matc
   });
 
   return (
-    <section className={`rounded-2xl shadow-xl border border-pink-100 bg-gradient-to-b ${color} overflow-hidden`}>
-      <div className="bg-gradient-to-r from-pink-200 via-pink-100 to-rose-100 py-3 border-b border-pink-200">
-        <h2 className="text-center text-xl font-bold text-pink-600 tracking-wide drop-shadow-sm">
+    <section className={`rounded-2xl shadow-xl border border-[#194185]/10 bg-gradient-to-b ${color} overflow-hidden`}>
+      <div className="bg-[#194185] py-3 border-b border-[#194185]/20">
+        <h2 className="text-center text-xl font-bold text-white tracking-wide drop-shadow-sm">
           {title}
         </h2>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm text-center">
-          <thead className="bg-gradient-to-r from-pink-100 via-rose-50 to-purple-50">
-            <tr className="border-b border-pink-200">
-              <th className="p-3 border-r border-pink-200">ตำแหน่ง</th>
-              <th className="p-3 border-r border-pink-200">ลำดับ</th>
-              <th className="p-3 border-r border-pink-200">ชื่อทีม</th>
-              <th className="p-3 border-r border-pink-200">ผู้เล่น 1</th>
-              {hasDouble && <th className="p-3 border-r border-pink-200">ผู้เล่น 2</th>}
+          <thead className="bg-[#194185]/5 text-[#194185] font-bold">
+            <tr className="border-b border-[#194185]/10">
+              <th className="p-3 border-r border-[#194185]/10">ตำแหน่ง</th>
+              <th className="p-3 border-r border-[#194185]/10">ลำดับ</th>
+              <th className="p-3 border-r border-[#194185]/10">ชื่อทีม</th>
+              <th className="p-3 border-r border-[#194185]/10">ผู้เล่น 1</th>
+              {hasDouble && <th className="p-3 border-r border-[#194185]/10">ผู้เล่น 2</th>}
               <th className="p-3">ลูกใช้</th>
             </tr>
           </thead>
@@ -347,14 +347,14 @@ function Section({ title, color, matches }: { title: string; color: string; matc
             {sortedMatches.map((m, i) => (
               <tr
                 key={i}
-                className={`border-t border-pink-100 transition ${i % 2 === 0 ? "bg-white/80" : "bg-pink-50/70"
-                  } hover:bg-rose-100/70`}
+                className={`border-t border-[#194185]/10 transition ${i % 2 === 0 ? "bg-white/80" : "bg-[#2ED3B7]/5"
+                  } hover:bg-[#2ED3B7]/10`}
               >
-                <td className="p-3 border-r border-pink-100 font-bold text-pink-600">{m.position}</td>
-                <td className="p-3 border-r border-pink-100 italic">{m.rank}</td>
-                <td className="p-3 border-r border-pink-100 text-rose-700 font-medium">{m.team}</td>
-                <td className="p-3 border-r border-pink-100">{m.player1}</td>
-                {hasDouble && <td className="p-3 border-r border-pink-100">{m.player2 || "-"}</td>}
+                <td className="p-3 border-r border-[#194185]/10 font-bold text-[#194185]">{m.position}</td>
+                <td className="p-3 border-r border-[#194185]/10 italic">{m.rank}</td>
+                <td className="p-3 border-r border-[#194185]/10 text-[#194185] font-medium">{m.team}</td>
+                <td className="p-3 border-r border-[#194185]/10">{m.player1}</td>
+                {hasDouble && <td className="p-3 border-r border-[#194185]/10">{m.player2 || "-"}</td>}
                 <td className="p-3">{m.shuttle || "0"}</td>
               </tr>
             ))}

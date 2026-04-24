@@ -198,10 +198,10 @@ export default function TournamentGroupPage() {
   })();
 
   return (
-    <div className="h-full flex flex-col items-center bg-gradient-to-b from-[#F8FAFC] to-[#EEF2FF] py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
+    <div className="h-full flex flex-col items-center bg-white py-8 md:py-12 px-4 sm:px-8 relative overflow-hidden">
       {/* วงกลมพื้นหลังตกแต่ง */}
-      <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-blue-200/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-yellow-200/30 rounded-full blur-3xl"></div>
+      <div className="absolute top-[-150px] left-[-150px] w-[300px] h-[300px] bg-[#194185]/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[-150px] right-[-150px] w-[300px] h-[300px] bg-[#2ED3B7]/5 rounded-full blur-3xl"></div>
 
       {/* ส่วนหัว */}
       <motion.div
@@ -210,12 +210,12 @@ export default function TournamentGroupPage() {
         transition={{ duration: 0.8 }}
         className="text-center mb-10 z-10 w-full flex flex-col items-center"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E3A8A] drop-shadow-sm leading-snug">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#194185] drop-shadow-sm leading-snug">
           {t("groupManage.pageTitle")} {tournamentTitle || "-"} {t("groupManage.type")}{" "}
           {matchType === "single" ? t("groupManage.single") : t("groupManage.double")}
         </h1>
 
-        <p className="text-blue-700 font-semibold text-base sm:text-lg mt-2 mb-6">
+        <p className="text-[#194185] font-semibold text-base sm:text-lg mt-2 mb-6">
           {t("groupManage.date")}{" "}
           {new Date(selectedDate).toLocaleDateString(language === "en" ? "en-US" : "th-TH", {
             year: "numeric",
@@ -225,7 +225,7 @@ export default function TournamentGroupPage() {
         </p>
 
         {/*  Control Panel Card Layout */}
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 sm:p-8 w-full max-w-2xl transform transition-all hover:scale-[1.01]">
+        <div className="bg-white rounded-2xl shadow-xl border border-[#2ED3B7]/20 p-6 sm:p-8 w-full max-w-2xl transform transition-all hover:scale-[1.01]">
           <div className="space-y-5">
             {/* Row 1: Hand Type Selector */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -234,7 +234,7 @@ export default function TournamentGroupPage() {
                 <select
                   value={selectedHandType}
                   onChange={(e) => setSelectedHandType(e.target.value)}
-                  className="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm transition-all"
+                  className="w-full bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-[#194185] focus:border-[#194185] block p-2.5 shadow-sm transition-all"
                 >
                   {availableRanks.length > 0 ? (
                     availableRanks.map((type) => (
@@ -249,7 +249,7 @@ export default function TournamentGroupPage() {
               </div>
               {/* Stats Badge */}
               {tournamentStats && isOrganizer && (
-                <span className={`text-xs px-3 py-1 rounded-full font-bold ${isEnoughPlayers ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                <span className={`text-xs px-3 py-1 rounded-full font-bold ${isEnoughPlayers ? "bg-[#2ED3B7]/10 text-[#194185]" : "bg-red-100 text-red-600"
                   }`}>
                   {tournamentStats.registrationStats?.[selectedHandType] || 0} / {tournamentStats.maxPlayers} {t("groupManage.teamLabel")}
                 </span>
@@ -271,7 +271,7 @@ export default function TournamentGroupPage() {
                       localStorage.setItem(`detailInput-${id}-${selectedHandType}`, e.target.value);
                     }}
                     placeholder={t("groupManage.promptPlaceholder")}
-                    className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-inner resize-none transition-all"
+                    className="w-full h-24 p-3 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-[#194185] focus:border-[#194185] shadow-inner resize-none transition-all"
                   />
                 </div>
 
@@ -285,7 +285,7 @@ export default function TournamentGroupPage() {
                       setRequireReason(e.target.checked);
                       localStorage.setItem(`requireReason-${id}-${selectedHandType}`, e.target.checked.toString());
                     }}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-[#194185] bg-gray-100 border-gray-300 rounded focus:ring-[#194185]"
                   />
                   <label htmlFor="requireReasonCheckbox" className="text-sm font-medium text-gray-700 cursor-pointer">
                     {t("groupManage.explainReasoning")}
@@ -301,7 +301,7 @@ export default function TournamentGroupPage() {
                     disabled={loading || !isEnoughPlayers}
                     className={`w-full sm:w-auto min-w-[200px] text-white font-bold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading || !isEnoughPlayers
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-500/30"
+                      : "bg-[#194185] hover:bg-[#2ED3B7] shadow-lg hover:shadow-[#194185]/30"
                       }`}
                   >
                     {loading ? (
@@ -328,9 +328,9 @@ export default function TournamentGroupPage() {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    className="mt-6 p-5 bg-blue-50/80 border border-blue-200 rounded-xl text-left shadow-md"
+                    className="mt-6 p-5 bg-[#2ED3B7]/5 border border-[#2ED3B7]/20 rounded-xl text-left shadow-md"
                   >
-                    <h3 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#194185] mb-3 flex items-center gap-2">
                       <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
                       {t("groupManage.aiThinkingProcess")}
                     </h3>
@@ -369,20 +369,20 @@ export default function TournamentGroupPage() {
             {groups.filter(group => !group.handType || group.handType === selectedHandType).map((group) => {
               const themeClassMap: Record<string, { color: string; header: string }> = {
                 "Group A": {
-                  color: "from-yellow-100 to-yellow-50 border-yellow-400 shadow-yellow-200/50",
-                  header: "bg-yellow-400/80 text-yellow-900",
+                  color: "bg-white border-[#194185]/30 shadow-[#194185]/5",
+                  header: "bg-[#194185] text-white",
                 },
                 "Group B": {
-                  color: "from-blue-100 to-blue-50 border-blue-400 shadow-blue-200/50",
-                  header: "bg-blue-400/80 text-blue-900",
+                  color: "bg-white border-[#2ED3B7]/30 shadow-[#2ED3B7]/5",
+                  header: "bg-[#2ED3B7] text-[#194185]",
                 },
                 "Group C": {
-                  color: "from-pink-100 to-pink-50 border-pink-400 shadow-pink-200/50",
-                  header: "bg-pink-400/80 text-pink-900",
+                  color: "bg-white border-[#194185]/20 shadow-[#194185]/5",
+                  header: "bg-[#194185]/80 text-white",
                 },
                 "Group D": {
-                  color: "from-green-100 to-green-50 border-green-400 shadow-green-200/50",
-                  header: "bg-green-400/80 text-green-900",
+                  color: "bg-white border-[#2ED3B7]/30 shadow-[#2ED3B7]/5",
+                  header: "bg-[#2ED3B7]/60 text-[#194185]",
                 },
               };
 

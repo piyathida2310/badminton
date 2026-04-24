@@ -54,8 +54,8 @@ export default function Guideline({
 
       <div
         className="overflow-y-auto max-h-[55vh] 
-                    scrollbar-thin scrollbar-thumb-[#EADCF4] 
-                    hover:scrollbar-thumb-[#F3EAFB] 
+                    scrollbar-thin scrollbar-thumb-[#2ED3B7]/20 
+                    hover:scrollbar-thumb-[#2ED3B7]/40 
                     scrollbar-track-transparent scrollbar-thumb-rounded-full"
       >
         <textarea
@@ -63,7 +63,7 @@ export default function Guideline({
           onChange={(e) => setRulesText(e.target.value)}
           className="w-full min-h-[320px] rounded-lg bg-white/90 border border-slate-200 
                      px-3 py-2 text-slate-700 placeholder:text-slate-400 
-                     focus:outline-none focus:ring-2 focus:ring-[#0040C1]/20 
+                     focus:outline-none focus:ring-2 focus:ring-[#194185]/20 
                      text-sm leading-relaxed shadow-inner"
           placeholder={t('manageMatch.rulesPlaceholder')}
         />
@@ -84,7 +84,7 @@ export default function Guideline({
         <motion.button
           whileHover={{ scale: 1.05 }}
           onClick={() => handelSummit()}
-          className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#0040C1] hover:bg-[#2ED3B7] text-white transition-all"
+          className="px-7 py-2 rounded-xl text-sm font-semibold bg-[#194185] hover:bg-[#2ED3B7] text-white transition-all shadow-md"
         >
           {t('manageMatch.next')}
         </motion.button>

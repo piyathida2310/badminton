@@ -54,8 +54,8 @@ const BracketUser = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f9f9f0] text-[#1e3a8a]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mb-4"></div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#2ED3B7]/5 text-[#194185]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#194185] mb-4"></div>
                 <p className="font-bold">กำลังโหลดข้อมูลการแข่งขัน...</p>
             </div>
         );
@@ -63,14 +63,14 @@ const BracketUser = () => {
 
     if (!tournamentId) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f9f9f0] text-gray-500">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#2ED3B7]/5 text-gray-500">
                 <p className="text-xl">กรุณาเลือกรายการแข่งขันก่อนเพื่อดูสายการแข่งขัน</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-[#f9f9f0] min-h-screen">
+        <div className="bg-[#2ED3B7]/5 min-h-screen">
             {/* 
         We use ThirtyTwoBracket which supports dynamic sizes.
         Pass isOrganizer={false} to ensure it is read-only.

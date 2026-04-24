@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import {
   BackButton,
   SectionTitle,
@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function GroupStageScoresPage() {
   const params = useSearchParams();
+  const { id } = useParams();
   const groupName = params.get("group") || "Group A";
   const { language, t } = useLanguage();
   const gm = {
@@ -26,10 +27,10 @@ export default function GroupStageScoresPage() {
 
   //  ธีมสีแต่ละกลุ่ม
   const themeMap: Record<string, { from: string; to: string; accent: string }> = {
-    "Group A": { from: "#FFF8E1", to: "#FFE7B3", accent: "#F59E0B" },
-    "Group B": { from: "#E0F7FF", to: "#BAE6FD", accent: "#0EA5E9" },
-    "Group C": { from: "#FFE4EF", to: "#FBCFE8", accent: "#EC4899" },
-    "Group D": { from: "#E9FDF3", to: "#A7F3D0", accent: "#10B981" },
+    "Group A": { from: "#F8FCFF", to: "#F0F9FF", accent: "#194185" },
+    "Group B": { from: "#F7FFFE", to: "#F0FDFA", accent: "#2ED3B7" },
+    "Group C": { from: "#F8FCFF", to: "#F0F9FF", accent: "#194185" },
+    "Group D": { from: "#F7FFFE", to: "#F0FDFA", accent: "#2ED3B7" },
   };
 
   //  Extract Theme Key (รองรับชื่อเช่น "BG Group A")
@@ -69,19 +70,16 @@ export default function GroupStageScoresPage() {
 
   return (
     <div
-      className="min-h-screen py-10 px-4 flex flex-col items-center"
-      style={{
-        background: `linear-gradient(to bottom right, ${theme.from}, ${theme.to})`,
-      }}
+      className="min-h-screen py-10 px-4 flex flex-col items-center bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white"
     >
-      <div className="w-full max-w-6xl bg-white/70 rounded-3xl p-8 shadow-2xl backdrop-blur-md">
-        <BackButton target="/user/group" />
+      <div className="w-full max-w-6xl bg-white/80 rounded-3xl p-8 shadow-2xl backdrop-blur-md border border-[#194185]/10">
+        <BackButton target={`/user/tournament/${id}/group`} />
 
-        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${gm.matchTableSuffix}`} color={theme.accent} />
+        <SectionTitle text={`${groupName.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}${gm.matchTableSuffix}`} color="#194185" />
         <GroupInfo totalTeams={selected.rank.length} />
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold py-10">
+          <div className="flex items-center justify-center gap-2 text-[#194185] font-semibold py-10">
             <svg
               className="animate-spin h-5 w-5"
               xmlns="http://www.w3.org/2000/svg"

@@ -126,7 +126,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
     if (status === "รอแข่ง")
       return (
         <span
-          className={`${base} border-yellow-200 bg-yellow-100/70 text-yellow-800`}
+          className={`${base} border-[#2ED3B7]/20 bg-[#2ED3B7]/10 text-[#194185]`}
         >
           <Clock size={12} /> {label}
         </span>
@@ -142,7 +142,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
     if (status === "แข่งสำเร็จ")
       return (
         <span
-          className={`${base} border-green-200 bg-green-100/70 text-green-700`}
+          className={`${base} border-[#2ED3B7]/20 bg-[#2ED3B7]/10 text-[#194185]`}
         >
           <CheckCircle size={12} /> {label}
         </span>
@@ -166,12 +166,12 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
       <div className="text-gray-700">
         {type === "double" ? (
           <>
-            <Users size={12} className="inline mr-1 text-[#0040C1]" />
+            <Users size={12} className="inline mr-1 text-[#194185]" />
             {playerA} / {playerB || "-"}
           </>
         ) : (
           <>
-            <User size={12} className="inline mr-1 text-[#0040C1]" />
+            <User size={12} className="inline mr-1 text-[#194185]" />
             {playerA}
           </>
         )}
@@ -182,7 +182,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-        <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#0040C1]" />
+        <Loader2 className="w-8 h-8 animate-spin mb-3 text-[#194185]" />
         <p className="text-sm font-medium">{mh.loading}</p>
       </div>
     );
@@ -212,8 +212,8 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
     <div className="mt-6 w-full">
       {/*  Filter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5 px-2">
-        <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-          <Filter className="text-[#0040C1]" size={18} />
+        <div className="flex items-center gap-2 text-sm text-[#194185] font-medium">
+          <Filter className="text-[#194185]" size={18} />
           <span className="font-semibold">{mh.filterTitle}</span>
           <span className="text-gray-500 text-xs">({countLabel})</span>
         </div>
@@ -230,9 +230,9 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
                 | "แข่งสำเร็จ"
               )
             }
-            className="w-full appearance-none py-2 px-4 rounded-xl text-sm font-medium text-gray-700
-            bg-white border border-[#0040C1]/20 shadow-sm
-            focus:ring-2 focus:ring-[#0040C1]/20 focus:border-[#0040C1] transition-all cursor-pointer"
+            className="w-full appearance-none py-2 px-4 rounded-xl text-sm font-medium text-[#194185]
+            bg-white border border-[#194185]/20 shadow-sm
+            focus:ring-2 focus:ring-[#2ED3B7] focus:border-[#2ED3B7] transition-all cursor-pointer outline-none"
           >
             {["ทั้งหมด", "รอแข่ง", "กำลังแข่ง", "แข่งสำเร็จ"].map((item) => {
               let label = item;
@@ -248,7 +248,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
             })}
           </select>
           <ChevronDown
-            className="absolute right-3 top-3 text-[#0040C1] pointer-events-none"
+            className="absolute right-3 top-3 text-[#194185] pointer-events-none"
             size={16}
           />
         </div>
@@ -256,9 +256,9 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
 
       {/* ตาราง */}
       <div className="hidden sm:block overflow-x-auto">
-        <div className="inline-block min-w-full overflow-hidden rounded-xl border border-[#0040C1]/10 shadow-lg bg-white/80 backdrop-blur-md">
-          <table className="min-w-full text-xs text-center border border-gray-300 border-collapse">
-            <thead className="bg-[#0040C1]/10 text-gray-900">
+        <div className="inline-block min-w-full overflow-hidden rounded-xl border border-[#194185]/10 shadow-lg bg-white/80 backdrop-blur-md">
+          <table className="min-w-full text-xs text-center border-collapse">
+            <thead className="bg-[#194185] text-white">
               <tr>
                 {[
                   mh.colMatch,
@@ -276,7 +276,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
                 ].map((h, i) => (
                   <th
                     key={i}
-                    className="px-2 py-2 font-semibold border border-gray-300 whitespace-nowrap"
+                    className="px-2 py-3 font-semibold border border-[#194185]/20 whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -287,37 +287,37 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
               {filteredMatches.map((m, i) => (
                 <tr
                   key={`${m.stage}-${m.id}`}
-                  className={`transition-all duration-150 hover:bg-[#0040C1]/5 ${i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                  className={`transition-all duration-150 hover:bg-[#2ED3B7]/5 ${i % 2 === 0 ? "bg-white" : "bg-[#194185]/5"
                     }`}
                 >
-                  <td className="p-2 border border-gray-300 font-bold text-[#0040C1] whitespace-nowrap">
+                  <td className="p-2 border border-[#194185]/10 font-bold text-[#194185] whitespace-nowrap">
                     {m.displayId || m.id}
                   </td>
-                  <td className="p-2 border border-gray-300">{m.type}</td>
-                  <td className="p-2 border border-gray-300">{m.round}</td>
-                  <td className="p-2 border border-gray-300">
+                  <td className="p-2 border border-[#194185]/10">{m.type}</td>
+                  <td className="p-2 border border-[#194185]/10">{m.round}</td>
+                  <td className="p-2 border border-[#194185]/10">
                     {renderStatusBadge(m.status)}
                   </td>
-                  <td className="p-2 border border-gray-300">{m.timeIn}</td>
-                  <td className="p-2 border border-gray-300">
+                  <td className="p-2 border border-[#194185]/10">{m.timeIn}</td>
+                  <td className="p-2 border border-[#194185]/10">
                     {m.group.replace(/P_PLUS/g, "P+").replace(/P_MINUS/g, "P-")}
                   </td>
-                  <td className="p-2 border border-gray-300 font-medium">
+                  <td className="p-2 border border-[#194185]/10 font-medium">
                     {m.team1}
                   </td>
-                  <td className="p-2 border border-gray-300">
+                  <td className="p-2 border border-[#194185]/10">
                     {renderPlayers(m.matchType, m.player1A, m.player1B)}
                   </td>
-                  <td className="p-2 border border-gray-300 font-bold text-gray-700">
+                  <td className="p-2 border border-[#194185]/10 font-bold text-[#194185]">
                     {m.score || "-"}
                   </td>
-                  <td className="p-2 border border-gray-300 font-medium">
+                  <td className="p-2 border border-[#194185]/10 font-medium">
                     {m.team2}
                   </td>
-                  <td className="p-2 border border-gray-300">
+                  <td className="p-2 border border-[#194185]/10">
                     {renderPlayers(m.matchType, m.player2A, m.player2B)}
                   </td>
-                  <td className="p-2 border border-gray-300">
+                  <td className="p-2 border border-[#194185]/10">
                     {m.shuttle !== undefined && m.shuttle !== null ? m.shuttle : "-"}
                   </td>
                 </tr>
@@ -332,10 +332,10 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
         {filteredMatches.map((m) => (
           <div
             key={`${m.stage}-${m.id}`}
-            className="bg-white/70 backdrop-blur-md border border-[#0040C1]/10 shadow-md rounded-xl p-3 hover:shadow-lg transition-all"
+            className="bg-white/70 backdrop-blur-md border border-[#194185]/10 shadow-md rounded-xl p-3 hover:shadow-lg transition-all"
           >
             <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-[#0040C1] text-sm">
+              <h3 className="font-bold text-[#194185] text-sm">
                 {m.displayId || `Match #${m.id}`} ({m.matchType === "single" ? mh.mobSingle : mh.mobDouble})
               </h3>
               {renderStatusBadge(m.status)}

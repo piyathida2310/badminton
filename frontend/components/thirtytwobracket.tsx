@@ -55,7 +55,7 @@ const RankBadge = ({ rank }: { rank: string }) => {
   let label = rank.toUpperCase();
 
   if (is1st) {
-    background = "linear-gradient(to right, #10b981, #059669)"; // emerald-500 to emerald-600
+    background = "linear-gradient(to right, #2ED3B7, #194185)"; // emerald-500 to emerald-600
     color = "#ffffff";
     borderColor = "#047857"; // emerald-700
     icon = "🥇";
@@ -300,7 +300,7 @@ const ScoreModal = ({
     <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+        <div className="bg-[#194185] p-4 flex justify-between items-center text-white">
           <h2 className="text-lg font-bold flex items-center gap-2">
             {language === "en" ? `Match #${matchNumber} Scoreboard` : `กระดานคะแนนแมตช์ที่ ${matchNumber}`}
           </h2>
@@ -335,17 +335,17 @@ const ScoreModal = ({
             {/* Team A Row */}
             <div className="grid grid-cols-4 gap-2 mb-2 items-center">
               <div className="text-right font-bold text-slate-700 text-sm pr-2">{language === "en" ? "Team A" : "ทีม A"}</div>
-              <input name="set1A" value={scores.set1A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
-              <input name="set2A" value={scores.set2A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
-              <input name="set3A" value={scores.set3A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set1A" value={scores.set1A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
+              <input name="set2A" value={scores.set2A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
+              <input name="set3A" value={scores.set3A} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
             </div>
 
             {/* Team B Row */}
             <div className="grid grid-cols-4 gap-2 mb-4 items-center">
               <div className="text-right font-bold text-slate-700 text-sm pr-2">{language === "en" ? "Team B" : "ทีม B"}</div>
-              <input name="set1B" value={scores.set1B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
-              <input name="set2B" value={scores.set2B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
-              <input name="set3B" value={scores.set3B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="0" />
+              <input name="set1B" value={scores.set1B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
+              <input name="set2B" value={scores.set2B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
+              <input name="set3B" value={scores.set3B} onChange={handleChange} className="border rounded px-2 py-1 text-center bg-slate-50 focus:ring-2 ring-[#194185] outline-none" placeholder="0" />
             </div>
 
             <hr className="my-4 border-slate-100" />
@@ -355,9 +355,9 @@ const ScoreModal = ({
               <div className="flex-1">
                 <label className="block text-xs font-bold text-slate-500 mb-1">{language === "en" ? "Set Score (Total)" : "คะแนนเซ็ตรวม"}</label>
                 <div className="flex items-center gap-2">
-                  <input name="totalA" value={scores.totalA} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-blue-600 bg-blue-50" />
+                  <input name="totalA" value={scores.totalA} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-[#194185] bg-[#194185]/10" />
                   <span>:</span>
-                  <input name="totalB" value={scores.totalB} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-blue-600 bg-blue-50" />
+                  <input name="totalB" value={scores.totalB} onChange={handleChange} className="w-12 border rounded px-2 py-1 text-center font-bold text-[#194185] bg-[#194185]/10" />
                 </div>
               </div>
 
@@ -367,7 +367,7 @@ const ScoreModal = ({
                   type="number"
                   value={shuttles}
                   onChange={(e) => setShuttles(Number(e.target.value))}
-                  className="w-full border rounded px-2 py-1 text-center bg-yellow-50 font-medium"
+                  className="w-full border rounded px-2 py-1 text-center bg-[#2ED3B7]/10 font-medium"
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ const ScoreModal = ({
             <button onClick={onClose} className="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition">
               {language === "en" ? "Cancel" : "ยกเลิก"}
             </button>
-            <button onClick={handleSave} className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 transition">
+            <button onClick={handleSave} className="flex-1 py-2 rounded-lg bg-[#194185] text-white font-medium hover:bg-[#2ED3B7] shadow-lg shadow-[#194185]/20 transition">
               {language === "en" ? "Save Result" : "บันทึกผล"}
             </button>
           </div>
@@ -917,7 +917,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
           <div className="w-full flex justify-center mb-10">
             {/* Header */}
-            <h1 className="text-3xl font-black uppercase tracking-widest mb-8 drop-shadow-sm flex flex-wrap justify-center items-center gap-4" style={{ color: "#1e3a8a" }}>
+            <h1 className="text-3xl font-black uppercase tracking-widest mb-8 drop-shadow-sm flex flex-wrap justify-center items-center gap-4" style={{ color: "#194185" }}>
               <div className="flex items-center gap-3">
                 <span>🏸</span> TOURNAMENT BRACKET - {language === "en" ? (level === "บน" ? "UPPER" : level === "ล่าง" ? "LOWER" : level) : level}
               </div>
@@ -931,10 +931,11 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       onChange={(e) => onRankChange && onRankChange(e.target.value)}
                       className="appearance-none font-bold text-xl py-1 pl-4 pr-10 rounded-full cursor-pointer focus:outline-none transition-all shadow-sm"
                       style={{
-                        backgroundColor: "#fef3c7", // amber-100
-                        borderColor: "#fbbf24", // amber-400
+                        backgroundColor: "#2ED3B7",
+                        backgroundColor: "rgba(46, 211, 183, 0.1)",
+                        borderColor: "#2ED3B7",
                         borderWidth: "2px",
-                        color: "#b45309", // amber-700
+                        color: "#194185",
                       }}
                     >
                       {ranks.map(r => (
@@ -944,7 +945,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       ))}
                     </select>
                     {/* Custom Arrow for select */}
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#d97706" }}>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#194185" }}>
                       <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                     </div>
                   </div>
@@ -953,7 +954,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                 <button
                   onClick={handleDownload}
                   data-html2canvas-ignore="true"
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold shadow-md transition-all text-sm active:scale-95"
+                  className="flex items-center gap-2 bg-[#194185] hover:bg-[#2ED3B7] text-white px-5 py-2 rounded-full font-bold shadow-md transition-all text-sm active:scale-95"
                 >
                   <Download size={16} /> {language === "en" ? "Download" : "ดาวน์โหลดภาพ"}
                 </button>
@@ -961,7 +962,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             </h1>
           </div>
 
-          {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#2563eb" }}>{language === "en" ? "Loading Tournament Data..." : "กำลังโหลดข้อมูล..."}</div>}
+          {loading && <div className="absolute top-28 left-10 font-semibold px-4 py-2 rounded-full shadow z-50" style={{ backgroundColor: "#ffffff", color: "#194185" }}>{language === "en" ? "Loading Tournament Data..." : "กำลังโหลดข้อมูล..."}</div>}
 
 
 
@@ -970,10 +971,10 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           {(level === "บน" || level === "Main" || level === "ล่าง" || level === "Lower" || !level) && (
             <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
               <div className="flex gap-16 mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
-                {!isSmallBracket && <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>{language === "en" ? "Round of 16" : "รอบ 16 ทีม"}</div>}
-                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>{language === "en" ? "Quarter Finals" : "รอบ 8 ทีม"}</div>
-                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "#e2e8f0", color: "#334155" }}>{language === "en" ? "Semi Finals" : "รอบรองชนะเลิศ"}</div>
-                <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "#facc15", color: "#713f12" }}>🏆 {language === "en" ? "Final" : "ชิงชนะเลิศ"}</div>
+                {!isSmallBracket && <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "rgba(25, 65, 133, 0.1)", color: "#194185" }}>{language === "en" ? "Round of 16" : "รอบ 16 ทีม"}</div>}
+                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "rgba(25, 65, 133, 0.1)", color: "#194185" }}>{language === "en" ? "Quarter Finals" : "รอบ 8 ทีม"}</div>
+                <div className="px-3 py-1 rounded-full text-center w-[300px]" style={{ backgroundColor: "rgba(25, 65, 133, 0.1)", color: "#194185" }}>{language === "en" ? "Semi Finals" : "รอบรองชนะเลิศ"}</div>
+                <div className="px-4 py-1 rounded-full text-center w-[300px] shadow-sm animate-pulse" style={{ backgroundColor: "rgba(46, 211, 183, 0.1)", color: "#194185", border: "2px solid #2ED3B7" }}>🏆 {language === "en" ? "Final" : "ชิงชนะเลิศ"}</div>
               </div>
 
               {/* Bracket Layout - Compact */}

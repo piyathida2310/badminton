@@ -41,7 +41,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
   }, [unwrappedParams.id]);
 
   return (
-    <div className="bg-[#f9f9f0] overflow-y-auto min-h-screen">
+    <div className="bg-white overflow-y-auto min-h-screen">
 
       {/* <button className='bg-pink-400 w-24 h24 rounded-3xl' onClick={() => setRound(32)}>32</button> */}
       {/* Note: 32 button commented out as requested */}

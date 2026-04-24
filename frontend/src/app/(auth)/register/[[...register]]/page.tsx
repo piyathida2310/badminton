@@ -98,7 +98,7 @@ export default function Page() {
     return (
         <div className="
     min-h-screen flex flex-col items-center justify-center
-    bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1]
+    bg-gradient-to-br from-[#194185]/5 via-white to-[#2ED3B7]/5
     font-[Poppins] px-4 py-10
   ">
 
@@ -110,7 +110,7 @@ export default function Page() {
     className="
       text-4xl mt-3 
       font-extrabold tracking-wide
-       bg-[#ef5689]
+       bg-[#194185]
       bg-clip-text text-transparent drop-shadow-sm
     "
     style={{ lineHeight: "1.2" }}
@@ -137,39 +137,37 @@ export default function Page() {
                             // Social login buttons
                             socialButtonsBlockButton: {
                                 backgroundColor: "white",
-                                border: "1.5px solid #FBCFE8",
-                                color: "#52525B",
+                                border: "1.5px solid rgba(25, 65, 133, 0.2)",
+                                color: "#194185",
                                 borderRadius: "0.75rem",
                                 padding: "0.6rem",
                                 fontSize: "0.95rem",
                                 transition: "0.2s",
-                                "&:hover": { backgroundColor: "#FFF0F5" },
+                                "&:hover": { backgroundColor: "rgba(46, 211, 183, 0.1)" },
                             },
 
                             // Continue button
                             formButtonPrimary: {
-                                background:
-                                    "linear-gradient(90deg, #FF6EA9, #FF6EA9, #FFC857)",
+                                backgroundColor: "#194185",
                                 color: "white",
                                 fontWeight: "700",
                                 borderRadius: "0.9rem",
                                 padding: "0.7rem 1.1rem",
                                 fontSize: "1rem",
                                 letterSpacing: "0.3px",
-                                boxShadow: "0 4px 10px rgba(236, 72, 153, 0.4)",
-                                "&:hover": { transform: "scale(1.03)" },
+                                boxShadow: "0 4px 10px rgba(25, 65, 133, 0.3)",
+                                "&:hover": { transform: "scale(1.03)", backgroundColor: "#1d4b9a" },
                             },
 
                             // Input field
                             formFieldInput: {
-                                background:
-                                    "linear-gradient(to right, #FFE6F2, #FFF9D9)",
-                                border: "2px solid #FBCFE8",
+                                backgroundColor: "white",
+                                border: "1.5px solid rgba(25, 65, 133, 0.2)",
                                 borderRadius: "0.8rem",
                                 padding: "0.7rem",
                                 "&:focus": {
-                                    borderColor: "#FF6EA9",
-                                    boxShadow: "0 0 0 3px rgba(255, 110, 169, 0.2)",
+                                    borderColor: "#194185",
+                                    boxShadow: "0 0 0 3px rgba(25, 65, 133, 0.1)",
                                 },
                             },
 
@@ -181,25 +179,25 @@ export default function Page() {
                             },
 
                             // Divider
-                            dividerLine: { backgroundColor: "#FBCFE8" },
+                            dividerLine: { backgroundColor: "rgba(25, 65, 133, 0.1)" },
                             dividerText: {
-                                backgroundColor: "#FFF8D6",
-                                color: "#555",
+                                backgroundColor: "white",
+                                color: "#194185",
                                 padding: "0 1rem",
                                 borderRadius: "0.5rem",
                             },
 
                             // Error alert
                             alert: {
-                                backgroundColor: "#FFE4ED",
-                                border: "1.5px solid #FBCFE8",
-                                color: "#C2185B",
+                                backgroundColor: "#FEE2E2",
+                                border: "1.5px solid #FECACA",
+                                color: "#B91C1C",
                                 borderRadius: "0.8rem",
                             },
 
                             // Show password button
                             formFieldInputShowPasswordButton: {
-                                color: "#FF6EA9",
+                                color: "#194185",
                             },
 
                             // Footer
@@ -211,7 +209,7 @@ export default function Page() {
                 {/* Custom Footer for Login Link */}
                 <div className="mt-4 text-center text-sm text-gray-600">
                     มีบัญชีอยู่แล้ว?{' '}
-                    <a href="/sign-in" className="font-bold text-[#FF6EA9] hover:underline">
+                    <a href="/sign-in" className="font-bold text-[#194185] hover:underline">
                         เข้าสู่ระบบ
                     </a>
                 </div>

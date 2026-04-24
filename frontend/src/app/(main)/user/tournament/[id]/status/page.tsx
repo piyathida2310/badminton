@@ -423,15 +423,15 @@ export default function StatusPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF]">
-        <div className="text-[#1E293B] text-xl font-semibold">{t('common.loading')}</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-[#194185] text-xl font-bold animate-pulse">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E6F8F3] via-[#DDEDFC] to-[#F9F9FF] py-10 px-4 sm:px-6 text-[#2F3E46]">
-      <h1 className="text-center text-3xl sm:text-4xl font-bold mb-10 text-[#1E293B] drop-shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white py-10 px-4 sm:px-6 text-[#194185]">
+      <h1 className="text-center text-3xl sm:text-4xl font-bold mb-10 text-[#194185] drop-shadow-sm">
         {t('status.pageTitle')}
       </h1>
 
@@ -442,7 +442,7 @@ export default function StatusPage() {
           <select
             value={filter.rank}
             onChange={(e) => setFilter((prev) => ({ ...prev, rank: e.target.value }))}
-            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-teal-400"
+            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-[#2ED3B7] outline-none"
           >
             {rankOptions.map((r: string) => (
               <option key={r} value={r}>
@@ -457,7 +457,7 @@ export default function StatusPage() {
           <select
             value={filter.type}
             onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
-            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-sky-400"
+            className="rounded-lg border border-slate-300 bg-white text-sm px-3 py-1 shadow-sm focus:ring-2 focus:ring-[#2ED3B7] outline-none"
           >
             {typeOptions.map((tRaw: string) => (
               <option key={tRaw} value={tRaw}>
@@ -484,20 +484,17 @@ export default function StatusPage() {
               team.members.length > 0 && (
                 <div
                   key={team.registrationId}
-                  className="rounded-2xl shadow-lg border border-slate-200 bg-gradient-to-br from-[#FFFFFF] to-[#E6F3F9] backdrop-blur-sm"
+                  className="rounded-2xl shadow-lg border border-[#194185]/10 bg-white/80 backdrop-blur-sm overflow-hidden"
                 >
                   {/* หัวตาราง */}
-                  <div className="relative rounded-t-2xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#5CD6C0] to-[#6BA8F8]" />
-                    <div className="relative py-3 text-center text-base sm:text-lg font-semibold text-white tracking-wide z-10">
-                      {t('status.team')} {team.teamName}
-                    </div>
+                  <div className="bg-[#194185] py-3 text-center text-base sm:text-lg font-semibold text-white tracking-wide">
+                    {t('status.team')} {team.teamName}
                   </div>
 
                   {/* ตาราง */}
-                  <div className="overflow-x-auto rounded-b-2xl">
+                  <div className="overflow-x-auto">
                     <table className="w-full text-center border-collapse text-sm sm:text-base min-w-[600px]">
-                      <thead className="bg-[#E9F5FF] text-[#334155] font-semibold">
+                      <thead className="bg-[#194185]/5 text-[#194185] font-semibold">
                         <tr>
                           <th className="p-3 border">{t('status.name')}</th>
                           <th className="p-3 border">{t('status.gender')}</th>
@@ -546,10 +543,10 @@ export default function StatusPage() {
                                 return (
                                   <span
                                     className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalStatus === t('status.passed')
-                                      ? "bg-green-200 text-green-800"
+                                      ? "bg-[#10B981]/10 text-[#10B981]"
                                       : finalStatus === t('status.waiting') || finalStatus === t('status.pending')
-                                        ? "bg-amber-200 text-amber-800"
-                                        : "bg-red-200 text-red-800"
+                                        ? "bg-amber-100 text-amber-600"
+                                        : "bg-red-100 text-red-600"
                                       }`}
                                   >
                                     {finalStatus}
@@ -585,9 +582,9 @@ export default function StatusPage() {
                                 return (
                                   <span
                                     className={`px-3 py-1 rounded-lg text-sm font-semibold ${finalPay === t('status.waiting')
-                                      ? "bg-yellow-200 text-yellow-800"
+                                      ? "bg-amber-100 text-amber-600"
                                       : finalPay === t('status.confirmed')
-                                        ? "bg-emerald-200 text-emerald-800"
+                                        ? "bg-[#10B981]/10 text-[#10B981]"
                                         : "text-gray-400"
                                       }`}
                                   >
@@ -620,10 +617,10 @@ export default function StatusPage() {
                               <td className="p-2 border">
                                 <span
                                   className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.register === t('status.passed')
-                                    ? "bg-green-200 text-green-800"
+                                    ? "bg-[#10B981]/10 text-[#10B981]"
                                     : m.register === t('status.waiting') || m.register === t('status.pending')
-                                      ? "bg-amber-200 text-amber-800"
-                                      : "bg-red-200 text-red-800"
+                                      ? "bg-amber-100 text-amber-600"
+                                      : "bg-red-100 text-red-600"
                                     }`}
                                 >
                                   {m.register}
@@ -636,7 +633,7 @@ export default function StatusPage() {
                                       setCurrentRegistrationId(team.registrationId);
                                       setShowPayment(true);
                                     }}
-                                    className="px-3 py-1 bg-gradient-to-r from-[#93E7E1] to-[#66C2F5] hover:opacity-90 text-[#134E4A] rounded-md text-sm font-semibold shadow-sm"
+                                    className="px-4 py-1 bg-[#2ED3B7] hover:bg-[#2ED3B7]/80 text-[#194185] rounded-md text-sm font-bold shadow-sm transition-all"
                                   >
                                     {t('status.pay')}
                                   </button>
@@ -647,9 +644,9 @@ export default function StatusPage() {
                               <td className="p-2 border">
                                 <span
                                   className={`px-3 py-1 rounded-lg text-sm font-semibold ${m.payment === t('status.waiting')
-                                    ? "bg-yellow-200 text-yellow-800"
+                                    ? "bg-amber-100 text-amber-600"
                                     : m.payment === t('status.confirmed')
-                                      ? "bg-emerald-200 text-emerald-800"
+                                      ? "bg-[#10B981]/10 text-[#10B981]"
                                       : "text-gray-400"
                                     }`}
                                 >
@@ -681,8 +678,8 @@ export default function StatusPage() {
 
       {/* 💳 Modal ชำระเงิน */}
       {showPayment && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full relative border-2 border-sky-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full relative border border-[#194185]/10">
             <button
               onClick={() => {
                 setShowPayment(false);
@@ -694,7 +691,7 @@ export default function StatusPage() {
               ✕
             </button>
 
-            <h2 className="text-lg sm:text-xl font-bold text-center mb-6 text-[#1E293B]">
+            <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 text-[#194185]">
               {t('status.paymentModal')}
             </h2>
 
@@ -706,7 +703,7 @@ export default function StatusPage() {
                   <img
                     src={modalQrCodeUrl}
                     alt="QR Code"
-                    className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#CFE8FA] shadow-md object-contain mb-3"
+                    className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#194185]/10 shadow-md object-contain mb-3"
                   />
                 ) : (
                   <div className="text-gray-500">{t('status.noQr')}</div>
@@ -725,7 +722,7 @@ export default function StatusPage() {
                       <img
                         src={uploadedSlip}
                         alt="slip"
-                        className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#CFE8FA] shadow-md mb-2"
+                        className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#194185]/10 shadow-md mb-2"
                       />
                       {isEditable && (
                         <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
@@ -761,7 +758,7 @@ export default function StatusPage() {
                   <button
                     onClick={confirmPayment}
                     disabled={uploading || !uploadedFile}
-                    className={`bg-gradient-to-r from-[#6BA8F8] to-[#5CD6C0] text-white font-semibold px-6 py-2 rounded-lg shadow-md text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                    className={`bg-[#194185] hover:bg-[#2ED3B7] text-white font-bold px-8 py-2.5 rounded-xl shadow-lg transition-all text-sm sm:text-base ${uploading || !uploadedFile ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
                       }`}
                   >
                     {uploading ? t('status.uploading') : t('status.done')}

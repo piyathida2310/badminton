@@ -241,16 +241,16 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
 
   if (loading && tournaments.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <p className="text-pink-500 font-bold animate-pulse text-xl">{t('results.loading')}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#2ED3B7]/5">
+        <p className="text-[#194185] font-bold animate-pulse text-xl">{t('results.loading')}</p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-pink-50 px-4 sm:px-8 md:px-16 py-10">
+    <main className="min-h-screen bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white px-4 sm:px-8 md:px-16 py-10">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-pink-500 tracking-tight drop-shadow-md">
+        <h1 className="text-4xl font-extrabold text-[#194185] tracking-tight drop-shadow-md">
           🏆 {t('results.pageTitle')}
         </h1>
 
@@ -258,12 +258,12 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-3">
             <div className="flex items-center gap-2">
-              <label htmlFor="competition-event" className="font-medium text-gray-800">{t('manage.pageTitle')}:</label>
+              <label htmlFor="competition-event" className="font-medium text-[#194185]">{t('manage.pageTitle')}:</label>
               <select
                 id="competition-event"
                 value={currentId}
                 onChange={(e) => handleTournamentChange(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] bg-white/80 backdrop-blur-sm"
               >
                 {tournaments.map((t) => (
                   <option key={t.id} value={t.id}>{t.title}</option>
@@ -272,12 +272,12 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="filter-type" className="font-medium text-gray-800">{t('results.type')}</label>
+              <label htmlFor="filter-type" className="font-medium text-[#194185]">{t('results.type')}</label>
               <select
                 id="filter-type"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
-                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">{t('results.all')}</option>
                 <option value="double">{t('results.double')}</option>
@@ -286,12 +286,12 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="rank-filter" className="font-medium text-gray-800">{t('results.rankType')}</label>
+              <label htmlFor="rank-filter" className="font-medium text-[#194185]">{t('results.rankType')}</label>
               <select
                 id="rank-filter"
                 value={selectedRank}
                 onChange={(e) => setSelectedRank(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white/80 backdrop-blur-sm"
+                className="border border-gray-300 rounded-lg px-3 py-1 text-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] bg-white/80 backdrop-blur-sm"
               >
                 <option value="all">{t('results.all')}</option>
                 {availableRanks.map(r => (
@@ -301,14 +301,14 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
-          <p className="text-pink-600 font-semibold mt-2">
+          <p className="text-[#2ED3B7] font-bold mt-2">
             {t('results.totalShuttle')}: {totalShuttles} ลูก
           </p>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center p-10 font-bold text-pink-400 animate-pulse">กำลังโหลดผลการแข่งขัน...</div>
+        <div className="text-center p-10 font-bold text-[#2ED3B7] animate-pulse">กำลังโหลดผลการแข่งขัน...</div>
       ) : filteredResults.length > 0 ? (
         <div className="space-y-14">
           {filteredResults.map((section, index) => (
@@ -343,22 +343,22 @@ function Section({ title, color, matches }: { title: string; color: string; matc
   });
 
   return (
-    <section className={`rounded-2xl shadow-xl border border-pink-100 bg-gradient-to-b ${color} overflow-hidden`}>
-      <div className="bg-gradient-to-r from-pink-200 via-pink-100 to-rose-100 py-3 border-b border-pink-200">
-        <h2 className="text-center text-xl font-bold text-pink-600 tracking-wide drop-shadow-sm">
+    <section className={`rounded-2xl shadow-xl border border-[#2ED3B7]/20 bg-white overflow-hidden`}>
+      <div className="bg-[#194185] py-3">
+        <h2 className="text-center text-xl font-bold text-white tracking-wide">
           {title}
         </h2>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm text-center">
-          <thead className="bg-gradient-to-r from-pink-100 via-rose-50 to-purple-50">
-            <tr className="border-b border-pink-200">
-              <th className="p-3 border-r border-pink-200">{t('results.position')}</th>
-              <th className="p-3 border-r border-pink-200">{t('results.order')}</th>
-              <th className="p-3 border-r border-pink-200">{t('results.teamName')}</th>
-              <th className="p-3 border-r border-pink-200">{t('results.player1')}</th>
-              {hasDouble && <th className="p-3 border-r border-pink-200">{t('results.player2')}</th>}
+          <thead className="bg-[#2ED3B7]/10 text-[#194185]">
+            <tr className="border-b border-[#2ED3B7]/20">
+              <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.position')}</th>
+              <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.order')}</th>
+              <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.teamName')}</th>
+              <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player1')}</th>
+              {hasDouble && <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player2')}</th>}
               <th className="p-3">{t('results.shuttleUsed')}</th>
             </tr>
           </thead>
@@ -366,14 +366,14 @@ function Section({ title, color, matches }: { title: string; color: string; matc
             {sortedMatches.map((m, i) => (
               <tr
                 key={i}
-                className={`border-t border-pink-100 transition ${i % 2 === 0 ? "bg-white/80" : "bg-pink-50/70"
-                  } hover:bg-rose-100/70`}
+                className={`border-t border-[#2ED3B7]/20 transition ${i % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"
+                  } hover:bg-[#2ED3B7]/10`}
               >
-                <td className="p-3 border-r border-pink-100 font-bold text-pink-600">{m.position}</td>
-                <td className="p-3 border-r border-pink-100 italic">{m.rank}</td>
-                <td className="p-3 border-r border-pink-100 text-rose-700 font-medium">{m.team}</td>
-                <td className="p-3 border-r border-pink-100">{m.player1}</td>
-                {hasDouble && <td className="p-3 border-r border-pink-100">{m.player2 || "-"}</td>}
+                <td className="p-3 border-r border-[#2ED3B7]/20 font-bold text-[#194185]">{m.position}</td>
+                <td className="p-3 border-r border-[#2ED3B7]/20 italic">{m.rank}</td>
+                <td className="p-3 border-r border-[#2ED3B7]/20 text-[#194185] font-medium">{m.team}</td>
+                <td className="p-3 border-r border-[#2ED3B7]/20">{m.player1}</td>
+                {hasDouble && <td className="p-3 border-r border-[#2ED3B7]/20">{m.player2 || "-"}</td>}
                 <td className="p-3">{m.shuttle || "0"}</td>
               </tr>
             ))}

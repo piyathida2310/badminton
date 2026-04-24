@@ -95,8 +95,8 @@ export function GroupTableEditable({
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition duration-200
             ${editing
-                  ? "bg-gradient-to-r from-pink-300 to-amber-200 text-gray-800 hover:opacity-90"
-                  : "bg-gradient-to-r from-blue-200 to-violet-200 text-gray-700 hover:opacity-90"
+                  ? "bg-[#2ED3B7] text-[#194185] hover:bg-[#2ED3B7]/80 border border-[#2ED3B7]"
+                  : "bg-[#194185] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {editing ? gm.saveBtn : gm.edit}
@@ -108,7 +108,7 @@ export function GroupTableEditable({
       {/* ตาราง */}
       <div className="overflow-x-auto w-full">
         <table className="min-w-full text-xs sm:text-sm text-gray-700 border-collapse">
-          <thead className="bg-gray-100/70 text-gray-800 font-semibold">
+          <thead className="bg-[#194185] text-white font-bold">
             <tr>
               {headers.map((h, i) => {
                 if (h === "__MERGE__") return null;
@@ -122,7 +122,7 @@ export function GroupTableEditable({
                   <th
                     key={i}
                     colSpan={span}
-                    className="border border-gray-200 px-2 sm:px-3 py-2 text-center whitespace-nowrap"
+                    className="border border-white/20 px-2 sm:px-3 py-2 text-center whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -134,8 +134,8 @@ export function GroupTableEditable({
             {data.map((r, i) => (
               <tr
                 key={r[13] || i}
-                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50/80"
-                  } hover:bg-gray-100/60 transition`}
+                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"
+                  } hover:bg-[#2ED3B7]/5 transition`}
               >
                 {r.slice(0, headers.length).map((v, j) => (
                   <td
@@ -158,7 +158,7 @@ export function GroupTableEditable({
                                     min={0}
                                     value={setStr.split(":")[0]?.trim() || ""}
                                     onChange={(e) => handleSetChange(i, setIdx, 0, e.target.value)}
-                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30"
                                   />
                                   <span>:</span>
                                   <input
@@ -166,7 +166,7 @@ export function GroupTableEditable({
                                     min={0}
                                     value={setStr.split(":")[1]?.trim() || ""}
                                     onChange={(e) => handleSetChange(i, setIdx, 1, e.target.value)}
-                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300"
+                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30"
                                   />
                                 </div>
                               ))}
@@ -193,7 +193,7 @@ export function GroupTableEditable({
                         min={headers[j] !== gm.timeCol ? 0 : undefined}
                         value={v}
                         onChange={(e) => handleSimpleChange(i, j, e.target.value)}
-                        className={`text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-pink-300 bg-white ${headers[j] === gm.timeCol ? "w-20" : "w-16"
+                        className={`text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30 bg-white ${headers[j] === gm.timeCol ? "w-20" : "w-16"
                           }`}
                       />
                     ) : (

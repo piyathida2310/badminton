@@ -115,28 +115,28 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
               onClick={() => setLanguage(language === "th" ? "en" : "th")}
               className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100"
             >
-              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#194185] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">TH</span>
               </div>
-              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#194185] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">EN</span>
               </div>
             </div>
 
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-3 px-5 py-2 rounded-full bg-white border border-slate-200 hover:bg-[#0040C1]/5 hover:border-[#0040C1]/20 transition-all duration-300 cursor-pointer shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-2px_rgba(0,64,193,0.15)] group"
+              className="flex items-center gap-3 px-5 py-2 rounded-full bg-white border border-slate-200 hover:bg-[#194185]/5 hover:border-[#194185]/20 transition-all duration-300 cursor-pointer shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-2px_rgba(25, 65, 133, 0.15)] group"
             >
               {/* รูปโปรไฟล์ */}
               {displayAvatar ? (
                 <img
                   src={displayAvatar}
                   alt="User Avatar"
-                  className="w-8 h-8 rounded-full object-cover border-2 border-[#0040C1]/10 shadow-sm group-hover:border-[#0040C1]/30 transition-colors"
+                  className="w-8 h-8 rounded-full object-cover border-2 border-[#194185]/10 shadow-sm group-hover:border-[#194185]/30 transition-colors"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#0040C1]/5 flex items-center justify-center border-2 border-[#0040C1]/10 group-hover:bg-[#0040C1]/10 group-hover:border-[#0040C1]/20 transition-all">
-                  <User size={18} className="text-[#0040C1] transition-transform group-hover:scale-110" />
+                <div className="w-8 h-8 rounded-full bg-[#194185]/5 flex items-center justify-center border-2 border-[#194185]/10 group-hover:bg-[#194185]/10 group-hover:border-[#194185]/20 transition-all">
+                  <User size={18} className="text-[#194185] transition-transform group-hover:scale-110" />
                 </div>
               )}
 
@@ -183,7 +183,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
           {/* ปุ่มเมนู (Mobile) */}
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-slate-700 md:hidden p-2 rounded-md hover:bg-[#0040C1]/5 hover:text-[#0040C1] transition"
+            className="text-slate-700 md:hidden p-2 rounded-md hover:bg-[#194185]/5 hover:text-[#194185] transition"
           >
             <Menu size={24} />
           </button>
