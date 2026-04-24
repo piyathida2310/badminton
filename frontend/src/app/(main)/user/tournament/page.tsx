@@ -85,7 +85,13 @@ export default function TournamentPage() {
 
       {/* Tournament Cards */}
       {tournaments.length === 0 ? (
-        <p className="text-center text-gray-500 mt-20">{t('tournament.noData')}</p>
+        <div className="flex flex-col items-center justify-center mt-10 md:mt-20">
+          <img
+            src="/images/Badform.png"
+            alt="No Tournament Data"
+            className="w-64 h-64 md:w-80 md:h-80 object-contain mb-4"
+          />
+        </div>
       ) : (
         <>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

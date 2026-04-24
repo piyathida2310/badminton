@@ -300,7 +300,15 @@ export default function TournamentPage() {
             >
               {t('manage.next')}
             </button>
-          </div> : <h1 className="text-center mt-36 text-gray-500 text-xl">{t('manage.noData')}</h1>
+          </div> : (
+            <div className="flex flex-col items-center justify-center mt-10 md:mt-20">
+              <img
+                src="/images/Badform.png"
+                alt="No Tournament Data"
+                className="w-64 h-64 md:w-80 md:h-80 object-contain mb-4"
+              />
+            </div>
+          )
       }
 
       {/* Modal แสดงรูปใหญ่ */}
