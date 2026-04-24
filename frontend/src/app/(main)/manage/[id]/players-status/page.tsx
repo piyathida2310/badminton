@@ -512,8 +512,12 @@ export default function RegisterStatusPage() {
       {/* ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
         {Object.entries(groupedPlayers).length === 0 && !loading && !error && (
-          <div className="text-center text-slate-600 bg-white/80 border border-slate-200 rounded-2xl py-10 shadow-sm">
-            {t('status.noData')}
+          <div className="flex flex-col items-center justify-center py-10">
+            <img
+              src="/images/statusform.png"
+              alt="No Status Data"
+              className="w-64 h-64 md:w-80 md:h-80 object-contain"
+            />
           </div>
         )}
         {Object.entries(groupedPlayers).map(([teamName, members]) => (

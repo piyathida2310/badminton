@@ -471,7 +471,13 @@ export default function StatusPage() {
       {/* 🔹 ตารางทีม */}
       <div className="max-w-6xl mx-auto space-y-10">
         {!hasData ? (
-          <div className="text-center text-gray-500 py-10">{t('status.noData')}</div>
+          <div className="flex flex-col items-center justify-center py-10">
+            <img
+              src="/images/statusform.png"
+              alt="No Status Data"
+              className="w-64 h-64 md:w-80 md:h-80 object-contain"
+            />
+          </div>
         ) : (
           filteredTeams.map(
             (team) =>
