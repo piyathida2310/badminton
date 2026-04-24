@@ -301,9 +301,13 @@ export default function TournamentGroupPage() {
         </motion.div>
       ) : (
         !loading && (
-          <p className="text-gray-500 text-lg font-medium mt-10 z-10">
-            {gm.noGroupCreated}
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 mt-10 z-10">
+            <img
+              src="/images/groupform.png"
+              alt="No Group Data"
+              className="w-64 h-64 md:w-80 md:h-80 object-contain"
+            />
+          </div>
         )
       )}
     </div>

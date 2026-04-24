@@ -344,8 +344,12 @@ export default function TournamentGroupPage() {
 
             {/* Show message for Non-Organizer if no groups */}
             {!hasCurrentTypeGroups && !isOrganizer && (
-              <div className="text-center py-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-500">
-                {t("groupManage.noBracketCreated")}
+              <div className="flex flex-col items-center justify-center py-4">
+                <img
+                  src="/images/groupform.png"
+                  alt="No Group Data"
+                  className="w-48 h-48 object-contain"
+                />
               </div>
             )}
           </div>
@@ -427,9 +431,13 @@ export default function TournamentGroupPage() {
             })}
           </motion.div>
         ) : (
-          <p className="text-gray-500 text-lg font-medium mt-10">
-            {t("groupManage.noGroupCreated")}
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 mt-10">
+            <img
+              src="/images/groupform.png"
+              alt="No Group Data"
+              className="w-64 h-64 md:w-80 md:h-80 object-contain"
+            />
+          </div>
         )
       }
     </div >

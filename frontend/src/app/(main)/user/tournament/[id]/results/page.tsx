@@ -303,9 +303,12 @@ export default function UserResultSummaryPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center text-gray-600 mt-10 p-10 bg-white/50 rounded-2xl border border-dashed border-gray-300">
-          <p>📅 {t('results.noResults')}</p>
-          <p className="text-sm mt-2">{t('results.noResultsDesc')}</p>
+        <div className="flex flex-col items-center justify-center py-10 mt-10">
+          <img
+            src="/images/sum.png"
+            alt="No Results Data"
+            className="w-64 h-64 md:w-80 md:h-80 object-contain"
+          />
         </div>
       )}
     </main>

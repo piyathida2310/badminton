@@ -198,8 +198,12 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
 
   if (matches.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-500">
-        <p className="font-medium">{mh.noMatches}</p>
+      <div className="flex flex-col items-center justify-center py-10">
+        <img
+          src="/images/matform.png"
+          alt="No Match Data"
+          className="w-64 h-64 md:w-80 md:h-80 object-contain"
+        />
       </div>
     );
   }
