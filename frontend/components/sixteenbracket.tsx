@@ -68,7 +68,7 @@ const MatchTable = () => {
         ) : (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-[10px] bg-blue-500 text-white px-2 py-[2px] rounded hover:bg-blue-600 transition"
+            className="text-[10px] bg-[#0040C1] text-white px-2 py-[2px] rounded hover:bg-[#2ED3B7] transition"
           >
             แก้ไขคะแนน
           </button>
@@ -80,13 +80,13 @@ const MatchTable = () => {
           {/*  แถวผลรวมคะแนน */}
           <tr className="border border-black">
             <td colSpan={5}></td>
-            <td className="border border-black w-8 bg-green-400 font-bold text-white">
+            <td className="border border-black w-8 bg-[#0040C1] font-bold text-white">
               {isEditing ? (
                 <input
                   name="totalA"
                   value={scores.totalA}
                   onChange={handleChange}
-                  className="w-full bg-green-300 text-center"
+                  className="w-full bg-[#0040C1]/30 text-center"
                 />
               ) : (
                 scores.totalA
@@ -110,29 +110,29 @@ const MatchTable = () => {
           <tr className="border border-black">
             <td
               rowSpan={8}
-              className="text-left text-red-600 pl-2 py-[2px] border border-black bg-red-100 font-semibold"
+              className="text-left text-[#0040C1] pl-2 py-[2px] border border-black bg-[#0040C1]/5 font-semibold"
             >
               249
             </td>
-            <td className="border border-black w-12 font-semibold bg-yellow-300 py-[2px]">
+            <td className="border border-black w-12 font-semibold bg-[#2ED3B7]/20 py-[2px]">
               N1A
             </td>
-            <td className="border border-black text-left px-1 bg-yellow-300 font-semibold truncate max-w-[180px]">
+            <td className="border border-black text-left px-1 bg-[#2ED3B7]/20 font-semibold truncate max-w-[180px]">
               JPLBYTHITIPONG/MASTERPIECE
             </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
+            <td className="border border-black bg-[#2ED3B7]/20 font-semibold py-[2px]">
               ดลสิทธิ์
             </td>
-            <td className="border border-black bg-yellow-300 font-semibold py-[2px]">
+            <td className="border border-black bg-[#2ED3B7]/20 font-semibold py-[2px]">
               ภาคภูมิ
             </td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
+            <td className="border border-black w-8 bg-[#0040C1]/20 font-semibold py-[2px]">
               {isEditing ? (
                 <input
                   name="set1A"
                   value={scores.set1A}
                   onChange={handleChange}
-                  className="w-full bg-green-200 text-center"
+                  className="w-full bg-[#0040C1]/10 text-center"
                 />
               ) : (
                 scores.set1A
@@ -155,7 +155,7 @@ const MatchTable = () => {
           {/*  เซตต่อไป */}
           <tr className="border border-black">
             <td colSpan={4}></td>
-            <td className="border border-black w-8 bg-green-300 font-semibold py-[2px]">
+            <td className="border border-black w-8 bg-[#0040C1]/20 font-semibold py-[2px]">
               {isEditing ? (
                 <input
                   name="set2A"
@@ -344,7 +344,7 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
       {/* ปุ่มดาวน์โหลดทั้งหน้า */}
       <button
         onClick={downloadFullBracket}
-        className="absolute top-2 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded shadow"
+        className="absolute top-2 right-4 z-50 bg-[#0040C1] text-white px-4 py-2 rounded shadow hover:bg-[#2ED3B7] transition-all"
       >
         ดาวน์โหลดทั้งหน้า
       </button>
@@ -352,9 +352,9 @@ export default function SixteenBracket({ level }: SixteenBracketProps) {
       {/* ครอบทั้งหมด */}
       <div
         id="full-bracket"
-        className="h-[1280px] w-full overflow-x-auto overflow-y-hidden bg-[#f9f9f0] flex flex-col items-start py-10 relative"
+        className="h-[1280px] w-full overflow-x-auto overflow-y-hidden bg-white flex flex-col items-start py-10 relative"
       >
-        <h1 className="text-3xl font-bold text-blue-800 mb-10 text-center w-full">
+        <h1 className="text-3xl font-bold text-[#0040C1] mb-10 text-center w-full">
           🏸 แผนผังการแข่งขัน Rank BG ประเภท เดี่ยว 16 ทีม ({level})
         </h1>
 

@@ -146,18 +146,43 @@ export default function TournamentGroupPage() {
         }
       }
     } catch (error: any) {
-      console.error("Manage group error:", error);
+      console.log("Manage group error (Handled):", error.message);
       const resData = error.response?.data;
       const errorMessage = resData?.errors
         ? `${resData.message} - ${resData.errors}`
         : (resData?.message || "Failed to organize groups");
 
+      const cleanMessage = errorMessage.replace("Something went wrong! - ", "");
+      const isInvalidPrompt = cleanMessage.includes("ไม่เกี่ยวข้อง") || cleanMessage.includes("Invalid command");
+
       Swal.fire({
-        title: t("groupManage.conditionError"),
-        text: errorMessage.replace("Something went wrong! - ", ""),
-        icon: "warning",
+        width: '500px',
+        html: `
+          <div class="flex flex-col items-center pt-2">
+            <div class="w-[76px] h-[76px] rounded-full bg-[#FEE2E2] flex items-center justify-center mb-4">
+              <div class="w-[56px] h-[56px] rounded-full bg-[#E02D24] flex items-center justify-center shadow-sm">
+                <span class="material-symbols-outlined text-white select-none" style="font-size: 36px">close</span>
+              </div>
+            </div>
+            <h2 class="text-[22px] font-bold text-gray-800 mb-2">
+              ${isInvalidPrompt 
+                ? (language === "th" ? "คำสั่งไม่ถูกต้อง" : "Invalid Command")
+                : t("groupManage.conditionError")}
+            </h2>
+            <p class="text-[18px] text-gray-600 text-center leading-relaxed px-2">
+              ${cleanMessage}
+            </p>
+          </div>
+        `,
         confirmButtonText: t("groupManage.acknowledge"),
-        confirmButtonColor: "#3085d6",
+        background: "#ffffff",
+        borderRadius: "80px",
+        customClass: {
+          popup: "!rounded-[24px] !p-6 shadow-2xl",
+          confirmButton: "bg-[#E02D24] text-white px-12 py-2.5 rounded-xl font-bold shadow-lg hover:bg-[#c82820] transition-all active:scale-95 w-full max-w-[180px] mt-4",
+          actions: "w-full flex justify-center"
+        },
+        buttonsStyling: false,
       });
     } finally {
       setLoading(false);

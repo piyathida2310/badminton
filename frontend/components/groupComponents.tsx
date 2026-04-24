@@ -52,7 +52,7 @@ export function GroupTable({
     <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-sm p-5 border border-gray-200 shadow-md mb-10 transition hover:shadow-lg">
       <h3 className="font-bold text-lg mb-3 text-gray-800">{title}</h3>
       <table className="w-full text-sm text-gray-700 border-collapse">
-        <thead className="bg-gray-100/70 text-gray-800 font-semibold">
+        <thead className="bg-[#0040C1]/5 text-[#0040C1] font-semibold">
           <tr>
             {headers.map((h, i) => {
               if (h === "__MERGE__") return null;
@@ -115,11 +115,11 @@ export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
 
   return (
     <div className="text-center mb-8">
-      <p className="font-semibold text-red-500 text-base mb-1">{gm.upperBracket}</p>
+      <p className="font-semibold text-[#0040C1] text-base mb-1">{gm.upperBracket}</p>
       <p className="text-gray-600 text-sm mb-4">
         {gm.upperBracketDesc}
       </p>
-      <p className="font-semibold text-red-500 text-base mb-1">{gm.lowerBracket}</p>
+      <p className="font-semibold text-[#0040C1] text-base mb-1">{gm.lowerBracket}</p>
       <p className="text-gray-600 text-sm">
         {gm.lowerBracketDesc}
       </p>

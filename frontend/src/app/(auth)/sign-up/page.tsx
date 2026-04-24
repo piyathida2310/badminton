@@ -65,7 +65,7 @@ export default function SignUp() {
 
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center  bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <p className="text-gray-600">กำลังโหลด...</p>
         </div>
@@ -74,7 +74,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center  bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ export default function SignUp() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-center mb-1"
             >
-              <h1 className="text-3xl font-bold  bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66] bg-clip-text text-transparent mb-1">
+              <h1 className="text-3xl font-bold text-[#0040C1] mb-1">
                 สมัครสมาชิก
               </h1>
               <p className="text-gray-600">กรุณาเลือกบทบาท</p>
@@ -120,7 +120,7 @@ export default function SignUp() {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-300 focus:ring-pink-400"
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#0040C1] focus:ring-[#0040C1]/20"
                   required
                 >
                   <option value="PLAYER">ผู้เล่น (Player)</option>
@@ -131,7 +131,7 @@ export default function SignUp() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full  bg-gradient-to-r from-[#FF7AA2] via-[#FF7AA2] to-[#FFCA66]  text-white font-medium shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#0040C1] hover:bg-[#2ED3B7] text-white font-medium shadow-lg transition-all duration-200 transform hover:scale-[1.02] py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
               </button>

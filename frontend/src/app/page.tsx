@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
 
-    <main className="min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-50/50 via-white to-slate-50 scroll-smooth pt-[70px]">
+    <main className="min-h-screen flex flex-col bg-slate-50 scroll-smooth pt-[70px]">
       {/* Navbar */}
       <motion.nav
         initial={{ y: -60, opacity: 0 }}
@@ -57,13 +57,13 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-4 lg:gap-8 xl:gap-12 text-slate-600 font-medium text-sm md:text-base lg:text-lg">
             <a
               href="#"
-              className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-500 hover:to-amber-500 transition-all duration-300"
+              className="hover:text-[#2ED3B7] transition-all duration-300"
             >
               {t('home.navHome')}
             </a>
             <a
               href="#about"
-              className="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-500 hover:to-amber-500 transition-all duration-300"
+              className="hover:text-[#2ED3B7] transition-all duration-300"
             >
               {t('home.navAbout')}
             </a>
@@ -76,32 +76,31 @@ export default function Home() {
               onClick={() => setLanguage(language === "th" ? "en" : "th")}
               className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100 mr-2"
             >
-              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">TH</span>
               </div>
-              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+              <div className={`flex items-center justify-center px-3 py-1.5 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                 <span className="text-sm">EN</span>
               </div>
             </div>
 
             <a
               href="/sign-in"
-              className="bg-white text-orange-600 border border-orange-200 px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base hover:bg-orange-50 hover:border-orange-300 hover:shadow-md transition-all duration-300 font-medium"
+              className="bg-white text-[#0040C1] border border-[#0040C1] px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base hover:bg-[#0040C1]/5 hover:shadow-md transition-all duration-300 font-medium"
             >
               {t('home.login')}
             </a>
             <a
               href="/register"
-              className="relative group bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 lg:px-6 lg:py-2.5 rounded-full text-sm lg:text-base hover:shadow-[0_8px_25px_-5px_rgba(249,115,22,0.4)] transition-all duration-300 font-semibold overflow-hidden"
+              className="bg-[#0040C1] text-white px-4 py-2 lg:px-6 lg:py-2.5 rounded-full text-sm lg:text-base hover:bg-[#2ED3B7] hover:shadow-lg transition-all duration-300 font-semibold"
             >
-              <span className="relative z-10">{t('home.register')}</span>
-              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {t('home.register')}
             </a>
           </div>
 
           {/* Mobile Hamburger */}
           <button
-            className="md:hidden text-slate-700 hover:text-orange-500"
+            className="md:hidden text-slate-700 hover:text-[#0040C1]"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -119,14 +118,14 @@ export default function Home() {
             <div className="flex flex-col items-center gap-4">
               <a
                 href="#"
-                className="text-slate-700 text-lg hover:text-orange-500 transition"
+                className="text-slate-700 text-lg hover:text-[#0040C1] transition"
                 onClick={() => setIsOpen(false)}
               >
                 {t('home.navHome')}
               </a>
               <a
                 href="#about"
-                className="text-slate-700 text-lg hover:text-orange-500 transition"
+                className="text-slate-700 text-lg hover:text-[#0040C1] transition"
                 onClick={() => setIsOpen(false)}
               >
                 {t('home.navAbout')}
@@ -138,24 +137,24 @@ export default function Home() {
                 onClick={() => setLanguage(language === "th" ? "en" : "th")}
                 className="flex items-center bg-slate-50 p-1 rounded-full cursor-pointer border border-slate-200 shadow-inner transition-all hover:bg-slate-100 mb-2"
               >
-                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "th" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                   <span className="text-sm">TH</span>
                 </div>
-                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-orange-600 font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
+                <div className={`flex items-center justify-center px-5 py-2 rounded-full transition-all duration-300 ${language === "en" ? "bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] text-[#0040C1] font-bold" : "text-slate-500 hover:text-slate-700 font-medium"}`}>
                   <span className="text-sm">EN</span>
                 </div>
               </div>
 
               <a
                 href="/sign-in"
-                className="bg-orange-50 text-orange-600 border border-orange-200 px-5 py-2 rounded-lg hover:bg-orange-100 transition w-full text-center"
+                className="bg-[#0040C1]/5 text-[#0040C1] border border-[#0040C1]/20 px-5 py-2 rounded-lg hover:bg-[#0040C1]/10 transition w-full text-center"
                 onClick={() => setIsOpen(false)}
               >
                 {t('home.login')}
               </a>
               <a
                 href="/register"
-                className="bg-orange-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-orange-600 transition w-full text-center"
+                className="bg-[#0040C1] text-white px-5 py-2 rounded-lg font-semibold hover:bg-[#0040C1]/90 transition w-full text-center"
                 onClick={() => setIsOpen(false)}
               >
                 {t('home.register')}
@@ -176,7 +175,7 @@ export default function Home() {
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-800 leading-[1.15] tracking-tight">
             {t('home.title')} <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
+            <span className="text-[#0040C1] drop-shadow-sm">
               {t('home.subtitle')}
             </span>
           </h1>
@@ -185,10 +184,9 @@ export default function Home() {
           </p>
           <a
             href="/register"
-            className="group relative inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-3.5 sm:px-10 sm:py-4 rounded-full w-fit mx-auto lg:mx-0 text-base sm:text-lg font-bold hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.6)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+            className="bg-[#0040C1] text-white px-8 py-3.5 sm:px-10 sm:py-4 rounded-full w-fit mx-auto lg:mx-0 text-base sm:text-lg font-bold hover:bg-[#2ED3B7] hover:shadow-lg transition-all duration-300"
           >
-            <span className="relative z-10">{t('home.getStarted')}</span>
-            <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {t('home.getStarted')}
           </a>
         </motion.div>
 

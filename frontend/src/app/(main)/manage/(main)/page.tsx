@@ -176,15 +176,15 @@ export default function TournamentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#FFFDF6] via-[#F9F6EE] to-[#EDEAE3] px-6 py-10">
+    <main className="min-h-screen bg-white px-6 py-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-pink-500 drop-shadow-md">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0040C1] drop-shadow-sm">
           {t('manage.pageTitle')}
         </h1>
         <button
           onClick={() => router.push("/manage/manage-match")}
-          className="bg-gradient-to-r from-sky-500 to-blue-500 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:scale-105 hover:brightness-110 transition-all transform"
+          className="bg-[#0040C1] text-white px-4 py-2 rounded-lg font-medium shadow-md hover:bg-[#2ED3B7] transition-all"
         >
           {t('manage.createTournament')}
         </button>
@@ -219,7 +219,7 @@ export default function TournamentPage() {
             <div className="p-4 text-center">
               <h2
                 onClick={() => rules(item.id)}
-                className="text-base sm:text-lg font-semibold text-gray-800 mb-1 group-hover:text-gradient bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text transition-colors cursor-pointer"
+                className="text-base sm:text-lg font-semibold text-[#0040C1] mb-1 transition-colors cursor-pointer"
               >
                 {item.title}
               </h2>
@@ -237,8 +237,8 @@ export default function TournamentPage() {
                       onClick={item.IsOwner && isActive ? () => handleCancelRank(item.id, r) : undefined}
                       className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
                         ${isActive
-                          ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
-                          : "bg-red-100 text-red-600 cursor-not-allowed"}
+                          ? "bg-[#0040C1]/10 text-[#0040C1] hover:bg-[#0040C1]/20"
+                          : "bg-red-50 text-red-600 cursor-not-allowed"}
                       `}
                       title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
                     >
@@ -252,7 +252,7 @@ export default function TournamentPage() {
               <button
                 disabled={item.canceled}
                 onClick={item.IsOwner ? () => handleCancel(item.id) : () => null}
-                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${item.IsOwner ? item.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:scale-105 hover:brightness-110 text-white"
+                className={`w-full py-2 rounded-lg font-medium shadow-sm transition-all duration-300 text-sm ${item.IsOwner ? item.canceled ? "bg-gray-400 cursor-not-allowed text-gray-200" : "bg-[#0040C1] hover:bg-[#2ED3B7] text-white"
                   : "bg-gray-400 cursor-not-allowed text-gray-200"
                   }`}
               >
@@ -271,7 +271,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(currentPage - 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === 1
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('manage.prev')}
@@ -282,7 +282,7 @@ export default function TournamentPage() {
                 key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1.5 rounded-md font-medium text-sm border ${currentPage === i + 1
-                  ? "bg-pink-500"
+                  ? "bg-[#2ED3B7] text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                   }`}
               >
@@ -295,7 +295,7 @@ export default function TournamentPage() {
               onClick={() => goToPage(currentPage + 1)}
               className={`px-3 py-1.5 rounded-md font-medium text-sm ${currentPage === totalPages
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-600 hover:to-blue-600"
+                : "bg-[#0040C1] text-white hover:bg-[#2ED3B7]"
                 }`}
             >
               {t('manage.next')}

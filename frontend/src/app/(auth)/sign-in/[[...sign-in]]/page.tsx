@@ -98,7 +98,7 @@ export default function Page() {
 return (
   <div className="
     min-h-screen flex flex-col items-center justify-center
-    bg-gradient-to-br from-[#FFEAF4] via-[#FFF8D6] to-[#FFE5F1]
+    bg-slate-50
     font-[Poppins] px-4 py-10
   ">
 
@@ -107,9 +107,8 @@ return (
      <h1
   className="
     text-[45px] font-extrabold font-prompt tracking-wide
-    bg-[#ef5689]
-    bg-clip-text text-transparent 
-    drop-shadow-[0_2px_6px_rgba(255,122,162,0.2)]
+    text-[#0040C1]
+    drop-shadow-sm
   "
 >
   เข้าสู่ระบบ
@@ -133,39 +132,37 @@ return (
                   // Social login buttons
                   socialButtonsBlockButton: {
                     backgroundColor: "white",
-                    border: "1.5px solid #FBCFE8",
+                    border: "1.5px solid #E2E8F0",
                     color: "#52525B",
                     borderRadius: "0.75rem",
                     padding: "0.6rem",
                     fontSize: "0.95rem",
                     transition: "0.2s",
-                    "&:hover": { backgroundColor: "#FFF0F5" },
+                    "&:hover": { backgroundColor: "#F8FAFC", borderColor: "#0040C1" },
                   },
 
                   // Continue button
                   formButtonPrimary: {
-                    background:
-                      "linear-gradient(90deg, #FF6EA9, #FF6EA9, #FFC857)",
+                    backgroundColor: "#0040C1",
                     color: "white",
                     fontWeight: "700",
                     borderRadius: "0.9rem",
                     padding: "0.7rem 1.1rem",
                     fontSize: "1rem",
                     letterSpacing: "0.3px",
-                    boxShadow: "0 4px 10px rgba(236, 72, 153, 0.4)",
-                    "&:hover": { transform: "scale(1.03)" },
+                    boxShadow: "0 4px 12px rgba(0, 64, 193, 0.2)",
+                    "&:hover": { backgroundColor: "#2ED3B7", transform: "scale(1.03)" },
                   },
 
                   // Input field
                   formFieldInput: {
-                    background:
-                      "linear-gradient(to right, #FFE6F2, #FFF9D9)",
-                    border: "2px solid #FBCFE8",
+                    backgroundColor: "white",
+                    border: "2px solid #E2E8F0",
                     borderRadius: "0.8rem",
                     padding: "0.7rem",
                     "&:focus": {
-                      borderColor: "#FF6EA9",
-                      boxShadow: "0 0 0 3px rgba(255, 110, 169, 0.2)",
+                      borderColor: "#0040C1",
+                      boxShadow: "0 0 0 3px rgba(0, 64, 193, 0.1)",
                     },
                   },
 
@@ -177,9 +174,9 @@ return (
                   },
 
                   // Divider
-                  dividerLine: { backgroundColor: "#FBCFE8" },
+                  dividerLine: { backgroundColor: "#E2E8F0" },
                   dividerText: {
-                    backgroundColor: "#FFF8D6",
+                    backgroundColor: "white",
                     color: "#555",
                     padding: "0 1rem",
                     borderRadius: "0.5rem",
@@ -187,15 +184,15 @@ return (
 
                   // Error alert
                   alert: {
-                    backgroundColor: "#FFE4ED",
-                    border: "1.5px solid #FBCFE8",
-                    color: "#C2185B",
+                    backgroundColor: "#FEF2F2",
+                    border: "1.5px solid #FCA5A5",
+                    color: "#B91C1C",
                     borderRadius: "0.8rem",
                   },
 
                   // Show password button
                   formFieldInputShowPasswordButton: {
-                    color: "#FF6EA9",
+                    color: "#0040C1",
                   },
 
                   // Footer

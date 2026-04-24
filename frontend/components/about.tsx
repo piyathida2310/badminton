@@ -9,28 +9,28 @@ export default function About() {
   const teamMembers = [
     {
       name: t('about.team.cream'),
-      role: "Frontend Developer",
+      role: "Full Stack Developer",
       email: "sukhathai7331@gmail.com",
       img: "/images/cream.jpg",
     },
     {
       name: t('about.team.faii'),
-      role: "Backend Developer",
+      role: "Full Stack Developer",
       email: "18987m210@gmail.com",
       img: "/images/faii.jpg",
     },
   ];
 
   const features = [
-    { title: t('about.features.easyManage'), desc: t('about.features.easyManageDesc'), icon: <Calendar className="w-8 h-8 text-orange-500" /> },
-    { title: t('about.features.realtime'), desc: t('about.features.realtimeDesc'), icon: <TrendingUp className="w-8 h-8 text-orange-500" /> },
-    { title: t('about.features.responsive'), desc: t('about.features.responsiveDesc'), icon: <MonitorSmartphone className="w-8 h-8 text-orange-500" /> },
+    { title: t('about.features.easyManage'), desc: t('about.features.easyManageDesc'), icon: <Calendar className="w-8 h-8 text-[#0040C1]" /> },
+    { title: t('about.features.realtime'), desc: t('about.features.realtimeDesc'), icon: <TrendingUp className="w-8 h-8 text-[#0040C1]" /> },
+    { title: t('about.features.responsive'), desc: t('about.features.responsiveDesc'), icon: <MonitorSmartphone className="w-8 h-8 text-[#0040C1]" /> },
   ];
 
   return (
     <section
       id="about"
-      className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-50 via-white to-orange-50/30 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 py-24"
+      className="bg-white px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 py-24"
     >
       {/* Header */}
       <motion.div
@@ -42,7 +42,7 @@ export default function About() {
       >
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800">
           {t('about.title')} <br />
-          <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
+          <span className="text-[#0040C1] drop-shadow-sm">
             {t('about.systemName')}
           </span>
         </h1>
@@ -60,28 +60,28 @@ export default function About() {
           transition={{ duration: 0.8 }}
           className="flex flex-col gap-6 bg-white/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#0040C1]/5 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-orange-100 rounded-2xl text-orange-600">
+            <div className="p-3 bg-[#0040C1]/10 rounded-2xl text-[#0040C1]">
               <Target className="w-8 h-8" />
             </div>
             <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">{t('about.objectivesTitle')}</h2>
           </div>
           <ul className="text-gray-600 space-y-4">
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#2ED3B7] flex-shrink-0 mt-0.5" />
               <span>{t('about.objective1')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#2ED3B7] flex-shrink-0 mt-0.5" />
               <span>{t('about.objective2')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#2ED3B7] flex-shrink-0 mt-0.5" />
               <span>{t('about.objective3')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#2ED3B7] flex-shrink-0 mt-0.5" />
               <span>{t('about.objective4')}</span>
             </li>
           </ul>
@@ -94,28 +94,28 @@ export default function About() {
           transition={{ duration: 0.8 }}
           className="flex flex-col gap-6 bg-white/80 backdrop-blur-xl border border-white/40 rounded-3xl p-8 lg:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(249,115,22,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden"
         >
-          <div className="absolute top-0 left-0 w-32 h-32 bg-amber-100/50 rounded-br-full -z-10 transition-transform group-hover:scale-110"></div>
+          <div className="absolute top-0 left-0 w-32 h-32 bg-[#2ED3B7]/5 rounded-br-full -z-10 transition-transform group-hover:scale-110"></div>
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
+            <div className="p-3 bg-[#2ED3B7]/10 rounded-2xl text-[#2ED3B7]">
               <Lightbulb className="w-8 h-8" />
             </div>
             <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">{t('about.benefitsTitle')}</h2>
           </div>
           <ul className="text-gray-600 space-y-4">
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#0040C1] flex-shrink-0 mt-0.5" />
               <span>{t('about.benefit1')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#0040C1] flex-shrink-0 mt-0.5" />
               <span>{t('about.benefit2')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#0040C1] flex-shrink-0 mt-0.5" />
               <span>{t('about.benefit3')}</span>
             </li>
             <li className="flex items-start gap-3">
-              <CheckCircle2 className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-[#0040C1] flex-shrink-0 mt-0.5" />
               <span>{t('about.benefit4')}</span>
             </li>
           </ul>
@@ -156,7 +156,7 @@ export default function About() {
             transition={{ duration: 0.6, delay: idx * 0.2 }}
             className="flex flex-col items-center gap-4 bg-white backdrop-blur-xl border border-slate-100 rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] text-center hover:shadow-[0_20px_40px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-500 group"
           >
-            <div className="p-4 bg-orange-50 rounded-full group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-300">
+            <div className="p-4 bg-[#0040C1]/5 rounded-full group-hover:scale-110 group-hover:bg-[#0040C1]/10 transition-all duration-300">
               {feature.icon}
             </div>
             <h3 className="text-xl font-bold text-gray-800 tracking-tight mt-2">{feature.title}</h3>
@@ -188,10 +188,10 @@ export default function About() {
               className="relative flex flex-col items-center bg-white border border-slate-100 rounded-[2rem] p-10 shadow-[0_4px_24px_rgb(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgb(249,115,22,0.08)] hover:-translate-y-2 transition-all duration-500 group overflow-hidden"
             >
               {/* Decorative top background */}
-              <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-orange-100/80 to-amber-50/40 -z-10 group-hover:h-36 transition-all duration-500"></div>
+              <div className="absolute top-0 left-0 w-full h-32 bg-[#0040C1]/5 -z-10 group-hover:h-36 transition-all duration-500"></div>
               
               <div className="relative mb-6">
-                <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                <div className="absolute -inset-1 bg-[#0040C1]/20 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                 <Image
                   src={person.img}
                   alt={person.name}
@@ -202,12 +202,12 @@ export default function About() {
               </div>
               
               <h3 className="text-2xl font-extrabold text-gray-800 mb-2">{person.name}</h3>
-              <div className="px-4 py-1.5 bg-orange-50 text-orange-600 font-semibold text-sm rounded-full mb-4">
+              <div className="px-4 py-1.5 bg-[#0040C1]/10 text-[#0040C1] font-semibold text-sm rounded-full mb-4">
                 {person.role}
               </div>
               <a
                 href={`mailto:${person.email}`}
-                className="text-slate-500 hover:text-orange-500 hover:underline transition-colors font-medium"
+                className="text-slate-500 hover:text-[#0040C1] hover:underline transition-colors font-medium"
               >
                 {person.email}
               </a>
@@ -223,10 +223,9 @@ export default function About() {
             href="/register"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="group relative inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-10 py-4 rounded-full shadow-[0_10px_40px_-10px_rgba(249,115,22,0.5)] hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.8)] hover:-translate-y-1 transition-all duration-300 font-bold text-lg overflow-hidden"
+            className="bg-[#0040C1] text-white px-10 py-4 rounded-full shadow-lg hover:bg-[#2ED3B7] hover:-translate-y-1 transition-all duration-300 font-bold text-lg"
           >
-            <span className="relative z-10">{t('about.registerNow')}</span>
-            <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {t('about.registerNow')}
           </motion.a>
         </div>
       </section>
