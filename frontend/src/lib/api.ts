@@ -1,7 +1,7 @@
 //config axios
 import axios from 'axios';
 
-const apiurl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const apiurl = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 // Create axios instance with default configuration
 const api = axios.create({

@@ -20,7 +20,7 @@ services:
     container_name: batminton-minio
     restart: always
     environment:
-      MINIO_ROOT_USER: batminton
+      MINIO_ROOT_USER: badminton
       MINIO_ROOT_PASSWORD: 123456789
     ports:
       - "9000:9000"

@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+# ติดตั้ง openssl และ libc6-compat สำหรับ Prisma
+RUN apk add --no-cache openssl libc6-compat
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+COPY . .
+
+EXPOSE 8000
+
+# แก้ไขบรรทัดนี้: ให้รัน db push ก่อนแล้วค่อยเริ่มรันแอป
+CMD npx prisma db push && npm run dev

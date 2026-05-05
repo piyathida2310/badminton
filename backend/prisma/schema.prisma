@@ -57,7 +57,6 @@ enum CancellationStatus {
   REJECTED
 }
 
-// New Enums for Bracket & Gender
 enum MatchStage {
   UPPER
   LOWER
@@ -78,51 +77,50 @@ enum Gender {
 
 // -------------------- MODELS --------------------
 
-// ---------- USER ----------
 model User {
-  id          Int       @id @default(autoincrement()) @map("user_id")
-  userName    String?   @unique @map("user_name")
-  firstName   String    @map("first_name")
-  lastName    String    @map("last_name")
-  email       String    @unique
-  password    String
-  age         Int?
-  gender      Gender?   // Optional: User's primary gender
-  role        Role      @default(PLAYER)
-  playType    PlayType?
-  profileImg  String?
-  gmail       String?   @unique
-  clerkId     String?   @unique @map("clerk_id")
-  phoneNumber String?   @map("phone_number")
-  rank        Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           Int       @id @default(autoincrement()) @map("id")
+  userName     String?   @unique @map("user_name")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  email        String    @unique
+  password     String
+  age          Int?
+  gender       Gender?
+  role         Role      @default(PLAYER)
+  playType     PlayType? @map("play_type")
+  profileImg   String?   @map("profile_img")
+  gmail        String?   @unique
+  clerkId      String?   @unique @map("clerk_id")
+  phoneNumber  String?   @map("phone_number")
+  rank         Int?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   organizedTournaments Tournament[] @relation("OrganizerTournaments")
   registrations        Register[]
   confirmedPayments    Payment[]    @relation("PaymentConfirmedBy")
   histories            History[]
-}
 
-// ---------- TOURNAMENT ----------
+  @@map("users")
+}
 
 model Tournament {
   id             Int      @id @default(autoincrement())
   name           String
   location       String
-  playType       PlayType
+  playType       PlayType @map("play_type")
   rank           String[]
-  shuttlePrice   Float
-  maxPlayers     Int
-  posterImg      String?
-  qrCodeImg      String?
-  startDate      DateTime
-  createdAt      DateTime @default(now())
-  updateAt       DateTime @updatedAt
-  ruleId         Int
-  isLowerBracket Boolean  @default(false)
-  isCancel       Boolean  @default(false)
-  organizerId    Int
+  shuttlePrice   Float    @map("shuttle_price")
+  maxPlayers     Int      @map("max_players")
+  posterImg      String?  @map("poster_img")
+  qrCodeImg      String?  @map("qr_code_img")
+  startDate      DateTime @map("start_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updateAt       DateTime @updatedAt @map("updated_at")
+  ruleId         Int      @map("rule_id")
+  isLowerBracket Boolean  @default(false) @map("is_lower_bracket")
+  isCancel       Boolean  @default(false) @map("is_cancel")
+  organizerId    Int      @map("organizer_id")
 
   organizer User @relation("OrganizerTournaments", fields: [organizerId], references: [id])
   rule      Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
@@ -133,146 +131,138 @@ model Tournament {
   groups         Group[]
   summaries      Summary[]
   competition    Competition[]
-}
 
-// ---------- competition ----------
+  @@map("tournaments")
+}
 
 model Competition {
   id           Int      @id @default(autoincrement())
   time         DateTime
   detail       String
   rank         String[]
-  tournamentId Int?
-  createdAt    DateTime @default(now())
-  updateAt     DateTime @updatedAt
+  tournamentId Int?     @map("tournament_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updateAt     DateTime @updatedAt @map("updated_at")
 
   tournament Tournament? @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@map("competitions")
 }
 
-// ---------- RULE ----------
 model Rule {
   id        Int      @id @default(autoincrement())
   content   String
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updateAt  DateTime @updatedAt @map("updated_at")
 
   tournament Tournament[]
+
+  @@map("rules")
 }
 
-// ---------- REGISTER ----------
 model Register {
   id           Int              @id @default(autoincrement())
-  userId       Int
-  tournamentId Int
-  teamName     String?
-  playType     HandType
-  phoneNumber  String
-  videoUrl     String?
+  userId       Int              @map("user_id")
+  tournamentId Int              @map("tournament_id")
+  teamName     String?          @map("team_name")
+  playType     HandType         @map("hand_type")
+  phoneNumber  String           @map("phone_number")
+  videoUrl     String?          @map("video_url")
   status       EvaluationStatus @default(WAITING)
   score        Float?
   comment      String?
 
-  // ข้อมูลผู้จัดการทีม
-  managerName  String?
+  managerName     String?   @map("manager_name")
+  player1Name     String?   @map("player1_name")
+  player1Gender   Gender?   @map("player1_gender")
+  player1Birthday DateTime? @map("player1_birthday")
+  player2Name     String?   @map("player2_name")
+  player2Gender   Gender?   @map("player2_gender")
+  player2Phone    String?   @map("player2_phone")
+  player2Birthday DateTime? @map("player2_birthday")
 
-  // ข้อมูลผู้เล่นคนที่ 1
-  player1Name     String?
-  player1Gender   Gender? // New Field
-  player1Birthday DateTime?
-
-  // ข้อมูลผู้เล่นคนที่ 2 (สำหรับแบบคู่)
-  player2Name     String?
-  player2Gender   Gender? // New Field
-  player2Phone    String?
-  player2Birthday DateTime?
-
-
-  // Foreign key สำหรับ Group
-  groupId Int? 
+  groupId Int?    @map("group_id")
   group   Group? @relation(fields: [groupId], references: [id])
 
-  // Relations
   user       User       @relation(fields: [userId], references: [id])
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   payment    Payment?
   cancellation CancellationRequest?
 
-  // สำหรับ relation กับ GroupMatch
   groupMatchesAsPlayer1 GroupMatch[] @relation("GroupPlayer1")
   groupMatchesAsPlayer2 GroupMatch[] @relation("GroupPlayer2")
   groupMatchesAsWinner  GroupMatch[] @relation("GroupWinner")
 
-  // สำหรับ relation กับ BracketMatch
   bracketMatchesAsPlayer1 BracketMatch[] @relation("BracketPlayer1")
   bracketMatchesAsPlayer2 BracketMatch[] @relation("BracketPlayer2")
   bracketMatchesAsWinner  BracketMatch[] @relation("BracketWinner")
 
-  // สำหรับ relation กับ Summary (ถ้ามี)
   summaries Summary[] @relation("SummaryRegister")
+
+  @@map("registrations")
 }
 
-// ---------- CANCELLATION REQUEST ----------
 model CancellationRequest {
-  id              Int                @id @default(autoincrement())
-  registerId      Int                @unique
-  reason          String?
-  status          CancellationStatus @default(REQUESTED)
-  bankName        String?
-  accountNum      String?
-  accountName     String?
-  qrCode          String?
-  refundSlip      String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id          Int                @id @default(autoincrement())
+  registerId  Int                @unique @map("register_id")
+  reason      String?
+  status      CancellationStatus @default(REQUESTED)
+  bankName    String?            @map("bank_name")
+  accountNum  String?            @map("account_num")
+  accountName String?            @map("account_name")
+  qrCode      String?            @map("qr_code")
+  refundSlip  String?            @map("refund_slip")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
 
   register Register @relation(fields: [registerId], references: [id])
+
+  @@map("cancellation_requests")
 }
 
-// ---------- PAYMENT ----------
 model Payment {
   id            Int           @id @default(autoincrement())
-  registerId    Int           @unique
-  slipImg       String?
+  registerId    Int           @unique @map("register_id")
+  slipImg       String?       @map("slip_img")
   status        PaymentStatus @default(PENDING)
-  confirmedById Int?
-  createdAt     DateTime      @default(now())
+  confirmedById Int?          @map("confirmed_by_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
 
   register    Register @relation(fields: [registerId], references: [id])
   confirmedBy User?    @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id])
+
+  @@map("payments")
 }
 
-// ---------- GROUP ----------
 model Group {
   id           Int      @id @default(autoincrement())
   name         String
-  tournamentId Int
-  createdAt    DateTime @default(now())
+  tournamentId Int      @map("tournament_id")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   tournament   Tournament   @relation(fields: [tournamentId], references: [id])
   groupMatches GroupMatch[]
   registers    Register[]
+
+  @@map("groups")
 }
 
-// ---------- GROUP MATCH (รอบแบ่งกลุ่ม) ----------
 model GroupMatch {
   id            Int         @id @default(autoincrement())
-  tournamentId  Int
-  groupId       Int
-
-  handType      HandType?
-  roundName     String?     // "R1", "R2", "R3"
-
-  player1Id     Int?
-  matchSequence Int?        // ลำดับแมตช์ (1, 2, 3...)
-  player2Id     Int?
-  winnerId      Int?
-
-  score1        Int?
-  score2        Int?
-  sets          String?     // "21:19, 18:21"
-  shuttle       Int?        // จำนวนลูกแบด
+  tournamentId  Int         @map("tournament_id")
+  groupId       Int         @map("group_id")
+  handType      HandType?   @map("hand_type")
+  roundName     String?     @map("round_name")
+  player1Id     Int?        @map("player1_id")
+  matchSequence Int?        @map("match_sequence")
+  player2Id     Int?        @map("player2_id")
+  winnerId      Int?        @map("winner_id")
+  score1        Int?        @map("score1")
+  score2        Int?        @map("score2")
+  sets          String?
+  shuttle       Int?
   status        MatchStatus @default(PENDING)
-  scheduledTime DateTime?
+  scheduledTime DateTime?   @map("scheduled_time")
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   group      Group      @relation(fields: [groupId], references: [id])
@@ -283,34 +273,30 @@ model GroupMatch {
 
   @@index([tournamentId])
   @@index([groupId])
+  @@map("group_matches")
 }
 
-// ---------- BRACKET MATCH (สายแข่ง) ----------
 model BracketMatch {
   id            Int         @id @default(autoincrement())
-  tournamentId  Int
-
-  handType      HandType?
-  stage         MatchStage  @default(UPPER)  // UPPER, LOWER, GRAND_FINAL, THIRD_PLACE
-  roundSequence Int?        // 1=รอบแรก, 2=รอบสอง...
-  matchSequence Int?        // ลำดับแมตช์ในรอบ: 1, 2, 3...
-
-  player1Id     Int?
-  player2Id     Int?
-  winnerId      Int?
-
-  score1        Int?
-  score2        Int?
-  sets          String?     // "21:19, 18:21"
-  shuttle       Int?        // จำนวนลูกแบด
+  tournamentId  Int         @map("tournament_id")
+  handType      HandType?   @map("hand_type")
+  stage         MatchStage  @default(UPPER)
+  roundSequence Int?        @map("round_sequence")
+  matchSequence Int?        @map("match_sequence")
+  player1Id     Int?        @map("player1_id")
+  player2Id     Int?        @map("player2_id")
+  winnerId      Int?        @map("winner_id")
+  score1        Int?        @map("score1")
+  score2        Int?        @map("score2")
+  sets          String?
+  shuttle       Int?
   status        MatchStatus @default(PENDING)
-  scheduledTime DateTime?
+  scheduledTime DateTime?   @map("scheduled_time")
 
-  // เส้นทาง Bracket (เลื่อนผู้เล่นอัตโนมัติ)
-  winnerNextMatchId    Int?
-  winnerNextMatchSlot  MatchSlot?
-  loserNextMatchId     Int?
-  loserNextMatchSlot   MatchSlot?
+  winnerNextMatchId   Int?       @map("winner_next_match_id")
+  winnerNextMatchSlot MatchSlot? @map("winner_next_match_slot")
+  loserNextMatchId    Int?       @map("loser_next_match_id")
+  loserNextMatchSlot  MatchSlot? @map("loser_next_match_slot")
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
 
@@ -318,36 +304,37 @@ model BracketMatch {
   player2 Register? @relation("BracketPlayer2", fields: [player2Id], references: [id])
   winner  Register? @relation("BracketWinner", fields: [winnerId], references: [id])
 
-  // Relations for Linked Matches
-  previousWinnerMatch  BracketMatch?  @relation("WinnerPath", fields: [winnerNextMatchId], references: [id])
-  nextWinnerMatches    BracketMatch[] @relation("WinnerPath")
-
-  previousLoserMatch   BracketMatch?  @relation("LoserPath", fields: [loserNextMatchId], references: [id])
-  nextLoserMatches     BracketMatch[] @relation("LoserPath")
+  previousWinnerMatch BracketMatch?  @relation("WinnerPath", fields: [winnerNextMatchId], references: [id])
+  nextWinnerMatches   BracketMatch[] @relation("WinnerPath")
+  previousLoserMatch  BracketMatch?  @relation("LoserPath", fields: [loserNextMatchId], references: [id])
+  nextLoserMatches    BracketMatch[] @relation("LoserPath")
 
   @@index([tournamentId])
+  @@map("bracket_matches")
 }
 
-// ---------- SUMMARY ----------
 model Summary {
   id           Int      @id @default(autoincrement())
-  tournamentId Int
-  registerId   Int
+  tournamentId Int      @map("tournament_id")
+  registerId   Int      @map("register_id")
   position     Int
-  totalScore   Float?
-  shuttleUsed  Int?
-  createdAt    DateTime @default(now())
+  totalScore   Float?   @map("total_score")
+  shuttleUsed  Int?     @map("shuttle_used")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   tournament Tournament @relation(fields: [tournamentId], references: [id])
   register   Register   @relation("SummaryRegister", fields: [registerId], references: [id])
+
+  @@map("summaries")
 }
 
-// ---------- HISTORY ----------
 model History {
   id        Int      @id @default(autoincrement())
-  userId    Int
+  userId    Int      @map("user_id")
   action    String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
+
+  @@map("histories")
 }

@@ -1,0 +1,105 @@
+name: Badminton
+
+
+
+services:
+
+  gateway:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/nginx/default.dev.conf:/etc/nginx/conf.d/default.conf:ro
+    
+    depends_on:
+      - frontend
+      - backend
+      - minio
+    networks:
+      - BadmintonNetwork
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile.dev
+    restart: always
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+       
+    networks:
+      - BadmintonNetwork
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile.dev
+    restart: always
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    extra_hosts:
+      - "localhost:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - BadmintonNetwork
+    
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: badminton-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - batminton_postgres_data:/var/lib/postgresql
+    networks:
+      - BadmintonNetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: batminton-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - batminton_minio_data:/data
+    networks:
+      - BadmintonNetwork
+
+networks:
+  BadmintonNetwork:
+    driver: bridge
+
+volumes:
+  batminton_postgres_data:
+  batminton_minio_data:
