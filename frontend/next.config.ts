@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-   webpack: (config, { dev, isServer }) => {
+  output: "standalone",
+  webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       config.watchOptions = {
         poll: 1000,      // เช็คการเปลี่ยนแปลงทุกๆ 1 วินาที
