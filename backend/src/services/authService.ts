@@ -40,7 +40,7 @@ type UserProfile = Prisma.UserGetPayload<{
     lastName: true;
     email: true;
     role: true;
- 
+    profileImg: true;
     createdAt: true;
   };
 }>;
@@ -124,6 +124,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
       lastName: true,
       email: true,
       role: true,
+      profileImg: true,
       createdAt: true,
     },
   });
@@ -168,27 +169,36 @@ export async function changePassword(
 
 // Update Profile
 export interface UpdateProfileParams {
-  fullName: string;
-  email: string;
+  fullName?: string;
+  email?: string;
   username?: string | null;
+  profileImg?: string | null;
 }
 
 export async function updateUserProfile(
   userId: string,
-  { fullName, email, username }: { fullName: string; email: string; username?: string | null },
+  { fullName, email, username, profileImg }: UpdateProfileParams
 ) {
   const numericId = Number(userId);
-
-  const [firstName, ...lastNameParts] = (fullName || "").trim().split(" ");
-  const lastName = lastNameParts.join(' ') || '';
 
   const existingUser = await prisma.user.findUnique({ where: { id: numericId } });
   if (!existingUser) throw new HttpError(404, 'User not found', 'USER_NOT_FOUND');
 
-  const emailInUse = await prisma.user.findFirst({
-    where: { email, NOT: { id: numericId } },
-  });
-  if (emailInUse) throw new HttpError(400, 'Email already in use', 'EMAIL_DUPLICATE');
+  let firstName = existingUser.firstName;
+  let lastName = existingUser.lastName;
+  
+  if (fullName !== undefined) {
+    const parts = (fullName || "").trim().split(" ");
+    firstName = parts[0] || "";
+    lastName = parts.slice(1).join(' ') || '';
+  }
+
+  if (email !== undefined) {
+    const emailInUse = await prisma.user.findFirst({
+      where: { email, NOT: { id: numericId } },
+    });
+    if (emailInUse) throw new HttpError(400, 'Email already in use', 'EMAIL_DUPLICATE');
+  }
   
 
  try {
@@ -202,8 +212,9 @@ export async function updateUserProfile(
     data: {
       firstName,
       lastName,
-      email,
+      email: email !== undefined ? email : existingUser.email,
       userName: safeUserName,
+      profileImg: profileImg !== undefined ? profileImg : existingUser.profileImg,
     },
     select: {
       id: true,
@@ -212,6 +223,7 @@ export async function updateUserProfile(
       userName: true,
       email: true,
       role: true,
+      profileImg: true,
     },
   });
 

@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import authMiddleware from '../middleware/authMiddleware';
 import {
   register,
@@ -6,7 +6,8 @@ import {
   changePasswordHandler,
   me,
 } from '../controllers/authController';
-import { updateProfileHandler } from '../controllers/authController';
+import { updateProfileHandler, uploadProfileImageHandler } from '../controllers/authController';
+import { upload } from '../middleware/upload';
 
 
 
@@ -155,5 +156,6 @@ router.post('/change-password', authMiddleware, changePasswordHandler);
  */
 router.get('/me', authMiddleware, me);
 router.patch('/me', authMiddleware, updateProfileHandler);
+router.post('/upload-avatar', authMiddleware, upload.single('avatar'), uploadProfileImageHandler);
 
 export default router;

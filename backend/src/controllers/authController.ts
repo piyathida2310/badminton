@@ -9,6 +9,8 @@ import {
 import { HttpError } from '../utils/httpError';
 import { AuthenticatedRequest } from '../types/express';
 import { updateUserProfile } from '../services/authService';
+import { uploadFileToS3, signGetObjectUrl } from '../services/storageService';
+import crypto from 'crypto';
 
 const ALLOWED_ROLES = Object.values(Role);
 
@@ -139,6 +141,12 @@ export async function me(req: Request, res: Response, next: NextFunction): Promi
       throw new HttpError(401, 'User not authenticated', 'UNAUTHORIZED');
     }
     const profile = await getUserProfile(request.user.sub);
+    
+    // Generate signed URL if profileImg is a Minio key
+    if (profile.profileImg && !profile.profileImg.startsWith('http')) {
+      (profile as any).profileImg = await signGetObjectUrl(profile.profileImg);
+    }
+    
     res.json(profile);
   } catch (error) {
     next(error);
@@ -156,7 +164,7 @@ export async function updateProfileHandler(
       throw new HttpError(401, 'User not authenticated', 'UNAUTHORIZED');
     }
 
-    const { fullName = "", email = "", username } = req.body ?? {};
+    const { fullName = "", email = "", username, profileImg } = req.body ?? {};
     if (!fullName.trim() || !email.trim()) {
       throw new HttpError(400, 'fullName and email are required', 'VALIDATION_ERROR');
     }
@@ -165,11 +173,59 @@ export async function updateProfileHandler(
       fullName,
       email,
       username,
+      profileImg,
     });
+
+    // Generate signed URL if profileImg is a Minio key
+    if (updated.profileImg && !updated.profileImg.startsWith('http')) {
+      (updated as any).profileImg = await signGetObjectUrl(updated.profileImg);
+    }
 
     res.json(updated);
   } catch (error) {
     console.error(" updateProfileHandler error:", error);
+    next(error);
+  }
+}
+
+export async function uploadProfileImageHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const request = req as AuthenticatedRequest;
+    if (!request.user) {
+      throw new HttpError(401, 'User not authenticated', 'UNAUTHORIZED');
+    }
+
+    if (!req.file) {
+      throw new HttpError(400, 'No file uploaded', 'VALIDATION_ERROR');
+    }
+
+    const file = req.file;
+    const fileExt = file.originalname.split('.').pop() || 'jpg';
+    const fileName = `avatars/${crypto.randomUUID()}.${fileExt}`;
+
+    // Upload to Minio
+    await uploadFileToS3(file, fileName);
+
+    // Update user profileImg in DB
+    const updated = await updateUserProfile(request.user.sub, {
+      profileImg: fileName, // Store the key
+    });
+
+    // Generate signed URL for response
+    const signedUrl = await signGetObjectUrl(fileName);
+
+    res.json({
+      success: true,
+      message: 'Profile image uploaded successfully',
+      profileImg: signedUrl,
+      key: fileName
+    });
+  } catch (error) {
+    console.error(" uploadProfileImageHandler error:", error);
     next(error);
   }
 }

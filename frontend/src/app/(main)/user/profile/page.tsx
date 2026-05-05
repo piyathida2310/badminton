@@ -22,15 +22,34 @@ export default function ProfilePage() {
     avatar: "", 
   });
 
-  // ดึงข้อมูลจาก Clerk เมื่อ component โหลด
+  // ดึงข้อมูลจาก Clerk และ API ของเราเมื่อ component โหลด
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        const dbProfile = res.data;
+        
+        setProfile({
+          fullname: `${dbProfile.firstName || ""} ${dbProfile.lastName || ""}`.trim(),
+          nickname: dbProfile.userName || "",
+          email: dbProfile.email || "",
+          avatar: dbProfile.profileImg || user?.imageUrl || "",
+        });
+      } catch (err) {
+        console.error("Failed to fetch profile from API:", err);
+        if (user) {
+          setProfile({
+            fullname: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+            nickname: user.username || "",
+            email: user.primaryEmailAddress?.emailAddress || "",
+            avatar: user.imageUrl || "",
+          });
+        }
+      }
+    };
+
     if (user) {
-      setProfile({
-        fullname: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-        nickname: user.username || "",
-        email: user.primaryEmailAddress?.emailAddress || "",
-        avatar: user.imageUrl || "",
-      });
+      fetchProfile();
     }
   }, [user]);
 
@@ -41,15 +60,22 @@ export default function ProfilePage() {
     
     try {
       setUploading(true);
-      // อัปโหลดรูปไปยัง Clerk
-      await user?.setProfileImage({ file });
       
-      // อัปเดต state กับรูปใหม่จาก Clerk
-      if (user?.imageUrl) {
-        setProfile((prev) => ({ ...prev, avatar: user.imageUrl }));
+      // อัปโหลดรูปไปยัง Minio ผ่าน API ของเรา
+      const formData = new FormData();
+      formData.append("avatar", file);
+      
+      const res = await api.post("/auth/upload-avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      
+      if (res.data.success) {
+        const newImageUrl = res.data.profileImg;
+        setProfile((prev) => ({ ...prev, avatar: newImageUrl }));
+        alert("อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!");
       }
-      
-      alert("อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!");
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการอัปโหลดรูป:", error);
       alert("เกิดข้อผิดพลาดในการอัปโหลดรูป");
@@ -73,6 +99,14 @@ export default function ProfilePage() {
       await user?.update({
         firstName: firstName,
         lastName: lastName,
+      });
+
+      // อัปเดตข้อมูลในฐานข้อมูลของเรา
+      await api.patch('/auth/me', {
+        fullName: profile.fullname,
+        email: profile.email,
+        username: profile.nickname,
+        profileImg: profile.avatar
       });
       
       // ถ้าต้องการอัปเดต username ต้องใช้ method อื่น
