@@ -176,7 +176,6 @@ export default function TournamentGroupPage() {
         `,
         confirmButtonText: t("groupManage.acknowledge"),
         background: "#ffffff",
-        borderRadius: "80px",
         customClass: {
           popup: "!rounded-[24px] !p-6 shadow-2xl",
           confirmButton: "bg-[#E02D24] text-white px-12 py-2.5 rounded-xl font-bold shadow-lg hover:bg-[#c82820] transition-all active:scale-95 w-full max-w-[180px] mt-4",
