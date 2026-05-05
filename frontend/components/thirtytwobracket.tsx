@@ -931,7 +931,6 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                       onChange={(e) => onRankChange && onRankChange(e.target.value)}
                       className="appearance-none font-bold text-xl py-1 pl-4 pr-10 rounded-full cursor-pointer focus:outline-none transition-all shadow-sm"
                       style={{
-                        backgroundColor: "#2ED3B7",
                         backgroundColor: "rgba(46, 211, 183, 0.1)",
                         borderColor: "#2ED3B7",
                         borderWidth: "2px",
