@@ -132,7 +132,8 @@ export default function RegisterPage() {
       formData.player1Birthday &&
       formData.player1Gender &&
       selectedRank &&
-      tournament;
+      tournament &&
+      video;
 
     const requiresDouble = tournament && tournament.playType === "DOUBLE";
 
