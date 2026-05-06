@@ -354,7 +354,10 @@ ${lastError}
 
     let parsed: any;
     try {
-      parsed = JSON.parse(toolCall.function.arguments);
+      // Use any cast to bypass TypeScript union type restriction on toolCall
+      const functionArgs = (toolCall as any).function?.arguments;
+      if (!functionArgs) throw new Error("No arguments in tool call");
+      parsed = JSON.parse(functionArgs);
     } catch {
       lastError = "parse tool arguments ล้มเหลว";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
