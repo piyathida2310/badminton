@@ -1,7 +1,8 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 
 export function BackButton({ target }: { target: string }) {
   const router = useRouter();
@@ -20,10 +21,6 @@ export function BackButton({ target }: { target: string }) {
   );
 }
 
-
-
-
-//  หัวข้อกลุ่ม
 export function SectionTitle({ text, color }: { text: string; color: string }) {
   return (
     <h2
@@ -38,7 +35,6 @@ export function SectionTitle({ text, color }: { text: string; color: string }) {
   );
 }
 
-//  ตารางข้อมูล
 export function GroupTable({
   title,
   headers,
@@ -73,7 +69,6 @@ export function GroupTable({
         </thead>
         <tbody>
           {rows.map((r, i) => {
-            // Only show as many columns as there are headers (hide extra data like IDs)
             const visibleCells = r.slice(0, headers.length);
             return (
               <tr
@@ -102,8 +97,6 @@ export function GroupTable({
   );
 }
 
-//  ข้อมูลคำอธิบายสายบน/สายล่าง
-//  ข้อมูลคำอธิบายสายบน/สายล่าง
 export function GroupInfo({ totalTeams }: { totalTeams?: number }) {
   const { t } = useLanguage();
   const gm = {
