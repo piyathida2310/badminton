@@ -22,24 +22,29 @@ const mapHandType = (ht: string): HandType | undefined => {
 // Helper to calculate points
 function getPoints(score1: number | null, score2: number | null, setScores: string = ""): [number, number] {
     // Priority: Calculate based on Set Wins
-    if (setScores) {
-        const matches = setScores.match(/(\d+)[:\-](\d+)/g);
+    if (setScores && setScores.trim()) {
+        // Split by comma, semicolon, or newline to handle multiple sets robustly
+        const setParts = setScores.split(/[,;\n\r]+/).map(s => s.trim()).filter(s => s.length > 0);
+        
+        let p1Sets = 0;
+        let p2Sets = 0;
+        let foundValidSet = false;
 
-        if (matches && matches.length > 0) {
-            let p1Sets = 0;
-            let p2Sets = 0;
-
-            matches.forEach(m => {
-                const parts = m.split(/[:\-]/);
-                const s1 = parseInt(parts[0]);
-                const s2 = parseInt(parts[1]);
+        setParts.forEach(part => {
+            const match = part.match(/(\d+)\s*[:\-]\s*(\d+)/);
+            if (match) {
+                const s1 = parseInt(match[1]);
+                const s2 = parseInt(match[2]);
                 if (s1 > s2) p1Sets++;
                 else if (s2 > s1) p2Sets++;
-            });
+                foundValidSet = true;
+            }
+        });
 
+        if (foundValidSet) {
             if (p1Sets > p2Sets) return [2, 0];
             if (p2Sets > p1Sets) return [0, 2];
-            return [1, 1]; // Draw in Sets
+            return [1, 1]; // Draw in sets (e.g., 1-1)
         }
     }
 
@@ -213,7 +218,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 
         const maxRounds = totalTeams > 0 ? (totalTeams % 2 === 0 ? totalTeams - 1 : totalTeams) : 1;
 
-        while (pendingMatches.length > 0) {
+        while (pendingMatches.length > 0 && roundCounter < 100) {
             roundCounter++;
             const currentRoundMatches: typeof group.groupMatches = [];
             const teamsInRound = new Set<number>();
