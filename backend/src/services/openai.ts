@@ -164,7 +164,7 @@ const refinePrompt = async (rawDetail: string, numGroups: number): Promise<strin
       temperature: 0.1,
     });
 
-    const result = res.choices[0]?.message?.content?.trim() || rawDetail;
+    const result = res.choices?.[0]?.message?.content?.trim() || rawDetail;
     
     // Failsafe: ถ้าเป็นเรื่องจัดกลุ่มแน่ๆ แต่ AI ดันตอบ INVALID_PROMPT มา (ไม่ว่าจะติดคำอื่นมาด้วยหรือไม่)
     if (isGroupingRelated && result.includes("INVALID_PROMPT")) {
@@ -342,10 +342,10 @@ ${lastError}
         { role: "user", content: userPrompt },
       ],
       tools: [tool],
-      tool_choice: { type: "function", ["function"]: { name: "assign_groups" } },
+      tool_choice: { type: "function", function: { name: "assign_groups" } },
     });
 
-    const toolCall = res.choices[0].message.tool_calls?.[0];
+    const toolCall = res.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
       lastError = "AI ไม่ได้เรียก tool assign_groups";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
@@ -354,7 +354,7 @@ ${lastError}
 
     let parsed: any;
     try {
-      parsed = JSON.parse(toolCall["function"].arguments);
+      parsed = JSON.parse(toolCall.function.arguments);
     } catch {
       lastError = "parse tool arguments ล้มเหลว";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
