@@ -467,7 +467,7 @@ export default function TournamentGroupPage() {
                     <p className="text-xs text-blue-600 font-bold mt-2 flex items-center gap-1">
                       <span className="material-symbols-outlined text-[14px]">info</span>
                       {language === "th" 
-                        ? "มีการบันทึกคะแนนแล้ว ไม่สามารถจัดกลุ่มใหม่ได้" 
+                        ? "มีการบันทึกคะแนนแล้ว    ไม่สามารถจัดกลุ่มใหม่ได้" 
                         : "Scores recorded. AI re-grouping is disabled for this level."}
                     </p>
                   )}
