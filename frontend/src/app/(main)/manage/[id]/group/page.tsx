@@ -34,6 +34,7 @@ export default function TournamentGroupPage() {
 
   //  เก็บสถานะว่าเป็น Organizer หรือไม่
   const [isOrganizer, setIsOrganizer] = useState(false);
+  const [isModified, setIsModified] = useState(false);
 
   // Fetch existing groups on load + ดึง title
   useEffect(() => {
