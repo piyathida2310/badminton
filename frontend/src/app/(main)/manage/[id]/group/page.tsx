@@ -30,6 +30,7 @@ export default function TournamentGroupPage() {
   const [showGroups, setShowGroups] = useState(false);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
 
   //  เก็บสถานะว่าเป็น Organizer หรือไม่
   const [isOrganizer, setIsOrganizer] = useState(false);
@@ -188,6 +189,110 @@ export default function TournamentGroupPage() {
     }
   };
 
+  const handleSaveManualGroups = async () => {
+    setSaving(true);
+    try {
+      // Filter current hand type groups
+      const currentHandGroups = groups.filter(
+        (g) => !g.handType || g.handType === selectedHandType
+      );
+
+      const res = await axios.put(`/api/tournament/manual-group/${id}`, {
+        playType: selectedHandType,
+        groups: currentHandGroups.map((g) => ({
+          name: g.name,
+          teams: g.teams,
+        })),
+      });
+
+      if (res.data.groups) {
+        setGroups(res.data.groups);
+        setIsModified(false);
+        Swal.fire({
+          icon: "success",
+          title: t("groupManage.saveSuccess") || "บันทึกข้อมูลสำเร็จ",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Save manual groups error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to save manual grouping",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onDragStart = (e: React.DragEvent, teamId: any, teamName: any, sourceGroupName: string) => {
+    e.stopPropagation();
+    e.dataTransfer.setData("teamId", teamId?.toString() || "");
+    e.dataTransfer.setData("teamName", typeof teamName === "string" ? teamName : JSON.stringify(teamName));
+    e.dataTransfer.setData("sourceGroupName", sourceGroupName);
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const onDrop = async (e: React.DragEvent, targetGroupName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const teamIdStr = e.dataTransfer.getData("teamId");
+    const teamNameStr = e.dataTransfer.getData("teamName");
+    const sourceGroupName = e.dataTransfer.getData("sourceGroupName");
+
+    if (sourceGroupName === targetGroupName) return;
+
+    const newGroups = groups.map((g) => ({ ...g, teams: [...g.teams] }));
+    const sourceGroup = newGroups.find((g) => g.name === sourceGroupName);
+    const targetGroup = newGroups.find((g) => g.name === targetGroupName);
+
+    if (sourceGroup && targetGroup) {
+      const teamIndex = sourceGroup.teams.findIndex((t: any) => {
+        if (teamIdStr && t.id?.toString() === teamIdStr) return true;
+        const currentName = typeof t.name !== "undefined" ? t.name : t;
+        const targetName = teamNameStr.startsWith("[") || teamNameStr.startsWith("{") ? JSON.parse(teamNameStr) : teamNameStr;
+        return JSON.stringify(currentName) === JSON.stringify(targetName);
+      });
+      if (teamIndex !== -1) {
+        const [movedTeam] = sourceGroup.teams.splice(teamIndex, 1);
+        targetGroup.teams.push(movedTeam);
+        
+        // Update local state first for responsiveness
+        setGroups(newGroups);
+        
+        // Auto-save to backend
+        setSaving(true);
+        try {
+          const currentHandGroups = newGroups.filter(
+            (g) => !g.handType || g.handType === selectedHandType
+          );
+
+          const res = await axios.put(`/api/manual-update-groups/${id}`, {
+            playType: selectedHandType,
+            groups: currentHandGroups.map((g) => ({
+              name: g.name,
+              teams: g.teams,
+            })),
+          });
+
+          if (res.data.groups) {
+            setGroups(res.data.groups);
+          }
+        } catch (error) {
+          console.error("Auto-save error:", error);
+          // Removed popup as requested
+        } finally {
+          setSaving(false);
+        }
+      }
+    }
+  };
+
   // Logic เช็คจำนวนคนสมัครว่าพอจัดแข่งไหม (ต้องเกินครึ่ง)
   const isEnoughPlayers = (() => {
     if (!tournamentStats) return false;
@@ -292,29 +397,31 @@ export default function TournamentGroupPage() {
                 </div>
 
                 {/* Row 3: Action Button */}
-                <div className="flex flex-col items-center pt-4">
-                  <motion.button
-                    whileHover={isEnoughPlayers ? { scale: 1.02 } : {}}
-                    whileTap={isEnoughPlayers ? { scale: 0.98 } : {}}
-                    onClick={handleStartCompetition}
-                    disabled={loading || !isEnoughPlayers}
-                    className={`w-full sm:w-auto min-w-[200px] text-white font-bold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading || !isEnoughPlayers
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#194185] hover:bg-[#2ED3B7] shadow-lg hover:shadow-[#194185]/30"
-                      }`}
-                  >
-                    {loading ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        {t("groupManage.processing")}
-                      </>
-                    ) : (
-                      t("groupManage.startGrouping")
-                    )}
-                  </motion.button>
+                <div className="flex flex-col items-center pt-4 gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                    <motion.button
+                      whileHover={isEnoughPlayers ? { scale: 1.02 } : {}}
+                      whileTap={isEnoughPlayers ? { scale: 0.98 } : {}}
+                      onClick={handleStartCompetition}
+                      disabled={loading || !isEnoughPlayers}
+                      className={`flex-1 sm:w-auto min-w-[200px] text-white font-bold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${loading || !isEnoughPlayers
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#194185] hover:bg-[#2ED3B7] shadow-lg hover:shadow-[#194185]/30"
+                        }`}
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {t("groupManage.processing")}
+                        </>
+                      ) : (
+                        t("groupManage.startGrouping")
+                      )}
+                    </motion.button>
+                  </div>
 
                   {!isEnoughPlayers && tournamentStats && (
                     <p className="text-xs text-red-500 font-medium mt-2 bg-red-50 px-3 py-1 rounded-md border border-red-100">
@@ -392,38 +499,53 @@ export default function TournamentGroupPage() {
               return (
                 <motion.div
                   key={group.name}
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  onClick={() =>
-                    router.push(
-                      `/manage/${id}/group/group-stage-scores?group=${group.name}`
-                    )
-                  }
-                  className={`cursor-pointer w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${theme.color} shadow-md hover:shadow-xl backdrop-blur-sm`}
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(e, group.name)}
+                  onClick={() => {
+                    if (group.teams.length > 4) return;
+                    router.push(`/manage/${id}/group/group-stage-scores?group=${group.name}`);
+                  }}
+                  className={`w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] rounded-2xl border-2 bg-gradient-to-b ${theme.color} shadow-md hover:shadow-xl backdrop-blur-sm min-h-[200px] transition-all duration-300 relative group overflow-hidden ${group.teams.length > 4 ? "cursor-not-allowed border-red-500" : "cursor-pointer hover:scale-[1.02]"}`}
                 >
                   <div
-                    className={`${theme.header} text-center py-2.5 font-bold rounded-t-xl text-base md:text-lg shadow-sm`}
+                    className={`${theme.header} text-center py-2.5 font-bold rounded-t-xl text-base md:text-lg shadow-sm px-4`}
                   >
                     {group.name.replace(selectedHandType, "").trim()}
                   </div>
 
-                  <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center">
-                    {group.teams.map((team: any, index: number) => (
-                      <li
-                        key={index}
-                        className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
-                      >
-                        {Array.isArray(team) ? (
-                          <div className="flex flex-col items-center leading-tight">
-                            <span>{team[0]}</span>
-                            <span className="text-gray-500 text-xs">&</span>
-                            <span>{team[1]}</span>
-                          </div>
-                        ) : (
-                          <span>{team}</span>
-                        )}
-                      </li>
-                    ))}
+                  {group.teams.length > 4 && (
+                    <div className="bg-red-600 text-white text-[14px] py-1 px-2 text-center font-normal">
+                      ทีมเกินกำหนด (สูงสุด 4 ทีม)
+                    </div>
+                  )}
+
+                  <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center min-h-[150px]">
+                    {group.teams.map((team: any, index: number) => {
+                      const teamId = team.id;
+                      const teamName = team.name || team;
+                      
+                      return (
+                        <li
+                          key={teamId || index}
+                          draggable={isOrganizer && showGroups}
+                          onDragStart={(e) => onDragStart(e, teamId, teamName, group.name)}
+                          className={`bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base ${isOrganizer && showGroups ? "cursor-grab active:cursor-grabbing border border-transparent hover:border-[#194185]/20" : ""}`}
+                        >
+                          {(() => {
+                            if (Array.isArray(teamName)) {
+                              return (
+                                <div className="flex flex-col items-center leading-tight">
+                                  <span>{teamName[0]}</span>
+                                  <span className="text-gray-500 text-xs">&</span>
+                                  <span>{teamName[1]}</span>
+                                </div>
+                              );
+                            }
+                            return <span>{teamName}</span>;
+                          })()}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </motion.div>
               );

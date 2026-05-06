@@ -144,10 +144,15 @@ export const getTournament = async (req: Request, res: Response) => {
     ]);
 
     const formattedGroups = data.groups.map((group) => {
-      const teamNames = group.registers.map((reg) => {
-        if (reg.teamName) return reg.teamName;
-        if (reg.player2Name) return [reg.player1Name, reg.player2Name];
-        return reg.player1Name;
+      const teams = group.registers.map((reg) => {
+        let name = reg.teamName;
+        if (!name) {
+          name = reg.player2Name ? `${reg.player1Name} & ${reg.player2Name}` : reg.player1Name;
+        }
+        return {
+          id: reg.id,
+          name: name
+        };
       });
 
       // ใช้ logic เดียวกับ Service เพื่อหา letter
@@ -158,7 +163,7 @@ export const getTournament = async (req: Request, res: Response) => {
         name: group.name,
         color: getGroupColor(groupLetter),
         header: getGroupHeaderColor(groupLetter),
-        teams: teamNames,
+        teams: teams, // Now an array of {id, name}
         summary: "",
       };
     });
@@ -471,6 +476,31 @@ export const managegroup = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       message: "Internal server error",
+    });
+  }
+};
+
+export const updateManualGroups = async (req: Request, res: Response) => {
+  try {
+    const tournamentId = Number(req.params.id);
+    const { playType, groups: groupsConfig } = req.body;
+
+    if (!playType || !groupsConfig) {
+      return res.status(400).json({ message: "Require playType and groups configuration." });
+    }
+
+    const { applyManualGrouping } = await import("../services/groupingService");
+    const updatedGroups = await applyManualGrouping(tournamentId, playType, groupsConfig);
+
+    return res.status(200).json({
+      message: "Groups updated manually successfully",
+      groups: updatedGroups,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      errors: error instanceof Error ? error.message : error,
     });
   }
 };
