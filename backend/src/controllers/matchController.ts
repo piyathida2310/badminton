@@ -26,8 +26,8 @@ function getPoints(score1: number | null, score2: number | null, setScores: stri
         // Split by comma, semicolon, or newline to handle multiple sets robustly
         const setParts = setScores.split(/[,;\n\r]+/).map(s => s.trim()).filter(s => s.length > 0);
         
-        let p1Sets = 0;
-        let p2Sets = 0;
+        let p1Score = 0;
+        let p2Score = 0;
         let foundValidSet = false;
 
         setParts.forEach(part => {
@@ -35,19 +35,24 @@ function getPoints(score1: number | null, score2: number | null, setScores: stri
             if (match) {
                 const s1 = parseInt(match[1]);
                 const s2 = parseInt(match[2]);
-                if (s1 > s2) p1Sets++;
-                else if (s2 > s1) p2Sets++;
+                if (s1 > s2) {
+                    p1Score += 1;
+                } else if (s2 > s1) {
+                    p2Score += 1;
+                } else {
+                    // Tie in this set: both get 1 point
+                    p1Score += 1;
+                    p2Score += 1;
+                }
                 foundValidSet = true;
             }
         });
 
         if (foundValidSet) {
-            if (p1Sets > p2Sets) return [2, 0];
-            if (p2Sets > p1Sets) return [0, 2];
-            return [1, 1]; // Draw in sets (e.g., 1-1)
+            return [p1Score, p2Score];
         }
     }
-
+    
     // Fallback: Total Score comparison (if entered)
     if (score1 === null || score2 === null) return [0, 0];
     if (score1 > score2) return [2, 0];

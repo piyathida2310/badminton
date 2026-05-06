@@ -103,6 +103,7 @@ export const getTournament = async (req: Request, res: Response) => {
             registers: {
               orderBy: { score: "desc" },
             },
+            groupMatches: true
           },
           orderBy: { name: "asc" },
         },
@@ -155,6 +156,7 @@ export const getTournament = async (req: Request, res: Response) => {
         };
       });
 
+      const hasStarted = group.groupMatches.some(m => m.score1 !== null || m.score2 !== null || m.status === 'FINISHED');
       // ใช้ logic เดียวกับ Service เพื่อหา letter
       const groupLetter = group.name.split(" ").pop() || "A";
 
@@ -164,6 +166,7 @@ export const getTournament = async (req: Request, res: Response) => {
         color: getGroupColor(groupLetter),
         header: getGroupHeaderColor(groupLetter),
         teams: teams, // Now an array of {id, name}
+        hasStarted: hasStarted,
         summary: "",
       };
     });

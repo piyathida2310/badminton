@@ -363,10 +363,31 @@ export const applyManualGrouping = async (
                 some: { playType: prismaHandType },
             },
         },
-        select: { id: true },
+        include: {
+            groupMatches: true
+        }
     });
 
     const groupIdsToDelete = groupsToDelete.map((g) => g.id);
+
+    // [NEW] Store existing scores to preserve them
+    const existingScoresMap = new Map<string, { score1: number | null, score2: number | null, sets: string | null, status: any, shuttle: number | null }>();
+    groupsToDelete.forEach(g => {
+        g.groupMatches.forEach(m => {
+            // Only store matches that have some data AND valid players
+            if (m.player1Id && m.player2Id && (m.score1 !== null || m.score2 !== null || m.status === 'FINISHED')) {
+                // Use numeric sort for a consistent key regardless of player order
+                const key = [m.player1Id, m.player2Id].sort((a, b) => a - b).join('-');
+                existingScoresMap.set(key, {
+                    score1: m.score1,
+                    score2: m.score2,
+                    sets: m.sets,
+                    status: m.status,
+                    shuttle: m.shuttle
+                });
+            }
+        });
+    });
 
     if (groupIdsToDelete.length > 0) {
         await prisma.register.updateMany({
@@ -425,6 +446,9 @@ export const applyManualGrouping = async (
                     const p1 = rotation[i];
                     const p2 = rotation[numTeams - 1 - i];
                     if (p1 !== -1 && p2 !== -1) {
+                        const key = [p1, p2].sort((a, b) => a - b).join('-');
+                        const oldScore = existingScoresMap.get(key);
+
                         await prisma.groupMatch.create({
                             data: {
                                 tournamentId,
@@ -432,7 +456,11 @@ export const applyManualGrouping = async (
                                 player1Id: p1,
                                 player2Id: p2,
                                 handType: prismaHandType,
-                                status: "PENDING",
+                                score1: oldScore?.score1 ?? null,
+                                score2: oldScore?.score2 ?? null,
+                                sets: oldScore?.sets ?? null,
+                                status: oldScore?.status ?? "PENDING",
+                                shuttle: oldScore?.shuttle ?? null,
                                 scheduledTime: tournament.startDate,
                                 roundName: roundName,
                                 matchSequence: currentSeq++,
@@ -456,6 +484,7 @@ export const applyManualGrouping = async (
             registers: {
                 orderBy: [{ score: "desc" }, { id: "asc" }],
             },
+            groupMatches: true
         },
         orderBy: { name: "asc" },
     });
@@ -469,6 +498,7 @@ export const applyManualGrouping = async (
             return { id: reg.id, name };
         });
 
+        const hasStarted = group.groupMatches.some(m => m.score1 !== null || m.score2 !== null || m.status === 'FINISHED');
         const groupLetter = group.name.split(" ").pop() || "A";
 
         return {
@@ -478,6 +508,7 @@ export const applyManualGrouping = async (
             color: getGroupColor(groupLetter),
             header: getGroupHeaderColor(groupLetter),
             teams: teams,
+            hasStarted: hasStarted,
             summary: "",
         };
     });
