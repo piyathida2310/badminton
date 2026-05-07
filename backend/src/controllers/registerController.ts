@@ -443,9 +443,20 @@ export const updateRegistrationEvaluation = async (req: Request, res: Response) 
     }
 
     const organizerId = getUserId(req);
-    if (getUserRole(req) !== "ORGANIZER" || registration.tournament.organizerId !== organizerId) {
+    const userRole = getUserRole(req);
+
+    // Debug Log สำหรับตรวจสอบปัญหา 403
+    console.log(`[Debug Auth] UserID: ${organizerId}, Role: ${userRole}`);
+    console.log(`[Debug Tournament] Target OrganizerID: ${registration.tournament.organizerId}`);
+
+    if (String(userRole).toUpperCase() !== "ORGANIZER" || Number(registration.tournament.organizerId) !== Number(organizerId)) {
       return res.status(403).json({
         message: "Forbidden: only the tournament organizer can update evaluations",
+        debug: {
+          yourRole: userRole,
+          yourId: organizerId,
+          ownerId: registration.tournament.organizerId
+        }
       });
     }
 

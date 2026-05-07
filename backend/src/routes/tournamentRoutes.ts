@@ -5,22 +5,22 @@ import { createTournament, getTournaments, getTournament, getPoster, getQr, upda
 
 const router = Router();
 
-router.get("/tournament", authMiddleware, getTournaments);
-router.get("/tournament/:id", authMiddleware, getTournament);
-router.get("/tournament/poster/:id", authMiddleware, getPoster);
-router.get("/tournament/qr/:id", authMiddleware, getQr);
+router.get("/", authMiddleware, getTournaments);
+router.get("/:id", authMiddleware, getTournament);
+router.get("/poster/:id", authMiddleware, getPoster);
+router.get("/qr/:id", authMiddleware, getQr);
 router.get("/payment/qr/:id", authMiddleware, getPaymentQr);
 router.post(
-  "/tournament",
+  "/",
   authMiddleware,
   upload.fields([
     { name: "posterImg" },
     { name: "qrCodeImg" },
   ]), createTournament
 );
-router.put("/tournament/:id", authMiddleware, updateTournament);
-router.put("/tournament/cancel-rank/:id", authMiddleware, cancelTournamentRank);
-router.post("/tournament/managegroup/:id", authMiddleware, managegroup);
+router.put("/:id", authMiddleware, updateTournament);
+router.put("/cancel-rank/:id", authMiddleware, cancelTournamentRank);
+router.post("/managegroup/:id", authMiddleware, managegroup);
 
 
 export default router;
