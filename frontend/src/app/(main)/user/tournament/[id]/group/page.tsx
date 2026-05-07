@@ -284,14 +284,14 @@ export default function TournamentGroupPage() {
                       key={index}
                       className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
                     >
-                      {Array.isArray(team) ? (
+                      {Array.isArray(team.name) ? (
                         <div className="flex flex-col items-center leading-tight">
-                          <span>{team[0]}</span>
+                          <span>{team.name[0]}</span>
                           <span className="text-gray-500 text-xs">&</span>
-                          <span>{team[1]}</span>
+                          <span>{team.name[1]}</span>
                         </div>
                       ) : (
-                        <span>{team}</span>
+                        <span>{team.name}</span>
                       )}
                     </li>
                   ))}

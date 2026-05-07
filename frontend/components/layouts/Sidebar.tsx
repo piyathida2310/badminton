@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
     if (!token) return;
 
     api
-      .get("/auth/me", {
+      .get("/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

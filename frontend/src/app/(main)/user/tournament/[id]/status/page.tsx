@@ -225,7 +225,7 @@ export default function StatusPage() {
         if (team.tournamentId) {
           setLoadingQr(true);
           api
-            .get(`/api/payment/qr/${team.tournamentId}`)
+            .get(`/api/tournament/payment/qr/${team.tournamentId}`)
             .then((res) => {
               setModalQrCodeUrl(res.data.url);
             })

@@ -32,7 +32,7 @@ async function bootstrap(): Promise<void> {
 
   const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 15 นาที
-  max: 300, // จำกัด 100 ครั้งต่อ IP
+  max: 500, // จำกัด 100 ครั้งต่อ IP
   message: "Too many requests, please try again later.",
 });
 
@@ -55,10 +55,10 @@ app.use(limiter);
   });
 
   app.use('/api/auth', authRoutes);
-  app.use('/api', rulesRouter);
-  app.use('/api', tournamentRouter);
+  app.use('/api/rules', rulesRouter);
+  app.use('/api/tournament', tournamentRouter);
   app.put('/api/manual-update-groups/:id', authMiddleware, updateManualGroups);
-  app.use('/api', competitionRouter);
+  app.use('/api/compet', competitionRouter);
   app.use('/api/users', userRouter);
   app.use('/api', registerRouter);
   app.use('/api', matchRouter);
