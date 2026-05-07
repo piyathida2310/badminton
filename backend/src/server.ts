@@ -11,7 +11,7 @@ import errorHandler from './middleware/errorHandler';
 import { connectPrisma } from './services/prismaClient';
 import { swaggerSpec } from './config/swaggerConfig';
 import { appConfig } from './config/authConfig';
-
+import  { rateLimit } from 'express-rate-limit';
 import rulesRouter from './routes/rulesRoutes'
 import tournamentRouter from './routes/tournamentRoutes'
 import competitionRouter from './routes/competitionRoutes'
@@ -29,6 +29,14 @@ dotenv.config({
 
 async function bootstrap(): Promise<void> {
   const app = express();
+
+  const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 15 นาที
+  max: 300, // จำกัด 100 ครั้งต่อ IP
+  message: "Too many requests, please try again later.",
+});
+
+app.use(limiter);
 
   app.use(helmet());
   app.use(

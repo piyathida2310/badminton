@@ -53,4 +53,4 @@ COPY --from=builder /app/prisma ./prisma
 EXPOSE 8000
 
 # ใช้ node ตรง ๆ จะเบากว่า
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/server.js"]
