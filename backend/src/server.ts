@@ -54,7 +54,7 @@ app.use(limiter);
     res.json({ status: 'ok' });
   });
 
-  app.use('/auth', authRoutes);
+  app.use('/api/auth', authRoutes);
   app.use('/api', rulesRouter);
   app.use('/api', tournamentRouter);
   app.put('/api/manual-update-groups/:id', authMiddleware, updateManualGroups);
