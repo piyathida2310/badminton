@@ -2,9 +2,9 @@ name: CI Checks
 
 on:
   push:
-    branches: [ main, test, Sukhatai ]
+    branches: [ main, test, Sukhatai, dev ]
   pull_request:
-    branches: [ main, test, Sukhatai ]
+    branches: [ main, test, Sukhatai, dev ]
 
 jobs:
   build-backend-docker:

@@ -296,10 +296,15 @@ export const organizeTournamentGroups = async (
     });
 
     const enrichedGroups = updatedGroups.map((group) => {
-        const teamNames = group.registers.map((reg) => {
-            if (reg.teamName) return reg.teamName;
-            if (reg.player2Name) return [reg.player1Name, reg.player2Name];
-            return reg.player1Name;
+        const teams = group.registers.map((reg) => {
+            let name = reg.teamName;
+            if (!name) {
+                name = reg.player2Name ? `${reg.player1Name} & ${reg.player2Name}` : reg.player1Name;
+            }
+            return {
+                id: reg.id,
+                name: name
+            };
         });
 
         const groupLetter = group.name.split(" ").pop() || "A";
@@ -310,7 +315,7 @@ export const organizeTournamentGroups = async (
             handType: group.registers[0]?.playType || null,
             color: getGroupColor(groupLetter),
             header: getGroupHeaderColor(groupLetter),
-            teams: teamNames,
+            teams: teams,
             summary: "",
         };
     });
@@ -325,4 +330,186 @@ export const organizeTournamentGroups = async (
     console.log("#".repeat(60) + "\n");
 
     return { groups: enrichedGroups, reason: reasoning };
+};
+
+export const applyManualGrouping = async (
+    tournamentId: number,
+    playType: string,
+    groupsConfig: { name: string; teams: { id: number; name: string }[] }[]
+) => {
+    // 1. Map display string (P+, P-) to Prisma Enum Key (P_PLUS, P_MINUS)
+    let prismaHandType: HandType;
+    if (playType === "P+") {
+        prismaHandType = HandType.P_PLUS;
+    } else if (playType === "P-") {
+        prismaHandType = HandType.P_MINUS;
+    } else {
+        prismaHandType = playType as HandType;
+    }
+
+    const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+    });
+
+    if (!tournament) {
+        throw new Error("Tournament not found");
+    }
+
+    // 2. Cleanup OLD Groups for this PlayType ONLY
+    const groupsToDelete = await prisma.group.findMany({
+        where: {
+            tournamentId,
+            registers: {
+                some: { playType: prismaHandType },
+            },
+        },
+        include: {
+            groupMatches: true
+        }
+    });
+
+    const groupIdsToDelete = groupsToDelete.map((g) => g.id);
+
+    // [NEW] Store existing scores to preserve them
+    const existingScoresMap = new Map<string, { score1: number | null, score2: number | null, sets: string | null, status: any, shuttle: number | null }>();
+    groupsToDelete.forEach(g => {
+        g.groupMatches.forEach(m => {
+            // Only store matches that have some data AND valid players
+            if (m.player1Id && m.player2Id && (m.score1 !== null || m.score2 !== null || m.status === 'FINISHED')) {
+                // Use numeric sort for a consistent key regardless of player order
+                const key = [m.player1Id, m.player2Id].sort((a, b) => a - b).join('-');
+                existingScoresMap.set(key, {
+                    score1: m.score1,
+                    score2: m.score2,
+                    sets: m.sets,
+                    status: m.status,
+                    shuttle: m.shuttle
+                });
+            }
+        });
+    });
+
+    if (groupIdsToDelete.length > 0) {
+        await prisma.register.updateMany({
+            where: { groupId: { in: groupIdsToDelete } },
+            data: { groupId: null },
+        });
+
+        await prisma.groupMatch.deleteMany({
+            where: { groupId: { in: groupIdsToDelete } },
+        });
+
+        await prisma.group.deleteMany({
+            where: { id: { in: groupIdsToDelete } },
+        });
+    }
+
+    // 3. Create NEW Groups into DB
+    for (const groupConfig of groupsConfig) {
+        const groupName = groupConfig.name.includes("Group") ? groupConfig.name : `${playType} Group ${groupConfig.name}`;
+        
+        const newGroup = await prisma.group.create({
+            data: {
+                name: groupName,
+                tournamentId: tournamentId,
+            },
+        });
+
+        const teamIds = groupConfig.teams.map(t => t.id);
+
+        if (teamIds.length > 0) {
+            await prisma.register.updateMany({
+                where: { id: { in: teamIds } },
+                data: { groupId: newGroup.id },
+            });
+
+            // Re-generate matches
+            const lastMatch = await prisma.groupMatch.findFirst({
+                where: { tournamentId },
+                orderBy: { matchSequence: 'desc' },
+                select: { matchSequence: true }
+            });
+            let currentSeq = (lastMatch?.matchSequence || 0) + 1;
+
+            let rotation = [...teamIds];
+            if (rotation.length % 2 !== 0) {
+                rotation.push(-1);
+            }
+
+            const numTeams = rotation.length;
+            const numRounds = numTeams - 1;
+            const half = numTeams / 2;
+
+            for (let r = 0; r < numRounds; r++) {
+                const roundName = `R${r + 1}`;
+                for (let i = 0; i < half; i++) {
+                    const p1 = rotation[i];
+                    const p2 = rotation[numTeams - 1 - i];
+                    if (p1 !== -1 && p2 !== -1) {
+                        const key = [p1, p2].sort((a, b) => a - b).join('-');
+                        const oldScore = existingScoresMap.get(key);
+
+                        await prisma.groupMatch.create({
+                            data: {
+                                tournamentId,
+                                groupId: newGroup.id,
+                                player1Id: p1,
+                                player2Id: p2,
+                                handType: prismaHandType,
+                                score1: oldScore?.score1 ?? null,
+                                score2: oldScore?.score2 ?? null,
+                                sets: oldScore?.sets ?? null,
+                                status: oldScore?.status ?? "PENDING",
+                                shuttle: oldScore?.shuttle ?? null,
+                                scheduledTime: tournament.startDate,
+                                roundName: roundName,
+                                matchSequence: currentSeq++,
+                            },
+                        });
+                    }
+                }
+                const fixed = rotation[0];
+                const moving = rotation.slice(1);
+                const last = moving.pop();
+                if (last !== undefined) moving.unshift(last);
+                rotation = [fixed, ...moving];
+            }
+        }
+    }
+
+    // 4. Return updated groups
+    const updatedGroups = await prisma.group.findMany({
+        where: { tournamentId },
+        include: {
+            registers: {
+                orderBy: [{ score: "desc" }, { id: "asc" }],
+            },
+            groupMatches: true
+        },
+        orderBy: { name: "asc" },
+    });
+
+    return updatedGroups.map((group) => {
+        const teams = group.registers.map((reg) => {
+            let name = reg.teamName;
+            if (!name) {
+                name = reg.player2Name ? `${reg.player1Name} & ${reg.player2Name}` : reg.player1Name;
+            }
+            return { id: reg.id, name };
+        });
+
+        const hasStarted = group.groupMatches.some(m => m.score1 !== null || m.score2 !== null || m.status === 'FINISHED');
+        const groupLetter = group.name.split(" ").pop() || "A";
+
+        return {
+            id: group.id,
+            name: group.name,
+            handType: group.registers[0]?.playType || null,
+            color: getGroupColor(groupLetter),
+            header: getGroupHeaderColor(groupLetter),
+            teams: teams,
+            hasStarted: hasStarted,
+            summary: "",
+        };
+    });
 };

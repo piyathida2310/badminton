@@ -19,7 +19,9 @@ import userRouter from './routes/userRoutes'
 import registerRouter from './routes/registerRoutes'
 import matchRouter from './routes/matchRoutes'
 import summaryRouter from './routes/summaryRoutes'
+import { updateManualGroups } from './controllers/tournamentController';
 import { ensureOpenAIConnection } from './config/openAI';
+import authMiddleware from './middleware/authMiddleware';
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
@@ -55,6 +57,7 @@ app.use(limiter);
   app.use('/auth', authRoutes);
   app.use('/api', rulesRouter);
   app.use('/api', tournamentRouter);
+  app.put('/api/manual-update-groups/:id', authMiddleware, updateManualGroups);
   app.use('/api', competitionRouter);
   app.use('/api/users', userRouter);
   app.use('/api', registerRouter);

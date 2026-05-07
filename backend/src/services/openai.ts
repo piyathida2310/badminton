@@ -106,7 +106,11 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, lan
         properties: {
           thinking_process: {
             type: "string",
-            description: `อธิบายเหตุผลการแบ่งกลุ่มสำหรับทุกกลุ่ม โดยต้องลิสต์ "ชื่อชื่อทีม (Team Name)" ทุกตัวลงไป และบอกว่าทำไมทีมเหล่านี้ถึงได้อยู่ร่วมกัน (ตัวอย่าง: 'กลุ่ม A ประกอบไปด้วยทีมพี่ใหญ่ [ทีม 1], [ทีม 2] ...', ส่วนที่เหลือกระจายคะแนนให้เท่ากัน') ห้ามใส่ ID เด็ดขาด (CRITICAL: You must write this field entirely in ${language === "en" ? "English" : "Thai"}!)`,
+            description: `พื้นที่สำหรับ "กระดาษทด" ของ AI: ให้คุณทดเลข ID, ขีดฆ่า ID ที่ใช้แล้ว, และวางแผนการจัดกลุ่มอย่างละเอียดที่นี่ (ส่วนนี้ผู้ใช้จะไม่เห็น)`,
+          },
+          user_explanation: {
+            type: "string",
+            description: `อธิบายเหตุผลการแบ่งกลุ่ม "ภาษาคน" ที่อ่านง่าย: สรุปใจความสำคัญว่าแต่ละกลุ่มมีลักษณะอย่างไร และลิสต์ชื่อทีม [Team Name] ในก้ามปูให้ครบ (ห้ามใส่เลข ID ในช่องนี้เด็ดขาด!) ตัวอย่าง: 'กลุ่ม A เป็นกลุ่มรวมทีมที่คะแนนใกล้เคียง 6 ตามที่คุณต้องการ ประกอบด้วย [ทีม 1], [ทีม 2]... ส่วนกลุ่มที่เหลือเราสุ่มกระจายให้เท่ากันครับ' (CRITICAL: You must write this field entirely in ${language === "en" ? "English" : "Thai"}!)`,
           },
           interpreted: {
             type: "string",
@@ -114,17 +118,17 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, lan
           },
           errorMessage: {
             type: "string",
-            description: "ห้ามใช้งานฟิลด์นี้เด็ดขาด (ให้ส่งค่าว่าง `\"\"` เสมอ) ยกเว้นแต่คุณหาคนที่มีคุณสมบัติ 'ไม่ได้เลยแม้แต่คนเดียวในระบบ (0 คน)'! หากผู้ใช้สั่งอะไรมาแล้วหาไม่ครบจำนวน หรือแม้กระทั่งหาไม่ได้เลยในบางเงื่อนไข ให้ใช้วิธี 'เอาคนอื่นที่เหลืออยู่มาอุดรอยรั่วให้เต็มกลุ่มแทน' ห้ามใช้ฟิลด์นี้เพื่อบ่นว่าจัดไม่ได้หรือคนไม่เพียงพอเด็ดขาด จัดให้เต็ม 4 ทีมเสมอ",
+            description: "ห้ามใช้งานฟิลด์นี้เด็ดขาด (ให้ส่งค่าว่าง `\"\"` เสมอ) จัดให้เต็ม 4 ทีมเสมอแม้คนไม่ตรงสเปก",
           },
           groups: {
             type: "object",
-            description: `Object กลุ่ม ${groupKeys} แบ่ง ID ให้ครบ ${numPlayers} คน โดยกระจายจำนวน ID เข้ากลุ่มให้เท่าๆ กัน (ไม่จำเป็นต้องกลุ่มละ 4 คนพอดี)`,
+            description: `Object กลุ่ม ${groupKeys} แบ่ง ID ให้ครบ ${numPlayers} คน โดยกระจายจำนวน ID เข้ากลุ่มให้เท่าๆ กัน`,
             properties: groupProperties,
             required: requiredGroups,
             additionalProperties: false,
           },
         },
-        required: ["thinking_process", "interpreted", "groups"],
+        required: ["thinking_process", "user_explanation", "interpreted", "groups"],
         additionalProperties: false,
       },
     },
@@ -137,33 +141,40 @@ const buildTool = (numGroups: number, groupKeys: string, numPlayers: number, lan
 const refinePrompt = async (rawDetail: string, numGroups: number): Promise<string> => {
   if (!rawDetail || rawDetail.trim() === "") return "";
 
-  const systemMessage = `
-คุณคือนักเขียน Prompt และล่ามแปลภาษา หน้าที่ของคุณคือรับคำสั่งแบบสั้นๆ หรือแบบกำกวมจากผู้ใช้ (ไม่ว่าจะเป็นภาษาไทยหรืออังกฤษ)
-และแปลงให้เป็น "คำสั่งวิเคราะห์ภาษาไทยที่ชัดเจน เป็นขั้นเป็นตอน และเข้ากับกฎระบบจัดกลุ่มแบดมินตัน" เพื่อไปส่งต่อ โดยมีกฎดังนี้:
-1. **การตรวจสอบความถูกต้อง (Validation):** ตรวจสอบว่าคำสั่งของผู้ใช้เกี่ยวข้องกับการจัดกลุ่มทีมแบดมินตันหรือไม่ (เช่น การเรียงตามคะแนน, อายุ, เพศ, ความเก่ง, หรือการสุ่ม) 
-   - หากคำสั่ง "ไม่เกี่ยวข้อง" กับการจัดกลุ่มแบดมินตันเลย (เช่น พิมพ์ข้อความมั่วๆ, คุยเรื่องอื่นที่ไม่ใช่การตั้งค่ากลุ่ม, หรือคำสั่งที่ไม่มีตรรกะในการแบ่งกลุ่ม) ให้ตอบกลับเพียงคำเดียวสั้นๆ ว่า: "INVALID_PROMPT"
-2. **การแปลงคำสั่ง:** หากคำสั่งเกี่ยวข้อง ให้แปลงเป็นข้อความภาษาไทยที่ชัดเจน:
-   - ระบุว่าผู้ใช้ต้องการให้เรียงตามอะไร (เช่น คะแนน หรือ อายุ) ข้อมูลจะถูกแบ่งเป็น ${numGroups} กลุ่ม (A, B, C...)
-   - ห้ามคิดแทนผู้ใช้เด็ดขาด! ถ้าผู้ใช้สั่งแค่ "เรียงตามอายุ" หรือ "Sort by age" ให้แปลตรงตัวเป็น: "ให้เรียงลำดับข้อมูลตัวเลขทั้งหมดประเมินเป็นเส้นตรงเดียว แล้วทยอยหยิบคนที่หัวแถว 4 คนใส่กลุ่ม A, 4 คนถัดไปใส่กลุ่ม B (แบบเหมากลุ่ม)"
-   - **ห้ามกระจายคละ** ถ้าผู้ใช้ไม่ได้พิมพ์สั่งว่าให้กระจาย (mix evenly/distribute)
-   - แปลงคำสั่งที่เงื่อนไขแยกเพศ ให้เป็นข้อบังคับภาษาไทยที่อ่านแล้วเข้าใจง่ายแจ่มแจ้ง ไม่หักกับกฎอื่นๆ
-3. ห้ามพิมพ์คำตอบรับ ให้ตอบกลับเฉพาะ "คำสั่งที่ถูกแปลงแล้ว" หรือ "INVALID_PROMPT" เท่านั้น
-`.trim();
+  // 1. ตรวจสอบเบื้องต้นด้วย Keyword (Hard-coded Bypass)
+  const groupingKeywords = ["คะแนน", "อายุ", "สุ่ม", "คละ", "กลุ่ม", "คน", "ทีม", "เพศ", "ชาย", "หญิง", "เก่ง", "อ่อน", "score", "age", "random", "group", "male", "female", "จัด", "แบ่ง", "ชุด", "อันดับ"];
+  const isGroupingRelated = groupingKeywords.some(kw => rawDetail.toLowerCase().includes(kw));
+
+  // ถ้าเรามั่นใจว่าเกี่ยวแน่ๆ ให้ข้ามการเช็ค INVALID_PROMPT ไปเลย
+  const systemMessage = isGroupingRelated
+    ? `คุณคือผู้เชี่ยวชาญด้านการจัดกลุ่มการแข่งขันแบดมินตัน โปรดแปลงคำสั่งผู้ใช้ให้เป็น "ขั้นตอนการจัดกลุ่มที่ชัดเจน" เป็นภาษาไทย โดยไม่ต้องตรวจสอบความถูกต้องซ้ำอีกเพราะคำสั่งนี้ได้รับการยืนยันว่าเกี่ยวข้องแล้ว`
+    : `คุณคือผู้เชี่ยวชาญด้านการจัดกลุ่มการแข่งขันแบดมินตัน หน้าที่ของคุณคือแปลงคำสั่งผู้ใช้ให้เป็น "ขั้นตอนการจัดกลุ่มที่ชัดเจน"
+กฎ:
+1. หากคำสั่ง "ไม่เกี่ยวข้อง" กับการจัดกลุ่มแบดมินตันเลย ให้ตอบ: "INVALID_PROMPT"
+2. หากเกี่ยวข้อง ให้แปลงเป็นภาษาไทยที่อธิบายขั้นตอน
+3. ห้ามพิมพ์คำตอบรับ ให้ตอบเฉพาะผลลัพธ์เท่านั้น`.trim();
 
   try {
     const res = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemMessage },
-        { role: "user", content: `คำสั่งผู้ใช้/User prompt: "${rawDetail}"` },
+        { role: "user", content: `โปรดแปลคำสั่งนี้: "${rawDetail}"` },
       ],
       temperature: 0.1,
     });
 
-    return res.choices[0]?.message?.content?.trim() || rawDetail;
+    const result = res.choices?.[0]?.message?.content?.trim() || rawDetail;
+    
+    // Failsafe: ถ้าเป็นเรื่องจัดกลุ่มแน่ๆ แต่ AI ดันตอบ INVALID_PROMPT มา (ไม่ว่าจะติดคำอื่นมาด้วยหรือไม่)
+    if (isGroupingRelated && result.includes("INVALID_PROMPT")) {
+      return rawDetail; 
+    }
+
+    return result;
   } catch (error) {
     console.error("[refinePrompt error]:", error);
-    return rawDetail; // Fallback กลับไปใช้คำสั่งผู้ใช้
+    return rawDetail;
   }
 };
 
@@ -224,12 +235,12 @@ export const groupPlayers = async (
   const tool = buildTool(numGroups, groupKeys, players.length, language);
 
   const systemPrompt = `
-คุณคือระบบจัดกลุ่มทีมแบดมินตัน
+คุณคือระบบจัดกลุ่มทีมแบดมินตันอัจฉริยะ
 **สำคัญมาก (CRITICAL RULES):**
-1. **ห้ามระบุเลข ID ในช่อง \`thinking_process\` และ \`interpreted\` โดยเด็ดขาด!** ให้เปลี่ยนไปใช้ "ชื่อทีม (Team Name)" แทนเสมอ
-2. **คุณต้องระบุ "รายชื่อทีม" ทุกกลุ่มลงในเหตุผล** โดยเลือกอ้างอิงชื่อทีมในก้ามปู เช่น "[ชื่อทีม]" (ตัวอย่าง: "กลุ่ม A ประกอบไปด้วยทีมอายุน้อยที่สุด 4 ทีมคือ [ทีม ก], [ทีม ข], [ทีม ค] และ [ทีม ง]")
-3. **ห้ามใช้คำศัพท์เทคนิค** เช่น "Pool" หรือ "Candidate" หรือคำเชิงโปรแกรมมิ่งในช่องที่ผู้ใช้มองเห็น
-4. **ใช้ภาษา${language === "en" ? "อังกฤษ (English)" : "ไทย (Thai)"} เท่านั้น!** ในการอธิบายเหตุผล
+1. **ช่อง \`thinking_process\`**: ใช้เป็นกระดาษทดของคุณเอง เขียนขั้นตอนเทคนิค การเช็ค ID การขีดฆ่าคนได้เต็มที่ (ผู้ใช้จะไม่เห็นส่วนนี้)
+2. **ช่อง \`user_explanation\`**: คือส่วนที่ผู้ใช้จะอ่าน! ต้องใช้ "ภาษาคน" ที่เป็นกันเอง สรุปง่ายๆ ว่าทำไมถึงจัดแบบนี้ ห้ามมีศัพท์เทคนิค ห้ามมีเลข ID และต้องเขียนด้วยภาษา${language === "en" ? "อังกฤษ (English)" : "ไทย (Thai)"} เท่านั้น
+3. **ลิสต์ชื่อทีม**: ในช่อง \`user_explanation\` ให้เขียนชื่อทีมในก้ามปู เช่น "[ชื่อทีม]" ให้ครบทุกคนในกลุ่มนั้นๆ เพื่อให้ผู้ใช้ตรวจสอบได้ง่าย
+4. **ความยืดหยุ่น**: หากเงื่อนไขที่ผู้ใช้สั่งมา (เช่น คะแนน 6) มีคนไม่พอ ให้พยายามหาคนที่ใกล้เคียงที่สุด และอธิบายในภาษาคนว่า "เราเลือกทีมที่คะแนนใกล้เคียงที่สุดมาเติมให้ครับ" ห้ามบ่นว่าทำไม่ได้เด็ดขาด
 
 ═══════════════════════════════════════
 กฎตายตัว (ห้ามฝ่าฝืนเด็ดขาด):
@@ -294,7 +305,12 @@ STEP 4 — ตรวจสอบขั้นสุดท้ายก่อนส
   -> หรือถ้ามีทีม "40/35" และอีกทีม "40/28" แบบนี้ก็แปลว่ามีคนอายุ 40 รวมกัน 2 คน (ต้องดึงมา 2 ทีม)
   -> จงนับจำนวนครั้งของตัวเลขที่ปรากฏใน Age อย่างรอบคอบที่สุด ห้ามมองข้ามเด็ดขาด
 
- คำเตือนสุดท้าย: ถ้าคำสั่งมีประโยคว่า "ที่เหลือคละๆ" แสดงว่าผู้ใช้ยอมให้เอาบุคลากรคนอื่นๆ มายัดผสมให้ครบ 4 ทีมได้! ห้ามชอร์ตฟีลแจ้ง errorMessage ว่า "ไม่เพียงพอ" หรือ "ไม่มีข้อมูล" เด็ดขาด! คุณต้องเอาที่เหลือมาคละให้ตายยังไงก็ต้องจัดให้ครบทุกกลุ่มเท่านั้น!
+  **การจัดการเรื่องคะแนน (Score):**
+  - หากผู้ใช้ระบุคะแนน เช่น "6 คะแนน" ให้หาทีมที่มีค่า Score ใกล้เคียงกับ 6 มากที่สุด (เช่น 5.9, 6.0, 6.1)
+  - หากจำนวนทีมที่มีคะแนนตรงเป๊ะไม่เพียงพอ ให้เลือกทีมที่มีคะแนนใกล้เคียงที่สุดมาแทนเพื่อให้ครบจำนวนที่ผู้ใช้ต้องการ
+  - ห้ามบ่นว่าหาคะแนนไม่เจอ ให้ใช้ความพยายามสูงสุดในการเลือกทีมที่เหมาะสมที่สุด
+
+  คำเตือนสุดท้าย: ถ้าคำสั่งมีประโยคว่า "ที่เหลือสุ่ม" หรือ "ที่เหลือคละๆ" แสดงว่าผู้ใช้ยอมให้เอาบุคลากรคนอื่นๆ มายัดผสมให้ครบ 4 ทีมได้! ห้ามชอร์ตฟีลแจ้ง errorMessage ว่า "ไม่เพียงพอ" หรือ "ไม่มีข้อมูล" เด็ดขาด! คุณต้องเอาที่เหลือมาคละให้ตายยังไงก็ต้องจัดให้ครบทุกกลุ่มเท่านั้น!
 `.trim();
 
   const MAX_RETRIES = 3;
@@ -326,10 +342,10 @@ ${lastError}
         { role: "user", content: userPrompt },
       ],
       tools: [tool],
-      tool_choice: { type: "function", ["function"]: { name: "assign_groups" } },
+      tool_choice: { type: "function", function: { name: "assign_groups" } },
     });
 
-    const toolCall = res.choices[0].message.tool_calls?.[0];
+    const toolCall = res.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
       lastError = "AI ไม่ได้เรียก tool assign_groups";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
@@ -338,7 +354,10 @@ ${lastError}
 
     let parsed: any;
     try {
-      parsed = JSON.parse(toolCall["function"].arguments);
+      // Use any cast to bypass TypeScript union type restriction on toolCall
+      const functionArgs = (toolCall as any).function?.arguments;
+      if (!functionArgs) throw new Error("No arguments in tool call");
+      parsed = JSON.parse(functionArgs);
     } catch {
       lastError = "parse tool arguments ล้มเหลว";
       if (attempt === MAX_RETRIES) throw new Error(lastError);
@@ -354,20 +373,11 @@ ${lastError}
       const result = validateGroups(players, numGroups, parsed);
       console.log(`[groupPlayers] interpreted: ${parsed.interpreted}`);
 
-      let refinedReason = (parsed.thinking_process || "").trim();
-      if (requireReason && refinedReason) {
-        // Post-process: Replace ID:XX or ID XX with [TeamName]
-        players.forEach((p) => {
-          const idPattern1 = new RegExp(`ID\\s*:\\s*${p.id}\\b`, "gi");
-          const idPattern2 = new RegExp(`ID\\s+${p.id}\\b`, "gi");
-          refinedReason = refinedReason.replace(idPattern1, `ทีม [${p.teamName}]`);
-          refinedReason = refinedReason.replace(idPattern2, `ทีม [${p.teamName}]`);
-        });
-      }
+      const humanReason = (parsed.user_explanation || "").trim();
 
       return {
         groups: result,
-        reason: requireReason ? refinedReason : ""
+        reason: requireReason ? humanReason : ""
       };
     } catch (e: any) {
       lastError = e?.message || "validate failed";

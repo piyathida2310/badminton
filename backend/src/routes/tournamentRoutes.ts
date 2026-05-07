@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../middleware/authMiddleware";
 import { upload } from "../middleware/upload";
-import { createTournament, getTournaments, getTournament, getPoster, getQr, updateTournament, managegroup, getPaymentQr, cancelTournamentRank } from "../controllers/tournamentController"
+import { createTournament, getTournaments, getTournament, getPoster, getQr, updateTournament, managegroup, updateManualGroups, getPaymentQr, cancelTournamentRank } from "../controllers/tournamentController"
 
 const router = Router();
 
