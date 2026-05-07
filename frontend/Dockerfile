@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Environment variables for build time (Next.js requires NEXT_PUBLIC_*)
 # These are provided as defaults to ensure the build works without extra flags
-ARG NEXT_PUBLIC_API_URL="http://localhost/api"
+ARG NEXT_PUBLIC_API_URL="https://judjang.online/api"
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_YXJ0aXN0aWMtcGFudGhlci05NS5jbGVyay5hY2NvdW50cy5kZXYk"
 ARG NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 ARG NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/sign-in"
