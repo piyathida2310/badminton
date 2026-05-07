@@ -52,14 +52,14 @@ export default function Page() {
 
       // 3. เรียก API โดยตรงไปยัง backend เพื่อตรวจสอบว่าผู้ใช้มีข้อมูลในระบบหรือไม่
       // ใช้ axios แทน fetch
-      const checkResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/check`, userData);
+      const checkResponse = await axios.post('/api/users/check', userData);
 
       console.log('ผลลัพธ์จาก API:', checkResponse.data);
 
       // 4. ตรวจสอบว่าผู้ใช้มีอยู่ในระบบหรือไม่
       if (checkResponse.data.exists) {
         // 5. เรียก API login เพื่อรับ token
-        const loginResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        const loginResponse = await axios.post('/auth/login', {
           email: clerkUser.primaryEmailAddress?.emailAddress,
           password: 'clerk-auth' // ใช้รหัสผ่านสำหรับผู้ใช้จาก Clerk
         });
