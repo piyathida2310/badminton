@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
         destination: 'http://localhost/api/:path*',
       },
       {
+        source: '/auth/:path*',
+        destination: 'http://localhost/auth/:path*',
+      },
+      {
         source: '/badminton/:path*',
         destination: 'http://localhost/badminton/:path*',
       },

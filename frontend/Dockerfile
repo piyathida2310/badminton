@@ -44,11 +44,6 @@ ENV NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 ENV NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/sign-in"
 ENV NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/sign-in"
 
-# Server-side secret key for Clerk
-# CMD uses sh -c to avoid ENV metadata warning if needed, but for simplicity we use ENV here
-# as the user requested it to be contained in the Dockerfile.
-ENV CLERK_SECRET_KEY="sk_test_YEBs76hnbGeC0RC3isKU9YvdhSVeLxFxZT0vy6bfoy"
-
 # copy standalone build from builder stage
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -56,4 +51,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Set sensitive environment variables at runtime via CMD to avoid build-time warnings
+CMD ["sh", "-c", "CLERK_SECRET_KEY=sk_test_YEBs76hnbGeC0RC3isKU9YvdhSVeLxFxZT0vy6bfoy node server.js"]
