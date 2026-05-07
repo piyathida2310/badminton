@@ -6,8 +6,8 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 # Environment variables for build time (Next.js requires NEXT_PUBLIC_*)
-# These are provided as defaults to ensure the build works without extra flags
-ARG NEXT_PUBLIC_API_URL="https://judjang.online/api"
+# Use the domain origin without trailing /api to avoid double /api/api/ paths
+ARG NEXT_PUBLIC_API_URL="https://judjang.online"
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_YXJ0aXN0aWMtcGFudGhlci05NS5jbGVyay5hY2NvdW50cy5kZXYk"
 ARG NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 ARG NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/sign-in"
@@ -37,6 +37,18 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Re-declare environment variables for runtime (server-side routes)
+ENV NEXT_PUBLIC_API_URL="https://judjang.online"
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_YXJ0aXN0aWMtcGFudGhlci05NS5jbGVyay5hY2NvdW50cy5kZXYk"
+ENV NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+ENV NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/sign-in"
+ENV NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/sign-in"
+
+# Server-side secret key for Clerk
+# CMD uses sh -c to avoid ENV metadata warning if needed, but for simplicity we use ENV here
+# as the user requested it to be contained in the Dockerfile.
+ENV CLERK_SECRET_KEY="sk_test_YEBs76hnbGeC0RC3isKU9YvdhSVeLxFxZT0vy6bfoy"
+
 # copy standalone build from builder stage
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
@@ -44,5 +56,4 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# Set sensitive environment variables at runtime via CMD to avoid build-time warnings
-CMD ["sh", "-c", "CLERK_SECRET_KEY=sk_test_YEBs76hnbGeC0RC3isKU9YvdhSVeLxFxZT0vy6bfoy node server.js"]
+CMD ["node", "server.js"]
