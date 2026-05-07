@@ -36,7 +36,7 @@ export default function SignUp() {
 
     try {
       // เรียก API สมัครสมาชิกจาก backend
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const response = await axios.post('/auth/register', {
         fullName: `${user?.firstName} ${user?.lastName}`,
         email: user?.primaryEmailAddress?.emailAddress,
         password: 'clerk-auth', // ใช้รหัสผ่านสำหรับผู้ใช้จาก Clerk
