@@ -37,6 +37,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Re-declare environment variables for runtime (server-side routes)
+ENV NEXT_PUBLIC_API_URL="https://judjang.online"
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_YXJ0aXN0aWMtcGFudGhlci05NS5jbGVyay5hY2NvdW50cy5kZXYk"
+ENV NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+ENV NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL="/sign-in"
+ENV NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL="/sign-in"
+
 # copy standalone build from builder stage
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static

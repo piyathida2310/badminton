@@ -5,9 +5,9 @@ import {createRules,getRules,updateRules,getRule} from "../controllers/rulesCont
 const router = Router();
 
 
-router.get('/rules',authMiddleware,getRules)
-router.get('/rules/:id',authMiddleware,getRule)
-router.post('/rules',authMiddleware,createRules)
-router.put('/rules/:id',authMiddleware,updateRules)
+router.get('/',authMiddleware,getRules)
+router.get('/:id',authMiddleware,getRule)
+router.post('/',authMiddleware,createRules)
+router.put('/:id',authMiddleware,updateRules)
 
 export default router;

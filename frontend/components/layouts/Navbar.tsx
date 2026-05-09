@@ -35,7 +35,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
     if (!token) return;
 
     api
-      .get("/auth/me", {
+      .get("/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

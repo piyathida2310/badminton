@@ -41,7 +41,7 @@ app.use(limiter);
   app.use(helmet());
   app.use(
     cors({
-      origin: [/^http:\/\/localhost:\d+$/, 'http://127.0.0.1'],
+      origin: [/^http:\/\/localhost:\d+$/, 'http://127.0.0.1', 'https://judjang.online'],
       credentials: true,
     }),
   );
