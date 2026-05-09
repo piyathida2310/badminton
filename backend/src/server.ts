@@ -29,7 +29,7 @@ dotenv.config({
 
 async function bootstrap(): Promise<void> {
   const app = express();
-
+  app.set('trust proxy', 1); // 1 คือจำนวนชั้นของ Proxy (Traefik + Nginx)
   const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 15 นาที
   max: 1200, // จำกัด 100 ครั้งต่อ IP
