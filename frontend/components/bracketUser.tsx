@@ -25,7 +25,7 @@ const BracketUser = () => {
     const fetchTournamentData = async (id: number) => {
         try {
             setLoading(true);
-            const res = await api.get(`/api/tournament/${id}`);
+            const res = await api.get(`/tournament/${id}`);
             const data = res.data.data;
 
             if (data) {

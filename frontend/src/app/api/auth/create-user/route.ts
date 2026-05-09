@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     // เรียก API ไปยัง backend ของคุณ
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/create`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/create`, {
         clerkId,
         email,
         firstName,

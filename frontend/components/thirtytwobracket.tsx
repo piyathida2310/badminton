@@ -461,8 +461,8 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
       try {
         // ✅ 2. Fetch Tournament Info and Bracket Matches (ส่ง rank ไปด้วย)
         const [tournamentRes, bracketRes] = await Promise.all([
-          api.get(`/api/tournament/${tournamentId}`),
-          api.get(`/api/bracket-matches/${tournamentId}`, { params: { handType: rank } })
+          api.get(`/tournament/${tournamentId}`),
+          api.get(`/bracket-matches/${tournamentId}`, { params: { handType: rank } })
         ]);
 
         const tournament = tournamentRes.data.data;
@@ -509,7 +509,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           const groups = tournament.groups;
 
           const rankPromises = groups.map((g: any) =>
-            api.get(`/api/matches/${tournamentId}`, { params: { groupName: g.name } })
+            api.get(`/matches/${tournamentId}`, { params: { groupName: g.name } })
               .then(r => ({ groupName: g.name, ranks: r.data.rank, isFinished: r.data.isFinished, handType: r.data.handType }))
               // Received isFinished from backend
               .catch(e => ({ groupName: g.name, ranks: [], handType: "" }))
@@ -656,7 +656,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
               const newP1 = t1?.id; const newP2 = t2?.id;
 
               if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
-                updates.push(api.put(`/api/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
+                updates.push(api.put(`/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
                 setMatches(prev => {
                   const nm = [...prev];
                   const stateIdx = (isSmall ? 8 : 0) + i;
@@ -788,7 +788,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
     if (currentMatch && currentMatch.dbId) {
       try {
         const setsStr = `${scores.set1A}:${scores.set1B}, ${scores.set2A}:${scores.set2B}, ${scores.set3A}:${scores.set3B}`;
-        await api.put(`/api/bracket-matches/${currentMatch.dbId}`, {
+        await api.put(`/bracket-matches/${currentMatch.dbId}`, {
           score1: scores.totalA,
           score2: scores.totalB,
           sets: setsStr,

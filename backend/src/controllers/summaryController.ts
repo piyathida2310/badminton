@@ -8,21 +8,43 @@ import { prisma } from "../services/prismaClient";
  */
 export const refreshTournamentSummary = async (tournamentId: number) => {
     try {
-        // 1. Fetch all bracket matches for this tournament
-        const matches = await prisma.bracketMatch.findMany({
-            where: { tournamentId },
-            include: {
-                player1: true,
-                player2: true,
-                winner: true,
-            }
+        // 1. Fetch all matches for this tournament to calculate cumulative shuttle usage
+        const [groupMatches, bracketMatches] = await Promise.all([
+            prisma.groupMatch.findMany({
+                where: { tournamentId },
+                select: { player1Id: true, player2Id: true, shuttle: true }
+            }),
+            prisma.bracketMatch.findMany({
+                where: { tournamentId },
+                include: {
+                    player1: true,
+                    player2: true,
+                    winner: true,
+                }
+            })
+        ]);
+
+        if (bracketMatches.length === 0 && groupMatches.length === 0) return;
+
+        // 2. Pre-calculate total shuttlecocks used by each team across all matches
+        const shuttleTotals = new Map<number, number>();
+        const addShuttle = (regId: number | null, count: number | null) => {
+            if (!regId || !count) return;
+            shuttleTotals.set(regId, (shuttleTotals.get(regId) || 0) + count);
+        };
+
+        groupMatches.forEach(m => {
+            addShuttle(m.player1Id, m.shuttle);
+            addShuttle(m.player2Id, m.shuttle);
+        });
+        bracketMatches.forEach(m => {
+            addShuttle(m.player1Id, m.shuttle);
+            addShuttle(m.player2Id, m.shuttle);
         });
 
-        if (matches.length === 0) return;
-
-        // Group matches by rank (handType)
-        const rankGroups = new Map<string, typeof matches>();
-        matches.forEach(m => {
+        // 3. Group bracket matches by rank (handType) to identify winners
+        const rankGroups = new Map<string, typeof bracketMatches>();
+        bracketMatches.forEach(m => {
             const rank = m.handType || "UNKNOWN";
             if (!rankGroups.has(rank)) rankGroups.set(rank, []);
             rankGroups.get(rank)!.push(m);
@@ -45,17 +67,36 @@ export const refreshTournamentSummary = async (tournamentId: number) => {
                     const winnerId = finalMatch.winnerId;
                     const loserId = (winnerId === finalMatch.player1Id) ? finalMatch.player2Id : finalMatch.player1Id;
 
-                    newSummaries.push({ tournamentId, registerId: winnerId, position: 1, shuttleUsed: finalMatch.shuttle || 0 });
-                    if (loserId) newSummaries.push({ tournamentId, registerId: loserId, position: 2, shuttleUsed: finalMatch.shuttle || 0 });
+                    newSummaries.push({ 
+                        tournamentId, 
+                        registerId: winnerId, 
+                        position: 1, 
+                        shuttleUsed: shuttleTotals.get(winnerId) || 0 
+                    });
+                    if (loserId) {
+                        newSummaries.push({ 
+                            tournamentId, 
+                            registerId: loserId, 
+                            position: 2, 
+                            shuttleUsed: shuttleTotals.get(loserId) || 0 
+                        });
+                    }
                 }
 
-                // Semi-Finals
+                // Semi-Finals (Losers of Semi-Finals get 3rd place)
                 const semiRound = Math.max(1, maxRound - 1);
                 const semiMatches = upperMatches.filter(m => m.roundSequence === semiRound);
                 semiMatches.forEach(sm => {
                     if (sm.status === 'FINISHED' && sm.winnerId) {
                         const loserId = (sm.winnerId === sm.player1Id) ? sm.player2Id : sm.player1Id;
-                        if (loserId) newSummaries.push({ tournamentId, registerId: loserId, position: 3, shuttleUsed: sm.shuttle || 0 });
+                        if (loserId) {
+                            newSummaries.push({ 
+                                tournamentId, 
+                                registerId: loserId, 
+                                position: 3, 
+                                shuttleUsed: shuttleTotals.get(loserId) || 0 
+                            });
+                        }
                     }
                 });
             }
@@ -72,8 +113,20 @@ export const refreshTournamentSummary = async (tournamentId: number) => {
                     const winnerId = lowerFinalMatch.winnerId;
                     const loserId = (winnerId === lowerFinalMatch.player1Id) ? lowerFinalMatch.player2Id : lowerFinalMatch.player1Id;
 
-                    newSummaries.push({ tournamentId, registerId: winnerId, position: 4, shuttleUsed: lowerFinalMatch.shuttle || 0 });
-                    if (loserId) newSummaries.push({ tournamentId, registerId: loserId, position: 5, shuttleUsed: lowerFinalMatch.shuttle || 0 });
+                    newSummaries.push({ 
+                        tournamentId, 
+                        registerId: winnerId, 
+                        position: 4, 
+                        shuttleUsed: shuttleTotals.get(winnerId) || 0 
+                    });
+                    if (loserId) {
+                        newSummaries.push({ 
+                            tournamentId, 
+                            registerId: loserId, 
+                            position: 5, 
+                            shuttleUsed: shuttleTotals.get(loserId) || 0 
+                        });
+                    }
                 }
 
                 // Lower Semi-Finals
@@ -82,14 +135,20 @@ export const refreshTournamentSummary = async (tournamentId: number) => {
                 semiLowerMatches.forEach(slm => {
                     if (slm.status === 'FINISHED' && slm.winnerId) {
                         const loserId = (slm.winnerId === slm.player1Id) ? slm.player2Id : slm.player1Id;
-                        if (loserId) newSummaries.push({ tournamentId, registerId: loserId, position: 6, shuttleUsed: slm.shuttle || 0 });
+                        if (loserId) {
+                            newSummaries.push({ 
+                                tournamentId, 
+                                registerId: loserId, 
+                                position: 6, 
+                                shuttleUsed: shuttleTotals.get(loserId) || 0 
+                            });
+                        }
                     }
                 });
             }
         }
 
-        // 2. Clear old summaries and insert new ones
-        // We use a transaction to ensure atomicity
+        // 4. Clear old summaries and insert new ones
         await prisma.$transaction([
             prisma.summary.deleteMany({
                 where: { tournamentId }

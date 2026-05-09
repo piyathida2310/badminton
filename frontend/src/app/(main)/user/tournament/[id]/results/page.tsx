@@ -57,7 +57,7 @@ export default function UserResultSummaryPage() {
       if (!tournamentId) return;
       setLoading(true);
       try {
-        const tRes = await api.get(`/api/tournament/${tournamentId}`);
+        const tRes = await api.get(`/tournament/${tournamentId}`);
         const tData = tRes.data.data;
         setTournamentName(tData.title || "รายการแข่งขัน");
         if (tData.rank) {
@@ -71,7 +71,7 @@ export default function UserResultSummaryPage() {
         }
 
         // 🏆 1. Try to fetch Persisted Summary Data
-        const sRes = await api.get(`/api/summary/${tournamentId}`);
+        const sRes = await api.get(`/summary/${tournamentId}`);
         const summaryData: any[] = sRes.data.data || [];
 
         if (summaryData.length > 0) {
@@ -121,7 +121,7 @@ export default function UserResultSummaryPage() {
         }
 
         // 🏆 2. Fallback: Dynamic Calculation from Matches
-        const bRes = await api.get(`/api/bracket-matches/${tournamentId}?all=true`);
+        const bRes = await api.get(`/bracket-matches/${tournamentId}?all=true`);
         const allMatches: any[] = bRes.data.data || [];
 
         const groupedMap = new Map<string, any[]>();

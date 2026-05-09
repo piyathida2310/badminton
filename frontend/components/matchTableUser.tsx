@@ -90,7 +90,7 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
       setLoading(true);
       setError(null);
       try {
-        const res = await api.get(`/api/match-history/${tournamentId}`);
+        const res = await api.get(`/match-history/${tournamentId}`);
         const data: Match[] = res.data.data || [];
         setMatches(data);
       } catch (err: any) {

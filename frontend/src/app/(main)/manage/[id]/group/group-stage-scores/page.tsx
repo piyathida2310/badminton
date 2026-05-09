@@ -50,7 +50,7 @@ export default function GroupStageScoresPage() {
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const res = await api.get(`/api/tournament/${id}`);
+        const res = await api.get(`/tournament/${id}`);
         if (res.data.data) {
           setIsOrganizer(res.data.data.isOrganizer || false);
         }
@@ -65,7 +65,7 @@ export default function GroupStageScoresPage() {
     if (!id || !groupName) return;
     try {
       setLoading(true);
-      const res = await api.get(`/api/matches/${id}`, {
+      const res = await api.get(`/matches/${id}`, {
         params: { groupName },
       });
       setSelected(res.data);
@@ -109,7 +109,7 @@ export default function GroupStageScoresPage() {
         let s1 = hasValidScore ? totalS1 : undefined;
         let s2 = hasValidScore ? totalS2 : undefined;
 
-        await api.put(`/api/group-matches/${matchId}`, {
+        await api.put(`/group-matches/${matchId}`, {
           score1: s1,
           score2: s2,
           shuttle: shuttle,

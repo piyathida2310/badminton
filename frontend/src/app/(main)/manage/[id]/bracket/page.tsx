@@ -17,7 +17,7 @@ const page = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     const fetchTournament = async () => {
       try {
-        const res = await api.get(`/api/tournament/${unwrappedParams.id}`);
+        const res = await api.get(`/tournament/${unwrappedParams.id}`);
         const data = res.data.data;
 
         if (data) {

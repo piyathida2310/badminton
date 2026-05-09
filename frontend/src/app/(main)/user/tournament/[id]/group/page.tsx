@@ -40,7 +40,7 @@ export default function TournamentGroupPage() {
     const fetchTournamentData = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/api/tournament/${tournamentId}`);
+        const res = await api.get(`/tournament/${tournamentId}`);
         const tournament = res.data.data;
 
         // set title
@@ -279,22 +279,25 @@ export default function TournamentGroupPage() {
                   {group.name.replace(selectedHandType, "").trim()}
                 </div>
                 <ul className="py-4 px-4 space-y-2.5 text-gray-700 font-medium text-center">
-                  {group.teams.map((team: any, index: number) => (
-                    <li
-                      key={index}
-                      className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
-                    >
-                      {Array.isArray(team) ? (
-                        <div className="flex flex-col items-center leading-tight">
-                          <span>{team[0]}</span>
-                          <span className="text-gray-500 text-xs">&</span>
-                          <span>{team[1]}</span>
-                        </div>
-                      ) : (
-                        <span>{team}</span>
-                      )}
-                    </li>
-                  ))}
+                  {group.teams.map((team: any, index: number) => {
+                    const teamName = team.name || team;
+                    return (
+                      <li
+                        key={index}
+                        className="bg-white/80 backdrop-blur-sm rounded-lg py-2 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300 text-sm md:text-base"
+                      >
+                        {Array.isArray(teamName) ? (
+                          <div className="flex flex-col items-center leading-tight">
+                            <span>{teamName[0]}</span>
+                            <span className="text-gray-500 text-xs">&</span>
+                            <span>{teamName[1]}</span>
+                          </div>
+                        ) : (
+                          <span>{teamName}</span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </motion.div>
             );

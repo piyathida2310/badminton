@@ -66,7 +66,7 @@ export default function RegisterPage() {
   useEffect(() => {
     const fetchTournament = async () => {
       try {
-        const response = await axios.get(`/api/tournament/${id}`);
+        const response = await axios.get(`/tournament/${id}`);
         const t = response.data.data as Tournament;
         setTournament(t);
 
@@ -224,7 +224,7 @@ export default function RegisterPage() {
       }
 
       const response = await axios.post(
-        `/api/tournament/${id}/register`,
+        `/tournament/${id}/register`,
         formDataToSend,
         {
           headers: {
