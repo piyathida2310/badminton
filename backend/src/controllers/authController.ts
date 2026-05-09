@@ -72,6 +72,8 @@ export async function register(req: Request, res: Response, next: NextFunction):
 
     res.status(201).json(tokenResponse);
   } catch (error) {
+    
+    console.error('[Auth]: Error occurred while registering user:', error);
     next(error);
   }
 }
