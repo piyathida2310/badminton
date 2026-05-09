@@ -40,7 +40,7 @@ export default function TournamentGroupPage() {
   useEffect(() => {
     const fetchTournamentData = async () => {
       try {
-        const res = await axios.get(`/api/tournament/${id}`);
+        const res = await axios.get(`/tournament/${id}`);
         const tournament = res.data.data;
 
         //  set title
@@ -124,7 +124,7 @@ export default function TournamentGroupPage() {
     setLoading(true);
     try {
       const res = await axios.post(
-        `/api/tournament/managegroup/${id}`,
+        `/tournament/managegroup/${id}`,
         {
           detail: detailInput || "Balance skill levels", //  ส่ง detail ที่ user พิมพ์
           playType: selectedHandType,
@@ -198,7 +198,7 @@ export default function TournamentGroupPage() {
         (g) => !g.handType || g.handType === selectedHandType
       );
 
-      const res = await axios.put(`/api/tournament/manual-group/${id}`, {
+      const res = await axios.put(`/tournament/manual-group/${id}`, {
         playType: selectedHandType,
         groups: currentHandGroups.map((g) => ({
           name: g.name,
@@ -295,7 +295,7 @@ export default function TournamentGroupPage() {
             (g) => !g.handType || g.handType === selectedHandType
           );
 
-          const res = await axios.put(`/api/manual-update-groups/${id}`, {
+          const res = await axios.put(`/manual-update-groups/${id}`, {
             playType: selectedHandType,
             groups: currentHandGroups.map((g) => ({
               name: g.name,

@@ -52,7 +52,7 @@ export default function Page() {
 
             // 3. เรียก API โดยตรงไปยัง backend เพื่อตรวจสอบว่าผู้ใช้มีข้อมูลในระบบหรือไม่
             // ใช้ axios แทน fetch
-            const checkResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/check`, userData);
+            const checkResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/check`, userData);
 
             console.log('ผลลัพธ์จาก API:', checkResponse.data);
 

@@ -117,6 +117,7 @@ export default function StatusPage() {
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [currentRegistrationId, setCurrentRegistrationId] = useState<number | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [modalQrCodeUrl, setModalQrCodeUrl] = useState<string | null>(null);
@@ -171,33 +172,42 @@ export default function StatusPage() {
         registrationId: reg.id,
         members,
         qrCodeUrl: reg.tournament?.qrCodeImg,
-        tournamentId: reg.tournament?.id,
+        tournamentId: reg.tournament?.id || reg.tournamentId,
         slipUrl: reg.payment?.slipImg,
+        userId: reg.userId,
       };
     });
   }, [registrationsRaw, t]);
 
-  // Fetch data from API
+  // Fetch registrations and current user
   useEffect(() => {
-    const fetchRegistrations = async () => {
+    const fetchData = async () => {
+      if (!tournamentIdFromUrl) return;
+
       try {
-        const response = await api.get("/api/user/registrations");
-        setRegistrationsRaw(response.data.data);
+        setLoading(true);
+        // Fetch tournament-specific registrations
+        const regResponse = await api.get(`/tournament/${tournamentIdFromUrl}/registrations`);
+        setRegistrationsRaw(regResponse.data.data);
+
+        // Fetch current user info to identify "me"
+        const meResponse = await api.get("/auth/me");
+        setCurrentUserId(meResponse.data.id);
       } catch (error) {
-        console.error("Failed to fetch registrations:", error);
+        console.error("Failed to fetch data:", error);
         await alertError(t('status.loadFailed'), t('status.refreshTryAgain'));
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRegistrations();
-  }, []);
+    fetchData();
+  }, [tournamentIdFromUrl, t]);
 
   // Fetch Tournament Meta for Options
   useEffect(() => {
     if (tournamentIdFromUrl) {
-      api.get(`/api/tournament/${tournamentIdFromUrl}`)
+      api.get(`/tournament/${tournamentIdFromUrl}`)
         .then((res) => {
           const data = res.data.data;
           if (typeof data.rank === "string") {
@@ -225,7 +235,7 @@ export default function StatusPage() {
         if (team.tournamentId) {
           setLoadingQr(true);
           api
-            .get(`/api/tournament/payment/qr/${team.tournamentId}`)
+            .get(`/payment/qr/${team.tournamentId}`)
             .then((res) => {
               setModalQrCodeUrl(res.data.url);
             })
@@ -241,7 +251,7 @@ export default function StatusPage() {
         // Fetch existing slip if available
         if (team.slipUrl) {
           api
-            .get(`/api/payment/slip/${team.registrationId}`)
+            .get(`/payment/slip/${team.registrationId}`)
             .then((res) => {
               setUploadedSlip(res.data.url);
             })
@@ -289,7 +299,7 @@ export default function StatusPage() {
       const formData = new FormData();
       formData.append("slip", uploadedFile);
 
-      await api.post(`/api/registration/${currentRegistrationId}/payment/slip`, formData, {
+      await api.post(`/registration/${currentRegistrationId}/payment/slip`, formData, {
         headers: {
           "Content-Type": undefined,
         } as any,
@@ -341,7 +351,7 @@ export default function StatusPage() {
 
     setCancelling(true);
     try {
-      await api.post(`/api/registration/${regId}/cancel`, { reason });
+      await api.post(`/registration/${regId}/cancel`, { reason });
       await alertSuccess(t('status.cancelSuccess'), t('status.waitOrganizerProcess'));
 
       setRegistrationsRaw((prev) =>
@@ -555,7 +565,7 @@ export default function StatusPage() {
                               })()}
                             </td>
                             <td className="p-2 border">
-                              {team.members[0].register === t('status.passed') ? (
+                              {team.members[0].register === t('status.passed') && team.userId === currentUserId ? (
                                 <button
                                   onClick={() => {
                                     setCurrentRegistrationId(team.registrationId);
@@ -598,7 +608,7 @@ export default function StatusPage() {
                                 <span className="text-amber-600 font-semibold text-xs">{t('status.pending')}</span>
                               ) : team.members[0].cancellationStatus === "REFUNDED" || team.members[0].cancellationStatus === "REJECTED" ? (
                                 <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">{t('status.canceled')}</button>
-                              ) : team.members[0].register !== t('status.failed') ? (
+                              ) : team.members[0].register !== t('status.failed') && team.userId === currentUserId ? (
                                 <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
                                   {t('status.confirm')}
                                 </button>
@@ -627,7 +637,7 @@ export default function StatusPage() {
                                 </span>
                               </td>
                               <td className="p-2 border">
-                                {m.register === t('status.passed') ? (
+                                {m.register === t('status.passed') && team.userId === currentUserId ? (
                                   <button
                                     onClick={() => {
                                       setCurrentRegistrationId(team.registrationId);
@@ -658,7 +668,7 @@ export default function StatusPage() {
                                   <span className="text-amber-600 font-semibold text-xs">{t('status.pending')}</span>
                                 ) : m.cancellationStatus === "REFUNDED" || m.cancellationStatus === "REJECTED" ? (
                                   <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">{t('status.canceled')}</button>
-                                ) : m.register !== t('status.failed') ? (
+                                ) : m.register !== t('status.failed') && team.userId === currentUserId ? (
                                   <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
                                     {t('status.confirm')}
                                   </button>

@@ -76,7 +76,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
       const fetchTournament = async () => {
         try {
           const token = localStorage.getItem("accessToken");
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/tournament/${id}`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/tournament/${id}`, {
             headers: {
               "Authorization": `Bearer ${token}`
             }

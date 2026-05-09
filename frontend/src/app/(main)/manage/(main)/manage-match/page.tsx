@@ -233,7 +233,7 @@ export default function TournamentManagePage() {
 
     try {
       // 1. สร้างกติกา
-      const rulesRes = await axios.post("/api/rules", { content: rulesText });
+      const rulesRes = await axios.post("/rules", { content: rulesText });
       const ruleId = rulesRes.data.data.id;
 
       // 2. สร้างรายการแข่งขัน
@@ -250,7 +250,7 @@ export default function TournamentManagePage() {
       formData.append("ruleId", String(ruleId));
       formData.append("isLowerBracket", String(tournament.isLowerBracket));
 
-      const tourRes = await axios.post("/api/tournament", formData, {
+      const tourRes = await axios.post("/tournament", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const newTournamentID = tourRes.data.data.id;
@@ -263,7 +263,7 @@ export default function TournamentManagePage() {
           rank: round.levels || [],
           tournamentId: newTournamentID,
         };
-        await axios.post("/api/compet", payload);
+        await axios.post("/compet", payload);
       }
 
       Swal.fire({

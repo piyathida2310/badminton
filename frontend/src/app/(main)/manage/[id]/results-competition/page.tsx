@@ -51,7 +51,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const res = await api.get("/api/tournament?limit=100");
+        const res = await api.get("/tournament?limit=100");
         setTournaments(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch tournaments", err);
@@ -66,13 +66,13 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
       if (!currentId) return;
       setLoading(true);
       try {
-        const tRes = await api.get(`/api/tournament/${currentId}`);
+        const tRes = await api.get(`/tournament/${currentId}`);
         const tData = tRes.data.data;
         setTournamentName(tData.title || "รายการแข่งขัน");
         if (tData.rank) setAvailableRanks(tData.rank);
 
         // 🏆 1. Try to fetch Persisted Summary Data (Faster & Persistent)
-        const sRes = await api.get(`/api/summary/${currentId}`);
+        const sRes = await api.get(`/summary/${currentId}`);
         const summaryData: any[] = sRes.data.data || [];
 
         if (summaryData.length > 0) {
@@ -126,7 +126,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
 
         // 🏆 2. Fallback: Dynamic Calculation from Matches (For existing data or pending results)
         console.log("[Results Summary] No persisted summary found. Falling back to dynamic calculation.");
-        const bRes = await api.get(`/api/bracket-matches/${currentId}?all=true`);
+        const bRes = await api.get(`/bracket-matches/${currentId}?all=true`);
         const allMatches: any[] = bRes.data.data || [];
 
         const groupedMap = new Map<string, any[]>();

@@ -54,7 +54,7 @@ export default function GroupStageScoresPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/api/matches/${tournamentId}`, {
+        const res = await api.get(`/matches/${tournamentId}`, {
           params: { groupName },
         });
         setSelected(res.data);

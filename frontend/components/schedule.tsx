@@ -72,7 +72,7 @@ export default function Schedule({
   //  โหลดข้อมูลทั้งหมด
   const fetCompet = async () => {
     try {
-      const res = await axios.get(`/api/compet?tournamentId=${tournamentID}`);
+      const res = await axios.get(`/compet?tournamentId=${tournamentID}`);
       setCompet(res.data.data || []);
     } catch (error) {
       console.log(error);
@@ -108,13 +108,13 @@ export default function Schedule({
 
       if (editingCompetID !== null) {
         // แก้ไขจากปุ่ม "แก้ไข"
-        await axios.put(`/api/compet/${editingCompetID}`, payload);
+        await axios.put(`/compet/${editingCompetID}`, payload);
       } else if (duplicate) {
         // เวลาเหมือน → เขียนทับ
-        await axios.put(`/api/compet/${duplicate.id}`, payload);
+        await axios.put(`/compet/${duplicate.id}`, payload);
       } else {
         // เพิ่มใหม่
-        await axios.post("/api/compet", payload);
+        await axios.post("/compet", payload);
       }
 
       await fetCompet();
@@ -230,7 +230,7 @@ export default function Schedule({
                       onClick={async () => {
                         if (confirm(t('manageMatch.confirmDelete'))) {
                           if (tournamentID) {
-                            await axios.delete(`/api/compet/${r.id}`);
+                            await axios.delete(`/compet/${r.id}`);
                             fetCompet();
                           } else {
                             handleDeleteRound(index);

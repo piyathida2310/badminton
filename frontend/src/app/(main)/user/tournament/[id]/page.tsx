@@ -37,7 +37,7 @@ export default function TournamentDetailPage() {
   useEffect(() => {
     const fetchTournament = async () => {
       try {
-        const res = await axios.get(`/api/tournament/${id}`);
+        const res = await axios.get(`/tournament/${id}`);
         // Ensure rank is array if valid JSON string or already array
         const data = res.data.data;
         if (typeof data.rank === "string") {

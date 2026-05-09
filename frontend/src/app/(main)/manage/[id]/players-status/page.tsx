@@ -220,7 +220,7 @@ export default function RegisterStatusPage() {
       setError(null);
 
       try {
-        const response = await api.get(`/api/tournament/${id}/applicants`);
+        const response = await api.get(`/tournament/${id}/applicants`);
         const data = response.data?.data;
         const applicants: ApplicantResponse[] = data?.applicants ?? [];
         const ranks: string[] = data?.tournament?.ranks ?? [];
@@ -299,7 +299,7 @@ export default function RegisterStatusPage() {
     try {
       if (type === "status") {
         // Update evaluation status
-        await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+        await api.patch(`/registration/${player.registrationId}/evaluation`, {
           status: value,
         });
 
@@ -316,7 +316,7 @@ export default function RegisterStatusPage() {
         });
       } else {
         // Update payment status
-        await api.patch(`/api/registration/${player.registrationId}/payment/status`, {
+        await api.patch(`/registration/${player.registrationId}/payment/status`, {
           status: value,
         });
 
@@ -342,7 +342,7 @@ export default function RegisterStatusPage() {
 
       try {
         // Update score in database
-        await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+        await api.patch(`/registration/${player.registrationId}/evaluation`, {
           score: videoScore,
         });
 
@@ -371,7 +371,7 @@ export default function RegisterStatusPage() {
 
     try {
       // Update comment in database
-      await api.patch(`/api/registration/${player.registrationId}/evaluation`, {
+      await api.patch(`/registration/${player.registrationId}/evaluation`, {
         comment: value,
       });
 
@@ -410,7 +410,7 @@ export default function RegisterStatusPage() {
 
     setRefunding(true);
     try {
-      await api.patch(`/api/registration/${player.registrationId}/refund`, { status: action });
+      await api.patch(`/registration/${player.registrationId}/refund`, { status: action });
 
       setApplicantsRaw(prev => {
         const updated = [...prev];

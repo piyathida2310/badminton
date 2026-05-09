@@ -104,7 +104,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
     }
 
     try {
-      const res = await axios.get(`/api/tournament/${id}`);
+      const res = await axios.get(`/tournament/${id}`);
       const data = res.data.data;
       console.log("Tournament data:", data);
 
@@ -125,7 +125,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
 
   const handelUpdateRule = async (id: string) => {
     try {
-      await axios.put(`/api/rules/${id}`, {
+      await axios.put(`/rules/${id}`, {
         content: getDisplayRule(tournament?.rule.content),
       });
 
@@ -164,7 +164,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
         rank: dbRankArray, // array เช่น ["BG", "NB"]
       };
 
-      await axios.put(`/api/compet/${id}`, payload);
+      await axios.put(`/compet/${id}`, payload);
 
       Swal.fire({
         title: t("matchRules.saveSuccess"),

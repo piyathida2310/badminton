@@ -37,7 +37,7 @@ export default function TournamentPage() {
 
   //  โหลดข้อมูลจาก backend แบบมี pagination
   const fetchTournament = async (page = 1) => {
-    const res = await axios.get(`/api/tournament?page=${page}&limit=${limit}&myOnly=true`);
+    const res = await axios.get(`/tournament?page=${page}&limit=${limit}&myOnly=true`);
 
     setTournaments(res.data.data || []);
 
@@ -69,7 +69,7 @@ export default function TournamentPage() {
     if (!confirm.isConfirmed) return;
 
     try {
-      await axios.put(`/api/tournament/cancel-rank/${id}`, { rank });
+      await axios.put(`/tournament/cancel-rank/${id}`, { rank });
       fetchTournament(currentPage);
 
       Swal.fire({
@@ -108,7 +108,7 @@ export default function TournamentPage() {
     if (!confirm.isConfirmed) return; // ถ้ากด "ยกเลิก" ให้หยุดตรงนี้
 
     try {
-      await axios.put(`/api/tournament/${id}`);
+      await axios.put(`/tournament/${id}`);
       fetchTournament(currentPage); // refresh
 
       // แจ้งเตือนสำเร็จ
