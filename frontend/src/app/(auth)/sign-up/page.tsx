@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import axios from 'axios'
+import api from '../../../lib/api'
 
 export default function SignUp() {
   const { isSignedIn, user } = useUser()
@@ -36,7 +36,7 @@ export default function SignUp() {
 
     try {
       // เรียก API สมัครสมาชิกจาก backend
-      const response = await axios.post('/api/auth/register', {
+      const response = await api.post('/auth/register', {
         fullName: `${user?.firstName} ${user?.lastName}`,
         email: user?.primaryEmailAddress?.emailAddress,
         password: 'clerk-auth', // ใช้รหัสผ่านสำหรับผู้ใช้จาก Clerk

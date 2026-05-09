@@ -3,7 +3,7 @@
 import { SignIn, useUser } from '@clerk/nextjs'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
+import api from '../../../../lib/api'
 
 export default function Page() {
   const { isSignedIn, user } = useUser()
@@ -52,14 +52,14 @@ export default function Page() {
 
       // 3. เรียก API โดยตรงไปยัง backend เพื่อตรวจสอบว่าผู้ใช้มีข้อมูลในระบบหรือไม่
       // ใช้ axios แทน fetch
-      const checkResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/check`, userData);
+      const checkResponse = await api.post('/users/check', userData);
 
       console.log('ผลลัพธ์จาก API:', checkResponse.data);
 
       // 4. ตรวจสอบว่าผู้ใช้มีอยู่ในระบบหรือไม่
       if (checkResponse.data.exists) {
         // 5. เรียก API login เพื่อรับ token
-        const loginResponse = await axios.post('/api/auth/login', {
+        const loginResponse = await api.post('/auth/login', {
           email: clerkUser.primaryEmailAddress?.emailAddress,
           password: 'clerk-auth' // ใช้รหัสผ่านสำหรับผู้ใช้จาก Clerk
         });

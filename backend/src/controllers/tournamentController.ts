@@ -222,9 +222,11 @@ export const getTournaments = async (req: Request, res: Response) => {
     const myOnly = req.query.myOnly === "true";
 
     // 1) Define "where" clause based on myOnly flag
+    const currentUserId = req.user?.sub ? Number(req.user.sub) : null;
     const where: any = {};
-    if (myOnly && req.user?.sub) {
-      where.organizerId = Number(req.user.sub);
+    
+    if (myOnly && currentUserId) {
+      where.organizerId = currentUserId;
     }
     // Only show non-cancelled tournaments to users unless they are looking at their own
     if (!myOnly) {
@@ -295,7 +297,7 @@ export const getTournaments = async (req: Request, res: Response) => {
           canceled: tournament.isCancel,
           competition: tournament.competition,
           rule: tournament.rule,
-          IsOwner: Number(req.user.sub) === tournament.organizerId,
+          IsOwner: currentUserId === tournament.organizerId,
         };
       })
     );
@@ -313,14 +315,10 @@ export const getTournaments = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    if (error instanceof Error) {
-      return res.status(400).json({
-        message: "Something went wrong!",
-        errors: error.message,
-      });
-    }
+    console.error("Get Tournaments Error:", error);
     return res.status(500).json({
       message: "Internal server error",
+      errors: error instanceof Error ? error.message : error,
     });
   }
 };
