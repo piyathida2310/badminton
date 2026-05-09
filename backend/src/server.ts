@@ -55,10 +55,10 @@ app.use(limiter);
   });
 
   app.use('/auth', authRoutes);
-  app.use('/', rulesRouter);
-  app.use('/', tournamentRouter);
+  app.use('/rules', rulesRouter);
+  app.use('/tournament', tournamentRouter);
   app.put('/manual-update-groups/:id', authMiddleware, updateManualGroups);
-  app.use('/', competitionRouter);
+  app.use('/compet', competitionRouter);
   app.use('/users', userRouter);
   app.use('/', registerRouter);
   app.use('/', matchRouter);

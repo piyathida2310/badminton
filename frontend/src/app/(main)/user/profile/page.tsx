@@ -26,7 +26,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get("/api/auth/me");
+        const res = await api.get("/auth/me");
         const dbProfile = res.data;
         
         setProfile({
@@ -102,7 +102,7 @@ export default function ProfilePage() {
       });
 
       // อัปเดตข้อมูลในฐานข้อมูลของเรา
-      await api.patch('/api/auth/me', {
+      await api.patch('/auth/me', {
         fullName: profile.fullname,
         email: profile.email,
         username: profile.nickname,
