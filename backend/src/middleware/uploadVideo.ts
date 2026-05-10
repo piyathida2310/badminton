@@ -14,7 +14,7 @@ const videoMimeTypes = [
 export const uploadVideo = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB for videos
+    fileSize: 100 * 1024 * 1024, // 100MB for videos
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (videoMimeTypes.includes(file.mimetype)) {
