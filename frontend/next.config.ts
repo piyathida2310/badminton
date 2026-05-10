@@ -21,22 +21,24 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.clerk.dev',
       },
+      // เพิ่มส่วนนี้เพื่อให้ Next.js ยอมโหลดรูปจาก Domain ของคุณ
+      {
+        protocol: 'https',
+        hostname: 'judjang.online', 
+      },
     ],
   },
   async rewrites() {
+    // ใน Production แนะนำให้จัดการผ่าน Nginx โดยตรง 
+    // แต่ถ้าจำเป็นต้องใช้ ให้เช็คว่าเรียกผ่าน URL ที่ถูกต้อง
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost/api/:path*',
+        destination: process.env.NODE_ENV === 'development' 
+          ? 'http://localhost:8000/api/:path*' // dev
+          : 'https://judjang.online/api/:path*', // prod
       },
-      {
-        source: '/auth/:path*',
-        destination: 'http://localhost/auth/:path*',
-      },
-      {
-        source: '/badminton/:path*',
-        destination: 'http://localhost/badminton/:path*',
-      },
+      // ลบ /badminton/ ออกจาก rewrites เพื่อให้ Browser วิ่งไปหา Nginx โดยตรง
     ];
   },
 
