@@ -16,7 +16,8 @@ export const createRules = async (req: Request, res: Response) => {
         data:creatRules
     })
     } catch (error) {
-      if (error instanceof ZodError) {
+    console.error("[rulesController] createRules error:", error);
+    if (error instanceof ZodError) {
       return res.status(400).json({
         message: 'Validation error',
         errors: error,
@@ -50,7 +51,7 @@ export const getRules = async (req: Request, res: Response) => {
 
 
     } catch (error) {
-
+    console.error("[rulesController] getRules error:", error);
      if (error instanceof Error) {
       return res.status(400).json({
         message: 'Something went wrong!',
@@ -85,7 +86,8 @@ export const getRule = async (req: Request, res: Response) =>{
     })
 
     } catch (error) {
-        if (error instanceof Error) {
+    console.error("[rulesController] getRule error:", error);
+    if (error instanceof Error) {
       return res.status(400).json({
         message: 'Something went wrong!',
         errors: error.message,
@@ -121,7 +123,8 @@ export const updateRules = async (req: Request, res: Response) => {
     });
 
     } catch (error) {
-         if (error instanceof ZodError) {
+    console.error("[rulesController] updateRules error:", error);
+    if (error instanceof ZodError) {
       return res.status(400).json({
         message: 'Validation error',
         errors: error,

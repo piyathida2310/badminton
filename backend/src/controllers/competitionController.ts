@@ -18,7 +18,8 @@ export const createCompet = async (req: Request, res: Response) => {
       message: "Rules Create Successfully",
       data: creatRules,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[competitionController] createCompet error:", error);
     if (error instanceof ZodError) {
       return res.status(400).json({
         message: "Validation error",
@@ -84,7 +85,8 @@ export const getCompets = async (req: Request, res: Response) => {
       message: "Competiton fetched Successfully",
       data,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[competitionController] getCompets error:", error);
     if (error instanceof Error) {
       return res.status(400).json({
         message: "Something went wrong!",
@@ -120,7 +122,8 @@ export const updateCompet = async (req: Request, res: Response) => {
       message: "Competition updated successfully",
       data: updated,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[competitionController] updateCompet error:", error);
     if (error instanceof ZodError) {
       return res.status(400).json({
         message: "Validation error",
@@ -158,7 +161,8 @@ export const deleteCompet = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "Competition delete successfully",
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[competitionController] deleteCompet error:", error);
     if (error instanceof Error) {
       return res.status(400).json({
         message: "Something went wrong!",
