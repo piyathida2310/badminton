@@ -95,6 +95,7 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     const tokenResponse = await loginUser({ email, password });
     res.status(200).json(tokenResponse);
   } catch (error) {
+    console.error('[Auth]: Error occurred while logging in user:', error);
     next(error);
   }
 }
@@ -132,6 +133,7 @@ export async function changePasswordHandler(
     });
     res.json(result);
   } catch (error) {
+    console.error('[Auth]: Error occurred while changing password:', error);
     next(error);
   }
 }
@@ -151,6 +153,7 @@ export async function me(req: Request, res: Response, next: NextFunction): Promi
     
     res.json(profile);
   } catch (error) {
+    console.error('[Auth]: Error occurred while fetching user profile:', error);
     next(error);
   }
 }

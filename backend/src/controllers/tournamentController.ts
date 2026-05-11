@@ -201,7 +201,8 @@ export const getTournament = async (req: Request, res: Response) => {
       message: "Tournament fetched successfully",
       data: iconsWithUrl,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[tournamentController] getTournament error:", error);
     if (error instanceof Error) {
       return res.status(400).json({
         message: "Something went wrong!",
@@ -362,7 +363,8 @@ export const getQr = async (req: Request, res: Response) => {
       message: "QR presigned URL generated successfully",
       url,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[tournamentController] getQr error:", error);
     return res.status(500).json({
       message: "Internal server error",
       errors: error instanceof Error ? error.message : error,
@@ -400,7 +402,8 @@ export const updateTournament = async (req: Request, res: Response) => {
       message: "Tournament cancelled successfully.",
       data: update,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[tournamentController] updateTournament error:", error);
     return res.status(500).json({
       message: "Internal server error",
       errors: error instanceof Error ? error.message : error,
@@ -426,7 +429,8 @@ export const getPaymentQr = async (req: Request, res: Response) => {
       message: "Presigned URL generated successfully",
       url: presignedUrl,
     });
-  } catch (error) {
+    } catch (error) {
+    console.error("[tournamentController] getPaymentQr error:", error);
     return res.status(500).json({
       message: "Internal server error",
       errors: error instanceof Error ? error.message : error,
@@ -463,7 +467,7 @@ export const managegroup = async (req: Request, res: Response) => {
       reason: groupingReason
     });
   } catch (error) {
-    console.error(error);
+    console.error("[tournamentController] managegroup error:", error);
 
     if (error instanceof Error) {
       if (error.message === "Tournament not found") {
@@ -498,7 +502,7 @@ export const updateManualGroups = async (req: Request, res: Response) => {
       groups: updatedGroups,
     });
   } catch (error) {
-    console.error(error);
+    console.error("[tournamentController] updateManualGroups error:", error);
     return res.status(500).json({
       message: "Internal server error",
       errors: error instanceof Error ? error.message : error,
