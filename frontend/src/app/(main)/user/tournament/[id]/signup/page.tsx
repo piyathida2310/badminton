@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { UploadCloud } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "../../../../../../lib/api";
+import { compressVideo } from "@/lib/media-utils";
 import Swal from "sweetalert2";
 import { useLanguage } from "@/contexts/LanguageContext";
 import DatePicker, { registerLocale } from "react-datepicker";
@@ -220,7 +221,32 @@ export default function RegisterPage() {
       }
 
       if (video) {
-        formDataToSend.append("video", video, video.name);
+        // แจ้งเตือนกำลังบีบอัดวิดีโอ
+        Swal.fire({
+          title: "กำลังประมวลผลวิดีโอ...",
+          text: "ระบบกำลังย่อขนาดไฟล์เพื่อให้การอัปโหลดรวดเร็วขึ้น",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+          const compressedVideo = await compressVideo(video, {
+            maxWidth: 720,
+            bitrate: 1500000 // 1.5 Mbps
+          });
+          formDataToSend.append("video", compressedVideo, compressedVideo.name);
+        } catch (vError) {
+          console.error("Video compression failed, using original:", vError);
+          formDataToSend.append("video", video, video.name);
+        }
+
+        // กลับไปที่หน้าโหลดลงทะเบียน
+        Swal.fire({
+          title: "กำลังลงทะเบียน...",
+          text: "กรุณารอสักครู่",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
       }
 
       const response = await axios.post(

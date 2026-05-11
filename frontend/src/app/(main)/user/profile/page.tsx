@@ -5,6 +5,7 @@ import { Edit3, Upload, LogOut, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import api from "@/lib/api";
+import { compressImage } from "@/lib/media-utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ProfilePage() {
@@ -61,9 +62,15 @@ export default function ProfilePage() {
     try {
       setUploading(true);
       
+      // บีบอัดรูปภาพก่อนอัปโหลด (ขนาดเล็กลง ประหยัดที่เก็บ)
+      const compressedFile = await compressImage(file, {
+        maxWidth: 500,
+        quality: 0.8
+      });
+      
       // อัปโหลดรูปไปยัง Minio ผ่าน API ของเรา
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("avatar", compressedFile);
       
       const res = await api.post("/auth/upload-avatar", formData, {
         headers: {

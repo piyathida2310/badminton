@@ -197,7 +197,7 @@ export default function TournamentPage() {
             key={item.id}
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            className="relative bg-white rounded-2xl shadow-sm overflow-hidden group border border-[#2ED3B7]/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            className="flex flex-col h-full relative bg-white rounded-2xl shadow-sm overflow-hidden group border border-[#2ED3B7]/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
           >
             <div
               className="relative w-full aspect-[4/3] bg-gray-100 rounded-t-2xl overflow-hidden cursor-pointer"
@@ -216,37 +216,39 @@ export default function TournamentPage() {
               )}
             </div>
 
-            <div className="p-4 text-center">
-              <h2
-                onClick={() => rules(item.id)}
-                className="text-base sm:text-lg font-semibold text-[#194185] mb-1 transition-colors cursor-pointer"
-              >
-                {item.title}
-              </h2>
+            <div className="p-4 text-center flex flex-col flex-grow justify-between">
+              <div>
+                <h2
+                  onClick={() => rules(item.id)}
+                  className="text-base sm:text-lg font-semibold text-[#194185] mb-1 transition-colors cursor-pointer"
+                >
+                  {item.title}
+                </h2>
 
-              <p className="text-gray-500 mb-3 text-sm">
-                {t('manage.date')} {formatThaiDate(item.date)}
-              </p>
+                <p className="text-gray-500 mb-3 text-sm">
+                  {t('manage.date')} {formatThaiDate(item.date)}
+                </p>
 
-              <div className="flex flex-wrap justify-center gap-2 mb-3 text-sm text-gray-600">
-                {Array.from(new Set([...item.rank, ...Object.keys(item.registrationStats || {})])).map((r, index) => {
-                  const isActive = item.rank.includes(r);
-                  return (
-                    <span
-                      key={index}
-                      onClick={item.IsOwner && isActive ? () => handleCancelRank(item.id, r) : undefined}
-                      className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
+                <div className="flex flex-wrap justify-center gap-2 mb-4 text-sm text-gray-600">
+                  {Array.from(new Set([...item.rank, ...Object.keys(item.registrationStats || {})])).map((r, index) => {
+                    const isActive = item.rank.includes(r);
+                    return (
+                      <span
+                        key={index}
+                        onClick={item.IsOwner && isActive ? () => handleCancelRank(item.id, r) : undefined}
+                        className={`px-2 py-0.5 rounded-md font-medium cursor-pointer transition-colors
                         ${isActive
-                          ? "bg-[#194185]/10 text-[#194185] hover:bg-[#194185]/20"
-                          : "bg-red-50 text-red-600 cursor-not-allowed"}
+                            ? "bg-[#194185]/10 text-[#194185] hover:bg-[#194185]/20"
+                            : "bg-red-50 text-red-600 cursor-not-allowed"}
                       `}
-                      title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
-                    >
-                      Rank {formatRank(r)} : {item.registrationStats?.[r] || 0}/{item.maxPlayers}
-                      {!isActive && <span className="ml-1 text-xs">({t('manage.canceled')})</span>}
-                    </span>
-                  );
-                })}
+                        title={!isActive ? "ยกเลิกเนื่องจากจำนวนผู้สมัครน้อยเกินไป" : "กดเพื่อยกเลิก Rank นี้"}
+                      >
+                        Rank {formatRank(r)} : {item.registrationStats?.[r] || 0}/{item.maxPlayers}
+                        {!isActive && <span className="ml-1 text-xs">({t('manage.canceled')})</span>}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
 
               <button
