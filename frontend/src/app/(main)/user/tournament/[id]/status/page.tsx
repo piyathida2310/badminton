@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { Upload, XCircle } from "lucide-react";
 import api from "@/lib/api";
+import { compressImage } from "@/lib/media-utils";
 import Swal from "sweetalert2";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -272,15 +273,34 @@ export default function StatusPage() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadedFile(file);
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setUploadedSlip(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // แจ้งเตือนกำลังบีบอัดรูป
+        toast.fire({
+          icon: "info",
+          title: t('status.processingImage') || "กำลังประมวลผลรูปภาพ...",
+          timer: 1000,
+          timerProgressBar: false
+        });
 
-      //  toast แจ้งว่าเลือกรูปแล้ว
-      toast.fire({ icon: "success", title: t('status.slipSelected') });
+        // บีบอัดรูปภาพ
+        const compressedFile = await compressImage(file, {
+          maxWidth: 1200,
+          quality: 0.8
+        });
+
+        setUploadedFile(compressedFile);
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setUploadedSlip(ev.target?.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+
+        // toast แจ้งว่าเลือกรูปแล้ว
+        toast.fire({ icon: "success", title: t('status.slipSelected') });
+      } catch (error) {
+        console.error("Compression error:", error);
+        toast.fire({ icon: "error", title: "ไม่สามารถประมวลผลรูปภาพได้" });
+      }
     }
   };
 

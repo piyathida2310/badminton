@@ -10,6 +10,7 @@ import Schedule from "../../../../../../components/schedule";
 import Guideline from "../../../../../../components/guideline";
 import { useLanguage } from "@/contexts/LanguageContext";
 import axios from "@/lib/api";
+import { compressImage } from "@/lib/media-utils";
 import Swal from "sweetalert2";
 export default function TournamentManagePage() {
   const [page, setPage] = useState<"organize" | "rules" | "schedule">(
@@ -112,23 +113,33 @@ export default function TournamentManagePage() {
     );
   };
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>, type: any) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (type === "poster") {
-      setPosterFile(file);
-    } else {
-      setQrFile(file);
-    }
+    try {
+      // บีบอัดรูปภาพก่อนเก็บลง state
+      const compressedFile = await compressImage(file, {
+        maxWidth: type === "poster" ? 1200 : 800,
+        quality: 0.8
+      });
 
-    // สำหรับ preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (type === "poster") setPosterPreview(reader.result as string);
-      if (type === "qr") setQrPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+      if (type === "poster") {
+        setPosterFile(compressedFile);
+      } else {
+        setQrFile(compressedFile);
+      }
+
+      // สำหรับ preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (type === "poster") setPosterPreview(reader.result as string);
+        if (type === "qr") setQrPreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error("Compression error:", error);
+    }
   };
 
   const isFormComplete =
