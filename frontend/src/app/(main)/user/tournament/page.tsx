@@ -17,6 +17,7 @@ interface Tournament {
   maxPlayers: number;
   rank: string[];
   registrationStats: Record<string, number>;
+  organizerName?: string;
 }
 
 export default function TournamentPage() {
@@ -31,10 +32,13 @@ export default function TournamentPage() {
   const limit = 6;
   const [totalPages, setTotalPages] = useState(1);
 
+  //  Filter state
+  const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
+
   //  โหลกข้อมูลจาก backend แบบมี pagination
-  const fetchTournament = async (page = 1) => {
+  const fetchTournament = async (page = 1, currentFilter = filter) => {
     try {
-      const res = await axios.get(`/tournament?page=${page}&limit=${limit}&myOnly=false`);
+      const res = await axios.get(`/tournament?page=${page}&limit=${limit}&myOnly=false&filter=${currentFilter}`);
       const data = res.data.data || [];
       // Ensure rank is parsed if coming as string (safety check)
       const parsedData = data.map((t: any) => ({
@@ -77,10 +81,33 @@ export default function TournamentPage() {
   return (
     <main className="min-h-screen bg-[#2ED3B7]/5 px-6 py-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-center items-center mb-10 gap-4">
+      <div className="flex flex-col sm:flex-row justify-center items-center mb-6 gap-4">
         <h1 className="text-3xl font-extrabold text-center text-[#194185]">
           {t('tournament.pageTitle')}
         </h1>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex justify-center mb-10">
+        <div className="bg-white/50 backdrop-blur-sm p-1 rounded-xl flex space-x-2 border border-white/20 shadow-sm overflow-x-auto max-w-full">
+          {(["upcoming", "past", "all"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setFilter(tab);
+                setCurrentPage(1);
+                fetchTournament(1, tab);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-300 ${
+                filter === tab
+                  ? "bg-[#194185] text-white shadow-md"
+                  : "text-gray-600 hover:bg-white/60 hover:text-[#194185]"
+              }`}
+            >
+              {t(`tournament.${tab}`)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tournament Cards */}
@@ -130,8 +157,15 @@ export default function TournamentPage() {
                     />
 
                     {item.canceled && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
+                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse z-10">
                         {t('tournament.canceled')}
+                      </div>
+                    )}
+
+                    {item.organizerName && (
+                      <div className="absolute top-3 right-3 bg-black/50 text-white text-[11px] font-medium px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md flex items-center gap-1.5 border border-white/20 z-10 hover:bg-black/70 transition-colors">
+                        <svg className="w-3 h-3 text-[#2ED3B7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span className="truncate max-w-[120px] tracking-wide">{item.organizerName}</span>
                       </div>
                     )}
                   </div>

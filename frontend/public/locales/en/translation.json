@@ -69,7 +69,11 @@
     "canceled": "Canceled",
     "cannotJoin": "Cannot Join",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "upcoming": "Upcoming Tournaments",
+    "past": "Past Tournaments",
+    "myOnly": "My Tournaments",
+    "all": "All"
   },
   "manage": {
     "pageTitle": "Tournaments",
