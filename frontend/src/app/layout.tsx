@@ -1,8 +1,34 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ClerkProvider} from '@clerk/nextjs'
 import { LanguageProvider } from "@/contexts/LanguageContext";
+
+
+const anakotmai = localFont({
+  src: [
+    {
+      path: "../../public/font/NotoSansThaiLooped-Light.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../public/font/NotoSansThaiLooped-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../public/font/NotoSansThaiLooped-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-anakotmai",
+  display: "swap",
+});
+
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
         <ClerkProvider>
-    <html lang="en">
+    <html lang="en" className={anakotmai.variable}>
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       </head>

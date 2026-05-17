@@ -245,7 +245,7 @@ export default function TournamentPage() {
               <Photo
                 src={item.image}
                 alt={item.title}
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
 
               {item.canceled && (

@@ -33,7 +33,7 @@ export default function TournamentPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   //  Filter state
-  const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
+  const [filter, setFilter] = useState<"upcoming" | "past" | "registered" | "all">("upcoming");
 
   //  โหลกข้อมูลจาก backend แบบมี pagination
   const fetchTournament = async (page = 1, currentFilter = filter) => {
@@ -80,33 +80,34 @@ export default function TournamentPage() {
 
   return (
     <main className="min-h-screen bg-[#2ED3B7]/5 px-6 py-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-center items-center mb-6 gap-4">
-        <h1 className="text-3xl font-extrabold text-center text-[#194185]">
+      {/* Header & Filter */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#194185] drop-shadow-sm w-full sm:w-auto text-center sm:text-left">
           {t('tournament.pageTitle')}
         </h1>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex justify-center mb-10">
-        <div className="bg-white/50 backdrop-blur-sm p-1 rounded-xl flex space-x-2 border border-white/20 shadow-sm overflow-x-auto max-w-full">
-          {(["upcoming", "past", "all"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setFilter(tab);
-                setCurrentPage(1);
-                fetchTournament(1, tab);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-300 ${
-                filter === tab
-                  ? "bg-[#194185] text-white shadow-md"
-                  : "text-gray-600 hover:bg-white/60 hover:text-[#194185]"
-              }`}
-            >
-              {t(`tournament.${tab}`)}
-            </button>
-          ))}
+        
+        {/* Filter Dropdown */}
+        <div className="relative w-full sm:w-auto">
+          <select
+            value={filter}
+            onChange={(e) => {
+              const val = e.target.value as "upcoming" | "past" | "registered" | "all";
+              setFilter(val);
+              setCurrentPage(1);
+              fetchTournament(1, val);
+            }}
+            className="w-full appearance-none bg-white/80 backdrop-blur-sm border border-[#2ED3B7]/30 text-[#194185] font-semibold py-2 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] transition-all cursor-pointer hover:bg-white"
+          >
+            <option value="upcoming">{t('tournament.upcoming')}</option>
+            <option value="past">{t('tournament.past')}</option>
+            <option value="registered">{t('tournament.registered')}</option>
+            <option value="all">{t('tournament.all')}</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#194185]">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -153,7 +154,7 @@ export default function TournamentPage() {
                     <Photo
                       src={item.image}
                       alt={item.title}
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
                     {item.canceled && (

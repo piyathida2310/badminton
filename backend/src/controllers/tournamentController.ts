@@ -242,6 +242,16 @@ export const getTournaments = async (req: Request, res: Response) => {
       where.startDate = { gte: today };
     } else if (filter === "past") {
       where.startDate = { lt: today };
+    } else if (filter === "registered") {
+      if (currentUserId) {
+        where.registrations = {
+          some: {
+            userId: currentUserId
+          }
+        };
+      } else {
+        where.id = -1; // Return empty if not logged in
+      }
     }
 
     // 2) Count total documents matching the criteria
