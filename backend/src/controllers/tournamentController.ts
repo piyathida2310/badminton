@@ -221,6 +221,7 @@ export const getTournaments = async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 6;
     const skip = (page - 1) * limit;
     const myOnly = req.query.myOnly === "true";
+    const filter = req.query.filter as string;
 
     // 1) Define "where" clause based on myOnly flag
     const currentUserId = req.user?.sub ? Number(req.user.sub) : null;
@@ -232,6 +233,25 @@ export const getTournaments = async (req: Request, res: Response) => {
     // Only show non-cancelled tournaments to users unless they are looking at their own
     if (!myOnly) {
       where.isCancel = false;
+    }
+
+    // Apply date filter
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (filter === "upcoming") {
+      where.startDate = { gte: today };
+    } else if (filter === "past") {
+      where.startDate = { lt: today };
+    } else if (filter === "registered") {
+      if (currentUserId) {
+        where.registrations = {
+          some: {
+            userId: currentUserId
+          }
+        };
+      } else {
+        where.id = -1; // Return empty if not logged in
+      }
     }
 
     // 2) Count total documents matching the criteria
@@ -246,6 +266,12 @@ export const getTournaments = async (req: Request, res: Response) => {
       include: {
         competition: true,
         rule: true,
+        organizer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        },
         _count: {
           select: {
             registrations: {
@@ -299,6 +325,7 @@ export const getTournaments = async (req: Request, res: Response) => {
           competition: tournament.competition,
           rule: tournament.rule,
           IsOwner: currentUserId === tournament.organizerId,
+          organizerName: tournament.organizer ? `${tournament.organizer.firstName} ${tournament.organizer.lastName}` : "Unknown Organizer",
         };
       })
     );

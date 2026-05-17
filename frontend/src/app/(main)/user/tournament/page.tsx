@@ -17,6 +17,7 @@ interface Tournament {
   maxPlayers: number;
   rank: string[];
   registrationStats: Record<string, number>;
+  organizerName?: string;
 }
 
 export default function TournamentPage() {
@@ -31,10 +32,13 @@ export default function TournamentPage() {
   const limit = 6;
   const [totalPages, setTotalPages] = useState(1);
 
+  //  Filter state
+  const [filter, setFilter] = useState<"upcoming" | "past" | "registered" | "all">("upcoming");
+
   //  โหลกข้อมูลจาก backend แบบมี pagination
-  const fetchTournament = async (page = 1) => {
+  const fetchTournament = async (page = 1, currentFilter = filter) => {
     try {
-      const res = await axios.get(`/tournament?page=${page}&limit=${limit}&myOnly=false`);
+      const res = await axios.get(`/tournament?page=${page}&limit=${limit}&myOnly=false&filter=${currentFilter}`);
       const data = res.data.data || [];
       // Ensure rank is parsed if coming as string (safety check)
       const parsedData = data.map((t: any) => ({
@@ -76,11 +80,35 @@ export default function TournamentPage() {
 
   return (
     <main className="min-h-screen bg-[#2ED3B7]/5 px-6 py-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-center items-center mb-10 gap-4">
-        <h1 className="text-3xl font-extrabold text-center text-[#194185]">
+      {/* Header & Filter */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#194185] drop-shadow-sm w-full sm:w-auto text-center sm:text-left">
           {t('tournament.pageTitle')}
         </h1>
+        
+        {/* Filter Dropdown */}
+        <div className="relative w-full sm:w-auto">
+          <select
+            value={filter}
+            onChange={(e) => {
+              const val = e.target.value as "upcoming" | "past" | "registered" | "all";
+              setFilter(val);
+              setCurrentPage(1);
+              fetchTournament(1, val);
+            }}
+            className="w-full appearance-none bg-white/80 backdrop-blur-sm border border-[#2ED3B7]/30 text-[#194185] font-semibold py-2 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2ED3B7] transition-all cursor-pointer hover:bg-white"
+          >
+            <option value="upcoming">{t('tournament.upcoming')}</option>
+            <option value="past">{t('tournament.past')}</option>
+            <option value="registered">{t('tournament.registered')}</option>
+            <option value="all">{t('tournament.all')}</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#194185]">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Tournament Cards */}
@@ -126,12 +154,19 @@ export default function TournamentPage() {
                     <Photo
                       src={item.image}
                       alt={item.title}
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
                     {item.canceled && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse">
+                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm backdrop-blur-sm animate-pulse z-10">
                         {t('tournament.canceled')}
+                      </div>
+                    )}
+
+                    {item.organizerName && (
+                      <div className="absolute top-3 right-3 bg-black/50 text-white text-[11px] font-medium px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md flex items-center gap-1.5 border border-white/20 z-10 hover:bg-black/70 transition-colors">
+                        <svg className="w-3 h-3 text-[#2ED3B7]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span className="truncate max-w-[120px] tracking-wide">{item.organizerName}</span>
                       </div>
                     )}
                   </div>
