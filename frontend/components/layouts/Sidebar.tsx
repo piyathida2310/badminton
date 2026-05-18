@@ -40,35 +40,53 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
   const [tournamentId, setTournamentId] = useState<string | null>(null);
   const [localUser, setLocalUser] = useState<{ name: string; avatar?: string } | null>(null);
 
-  // Fallback for custom API user if Clerk is not used
   useEffect(() => {
-    // If we have a Clerk user, we don't need to fetch the local one
-    if (clerkUser) return;
-
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    api
-      .get("/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setLocalUser({
-          name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
-          avatar: res.data.avatar || "",
+    const fetchLocalUser = () => {
+      const token = localStorage.getItem("accessToken");
+      api
+        .get("/auth/me", {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        .then((res) => {
+          setLocalUser({
+            name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
+            avatar: res.data.profileImg || res.data.avatar || "",
+          });
+        })
+        .catch(() => {
+          console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
         });
-      })
-      .catch(() => {
-        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
-      });
-  }, [clerkUser]);
+    };
+
+    // Fetch initial user data
+    fetchLocalUser();
+
+    // Listen for custom event from Profile page
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail?.avatar) {
+        setLocalUser(prev => ({
+          name: prev?.name || "",
+          avatar: e.detail.avatar
+        }));
+      }
+      if (e.detail?.fullname) {
+        setLocalUser(prev => ({
+          name: e.detail.fullname,
+          avatar: prev?.avatar || ""
+        }));
+      }
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
+  }, []);
 
   // Derived user info
   const displayName = clerkUser?.firstName && clerkUser?.lastName
     ? `${clerkUser.firstName} ${clerkUser.lastName}`
     : clerkUser?.firstName || clerkUser?.username || localUser?.name || t('navbar.user');
 
-  const displayAvatar = clerkUser?.imageUrl || localUser?.avatar;
+  const displayAvatar = localUser?.avatar || clerkUser?.imageUrl;
 
   // Handle Tournament Names based on variant
   useEffect(() => {
@@ -212,12 +230,10 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         {/* User Info Mobile */}
         <div className="flex items-center gap-3 px-4 py-2 mb-6 rounded-lg bg-[#194185]/5 border border-[#194185]/10 backdrop-blur-sm shadow-sm cursor-pointer">
           {displayAvatar ? (
-            <Image
+            <img
               src={displayAvatar}
               alt="User"
-              width={40}
-              height={40}
-              className="rounded-full border border-[#194185]/10"
+              className="w-10 h-10 rounded-full object-cover border border-[#194185]/10"
             />
           ) : (
             <UserCircle2 size={24} className="text-[#194185]" />
@@ -249,24 +265,22 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
           ))}
         </nav>
 
-        {/* Logout on Mobile for User Variant */}
-        {variant === 'user' && (
-          <button
-            onClick={async () => {
-              localStorage.removeItem("accessToken");
-              localStorage.removeItem("userRole");
-              localStorage.removeItem("role");
-              if (clerkUser) {
-                await signOut();
-              }
-              router.push("/");
-            }}
-            className="mt-8 flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-          >
-            <LogOut size={18} />
-            <span>{t('sidebar.logout')}</span>
-          </button>
-        )}
+        {/* Logout on Mobile for all variants */}
+        <button
+          onClick={async () => {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("role");
+            if (clerkUser) {
+              await signOut();
+            }
+            router.push("/");
+          }}
+          className="mt-8 flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all w-full text-left"
+        >
+          <LogOut size={18} />
+          <span>{t('sidebar.logout')}</span>
+        </button>
       </motion.aside>
 
       {/* Sidebar Desktop */}
