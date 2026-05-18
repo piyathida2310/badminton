@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import axios from "../src/lib/api";
+import Swal from "sweetalert2";
 
 interface CompetType {
   id: number;
@@ -228,7 +229,21 @@ export default function Schedule({
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={async () => {
-                        if (confirm(t('manageMatch.confirmDelete'))) {
+                        const result = await Swal.fire({
+                          title: "ยืนยันการลบ",
+                          text: t('manageMatch.confirmDelete'),
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonColor: "#EF4444",
+                          confirmButtonText: t('manageMatch.delete'),
+                          cancelButtonText: t('manageMatch.cancel'),
+                          customClass: {
+                            confirmButton: "w-28",
+                            cancelButton: "w-28"
+                          }
+                        });
+                        
+                        if (result.isConfirmed) {
                           if (tournamentID) {
                             await axios.delete(`/compet/${r.id}`);
                             fetCompet();

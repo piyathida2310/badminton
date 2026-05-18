@@ -7,6 +7,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import api from "@/lib/api";
 import { compressImage } from "@/lib/media-utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Swal from "sweetalert2";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -81,11 +82,11 @@ export default function ProfilePage() {
       if (res.data.success) {
         const newImageUrl = res.data.profileImg;
         setProfile((prev) => ({ ...prev, avatar: newImageUrl }));
-        alert("อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!");
+        Swal.fire("สำเร็จ", "อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!", "success");
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการอัปโหลดรูป:", error);
-      alert("เกิดข้อผิดพลาดในการอัปโหลดรูป");
+      Swal.fire("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการอัปโหลดรูป", "error");
     } finally {
       setUploading(false);
     }
@@ -122,11 +123,11 @@ export default function ProfilePage() {
       // ถ้าต้องการอัปเดต email ต้องทำผ่านกระบวนการพิเศษ
       // แต่ในที่นี้จะข้ามการอัปเดต email เพราะต้องการการยืนยัน
       
-      alert("อัปเดตข้อมูลเรียบร้อยแล้ว!");
+      Swal.fire("สำเร็จ", "อัปเดตข้อมูลเรียบร้อยแล้ว!", "success");
       setIsEditing(false);
     } catch (err: any) {
       console.error("Update error:", err);
-      alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " + (err.message || "Unknown error"));
+      Swal.fire("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " + (err.message || "Unknown error"), "error");
     }
   };
 
@@ -145,7 +146,7 @@ export default function ProfilePage() {
       router.push("/");
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการออกจากระบบ:", error);
-      alert("เกิดข้อผิดพลาดในการออกจากระบบ");
+      Swal.fire("ข้อผิดพลาด", "เกิดข้อผิดพลาดในการออกจากระบบ", "error");
     }
   };
 
