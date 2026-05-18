@@ -83,8 +83,13 @@ export default function Form({
           <LabeledInput
             label={t('manageMatch.shuttlePrice')}
             type="number"
+            min={0}
             value={shuttlecockPrice}
-            onChange={(e: any) => setShuttlecockPrice(e.target.value)}
+            onChange={(e: any) => {
+              const val = e.target.value;
+              if (Number(val) < 0) return;
+              setShuttlecockPrice(val);
+            }}
           />
 
           {/* ประเภทมือ */}
@@ -156,7 +161,7 @@ export default function Form({
 }
 
 /* ---------- Components ย่อย ---------- */
-function LabeledInput({ label, type = "text", value, onChange, language }: any) {
+function LabeledInput({ label, type = "text", value, onChange, language, min }: any) {
   const today = new Date().toISOString().split("T")[0];
   return (
     <div className="block text-slate-700 text-sm">
@@ -248,6 +253,7 @@ function LabeledInput({ label, type = "text", value, onChange, language }: any) 
           type={type}
           value={value}
           onChange={onChange}
+          min={min}
           className="w-full h-10 rounded-lg bg-white/90 text-slate-700 
           border border-slate-200 px-3 placeholder:text-slate-400 
           focus:outline-none focus:ring-2 focus:ring-[#194185]/20 text-sm shadow-inner"

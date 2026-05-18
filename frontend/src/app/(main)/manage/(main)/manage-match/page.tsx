@@ -195,7 +195,7 @@ export default function TournamentManagePage() {
       updated[editIndex] = newRound;
     } else {
       const exists = updated.some((r) => r.time === newRound.time);
-      if (exists) return alert(t('manageMatch.timeExists'));
+      if (exists) { Swal.fire("แจ้งเตือน", t('manageMatch.timeExists'), "warning"); return; }
       updated.push(newRound);
     }
 
@@ -281,7 +281,7 @@ export default function TournamentManagePage() {
         title: "ลงทะเบียนสำเร็จ!",
         text: "สร้างรายการแข่งขันเรียบร้อยแล้ว",
         icon: "success",
-        confirmButtonColor: "#b3e5fc",
+        confirmButtonColor: "#194185",
       });
 
       router.push("/manage");

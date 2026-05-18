@@ -237,7 +237,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
         </div>
 
         {/* Sidebar มือถือ */}
-        <nav className="flex flex-col gap-4 text-gray-700 font-medium">
+        <nav className="flex flex-col gap-5 text-gray-700 font-medium">
           {displayedLinks.map((link) => (
             <SidebarMobileLink
               key={link.href}
@@ -292,7 +292,7 @@ export default function Sidebar({ isOpen, onClose, variant = 'manage' }: Sidebar
           </div>
         )}
 
-        <nav className="flex flex-col gap-2 text-gray-700 font-medium text-sm">
+        <nav className="flex flex-col gap-4 text-gray-700 font-medium text-sm">
           {displayedLinks.map((link) => (
             <SidebarDesktopLink
               key={link.href}
@@ -327,7 +327,7 @@ function SidebarDesktopLink({
       <Link
         href={href}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 group relative overflow-hidden
+        className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
           ${isActive
             ? "text-[#194185] font-bold shadow-sm"
             : "hover:bg-slate-50 hover:text-[#194185] hover:shadow-sm"
@@ -369,7 +369,7 @@ function SidebarMobileLink({
       <Link
         href={href}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 group relative overflow-hidden
+        className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
                 ${isActive
             ? "text-[#194185] font-bold shadow-sm"
             : "hover:bg-slate-50 hover:text-[#194185] hover:shadow-sm"

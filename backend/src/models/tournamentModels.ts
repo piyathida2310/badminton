@@ -15,8 +15,8 @@ export const tournamentSchema = z.object({
   shuttlePrice: z
     .string()
     .transform((val) => Number(val))
-    .refine((num) => !isNaN(num) && num > 0, {
-      message: "ราคาลูกต้องเป็นตัวเลขและมากกว่า 0",
+    .refine((num) => !isNaN(num) && num >= 0, {
+      message: "ราคาลูกต้องเป็นตัวเลขและมีค่าตั้งแต่ 0 ขึ้นไป",
     }),
   maxPlayers: z.coerce.number().positive("จำนวนผู้เล่นต้องมากกว่า 0"),
 

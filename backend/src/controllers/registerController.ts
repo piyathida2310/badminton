@@ -788,10 +788,8 @@ export const processRefund = async (req: Request, res: Response) => {
       data: { status },
     });
 
-    // ถ้าคืนเงินแล้ว ให้ยกเลิกการสมัคร
-    if (status === "REFUNDED") {
-      await prisma.register.update({ where: { id: parsedId }, data: { status: "FAILED" } });
-    }
+    // ไม่ว่าจะคืนเงิน (REFUNDED) หรือไม่คืนเงิน (REJECTED) ให้ถือว่าสละสิทธิ์และยกเลิกการสมัคร (FAILED) เพื่อคืนที่นั่งให้คนอื่น
+    await prisma.register.update({ where: { id: parsedId }, data: { status: "FAILED" } });
 
     return res.status(200).json({ message: "อัปเดตสถานะสำเร็จ", data: updatedCancellation });
   } catch (error) {

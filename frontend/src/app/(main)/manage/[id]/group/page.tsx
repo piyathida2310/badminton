@@ -119,7 +119,7 @@ export default function TournamentGroupPage() {
 
   // ฟังก์ชันเมื่อกด "จัดแข่ง"
   const handleStartCompetition = async () => {
-    if (!selectedHandType) return alert(t("groupManage.selectHandType"));
+    if (!selectedHandType) { Swal.fire("แจ้งเตือน", t("groupManage.selectHandType"), "warning"); return; }
 
     setLoading(true);
     try {

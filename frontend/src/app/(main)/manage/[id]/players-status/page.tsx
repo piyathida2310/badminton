@@ -331,7 +331,7 @@ export default function RegisterStatusPage() {
       }
     } catch (error) {
       console.error("Failed to update status:", error);
-      alert(t('playersStatus.updateFailed'));
+      Swal.fire("ข้อผิดพลาด", t('playersStatus.updateFailed'), "error");
     }
   };
 
@@ -360,7 +360,7 @@ export default function RegisterStatusPage() {
         setVideoScore(0);
       } catch (error) {
         console.error("Failed to save score:", error);
-        alert(t('playersStatus.saveScoreFailed'));
+        Swal.fire("ข้อผิดพลาด", t('playersStatus.saveScoreFailed'), "error");
       }
     }
   };
@@ -419,7 +419,7 @@ export default function RegisterStatusPage() {
           cancellationStatus: action,
           status: {
             ...updated[playerIndex].status,
-            evaluation: action === "REFUNDED" ? "FAILED" : updated[playerIndex].status.evaluation,
+            evaluation: "FAILED", // คืนที่นั่งในทุกกรณี (REFUNDED หรือ REJECTED)
           }
         };
         return updated;

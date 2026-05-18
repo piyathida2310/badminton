@@ -97,7 +97,7 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 h-[70px] relative z-10">
           {/* โลโก้ */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="transition-transform duration-500 group-hover:rotate-[360deg] group-hover:scale-110">
+            <div className="transition-transform duration-500 group-hover:scale-110">
               <Image
                 src="/images/bad_logo.png"
                 alt="Badminton Logo"
