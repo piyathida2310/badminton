@@ -82,6 +82,7 @@ export default function ProfilePage() {
       if (res.data.success) {
         const newImageUrl = res.data.profileImg;
         setProfile((prev) => ({ ...prev, avatar: newImageUrl }));
+        window.dispatchEvent(new CustomEvent("profileUpdated", { detail: { avatar: newImageUrl } }));
         Swal.fire("สำเร็จ", "อัปโหลดรูปโปรไฟล์เรียบร้อยแล้ว!", "success");
       }
     } catch (error) {
@@ -116,6 +117,8 @@ export default function ProfilePage() {
         username: profile.nickname,
         profileImg: profile.avatar
       });
+      
+      window.dispatchEvent(new CustomEvent("profileUpdated", { detail: { fullname: profile.fullname, avatar: profile.avatar } }));
       
       // ถ้าต้องการอัปเดต username ต้องใช้ method อื่น
       // แต่ในที่นี้จะข้ามการอัปเดต username เพราะ Clerk ไม่รองรับใน update

@@ -28,33 +28,52 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
   const [localUser, setLocalUser] = useState<{ name: string; avatar?: string } | null>(null);
 
   useEffect(() => {
-    // If we have a Clerk user, we don't need to fetch the local one
-    if (clerkUser) return;
-
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    api
-      .get("/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setLocalUser({
-          name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
-          avatar: res.data.avatar || "",
+    const fetchLocalUser = () => {
+      const token = localStorage.getItem("accessToken");
+      api
+        .get("/auth/me", {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        .then((res) => {
+          setLocalUser({
+            name: `${res.data.firstName || ""} ${res.data.lastName || ""}`.trim(),
+            avatar: res.data.profileImg || res.data.avatar || "",
+          });
+        })
+        .catch(() => {
+          console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
         });
-      })
-      .catch(() => {
-        console.warn("ไม่สามารถดึงข้อมูลผู้ใช้ได้ (Local Auth)");
-      });
-  }, [clerkUser]);
+    };
+
+    // Fetch initial user data
+    fetchLocalUser();
+
+    // Listen for custom event from Profile page
+    const handleProfileUpdate = (e: any) => {
+      if (e.detail?.avatar) {
+        setLocalUser(prev => ({
+          name: prev?.name || "",
+          avatar: e.detail.avatar
+        }));
+      }
+      if (e.detail?.fullname) {
+        setLocalUser(prev => ({
+          name: e.detail.fullname,
+          avatar: prev?.avatar || ""
+        }));
+      }
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
+  }, []);
 
   // Derived user info
   const displayName = clerkUser?.firstName && clerkUser?.lastName
     ? `${clerkUser.firstName} ${clerkUser.lastName}`
     : clerkUser?.firstName || clerkUser?.username || localUser?.name || t('navbar.user');
 
-  const displayAvatar = clerkUser?.imageUrl || localUser?.avatar;
+  const displayAvatar = localUser?.avatar || clerkUser?.imageUrl;
 
   //  ออกจากระบบ
   const handleLogout = async () => {
