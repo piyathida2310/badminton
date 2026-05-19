@@ -633,7 +633,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
           for (let i = 0; i < matchCount; i++) {
             const dbm = targetDbMatches[i];
-            const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
+            const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
 
             if (dbm && !hasScore) {
               // ✅ Correct Cross-Group Seeding (Winner G1 vs Runner-up G2)
@@ -683,7 +683,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
           for (let i = 0; i < lowerMatchCount; i++) {
             const dbm = targetLowerMatches[i];
-            const hasScore = (dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED';
+            const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
 
             if (dbm && !hasScore) {
               // ✅ Correct Lower Cross-Group Seeding (Rank 3 G1 vs Rank 4 G2)
@@ -703,7 +703,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
               const newP1 = t1?.id; const newP2 = t2?.id;
 
               if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
-                updates.push(api.put(`/api/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
+                updates.push(api.put(`/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
                 setMatches(prev => {
                   const nm = [...prev];
                   const stateIdx = (isSmall ? 8 : 0) + i;
