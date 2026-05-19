@@ -133,80 +133,156 @@ export default function UserResultSummaryPage() {
 
         const sections: SectionData[] = [];
         groupedMap.forEach((matches, rankKey) => {
-          const podiumMatches: Match[] = [];
+          // --- UPPER BRACKET ---
           const upperMatches = matches.filter(m => m.stage !== 'LOWER');
-          if (upperMatches.length === 0) return;
+          if (upperMatches.length > 0) {
+            const podiumMatches: Match[] = [];
+            const maxRound = Math.max(...upperMatches.map(m => m.roundSequence || 0));
 
-          const maxRound = Math.max(...upperMatches.map(m => m.roundSequence || 0));
+            const finalCandidate =
+              upperMatches.find(m => m.stage === 'GRAND_FINAL') ||
+              upperMatches.find(m => m.roundSequence === maxRound && m.matchSequence === 1);
 
-          const finalCandidate =
-            upperMatches.find(m => m.stage === 'GRAND_FINAL') ||
-            upperMatches.find(m => m.roundSequence === maxRound && m.matchSequence === 1);
+            if (finalCandidate) {
+              const f = finalCandidate;
+              const isDone = f.status === "FINISHED" || (f.score1 !== null && f.score2 !== null);
+              if (isDone) {
+                let winner = null, runnerUp = null;
+                if (f.winner) {
+                  winner = f.winner;
+                  runnerUp = (f.winnerId == f.player1Id) ? f.player2 : f.player1;
+                } else if (f.winnerId) {
+                  if (f.winnerId == f.player1Id) { winner = f.player1; runnerUp = f.player2; }
+                  else if (f.winnerId == f.player2Id) { winner = f.player2; runnerUp = f.player1; }
+                } else if (f.score1 !== null && f.score2 !== null) {
+                  if (f.score1 > f.score2) { winner = f.player1; runnerUp = f.player2; }
+                  else if (f.score2 > f.score1) { winner = f.player2; runnerUp = f.player1; }
+                }
 
-          if (finalCandidate) {
-            const f = finalCandidate;
-            const isDone = f.status === "FINISHED" || (f.score1 !== null && f.score2 !== null);
-            if (isDone) {
-              let winner = null, runnerUp = null;
-              if (f.winner) {
-                winner = f.winner;
-                runnerUp = (f.winnerId == f.player1Id) ? f.player2 : f.player1;
-              } else if (f.winnerId) {
-                if (f.winnerId == f.player1Id) { winner = f.player1; runnerUp = f.player2; }
-                else if (f.winnerId == f.player2Id) { winner = f.player2; runnerUp = f.player1; }
-              } else if (f.score1 !== null && f.score2 !== null) {
-                if (f.score1 > f.score2) { winner = f.player1; runnerUp = f.player2; }
-                else if (f.score2 > f.score1) { winner = f.player2; runnerUp = f.player1; }
+                if (winner) {
+                  podiumMatches.push({
+                    position: "ชนะเลิศ", rank: "1st", code: `${rankKey}1ST`,
+                    team: winner.teamName || winner.player1Name || "-",
+                    player1: winner.player1Name || "-", player2: winner.player2Name,
+                    shuttle: String(f.shuttle || 0)
+                  });
+                }
+                if (runnerUp) {
+                  podiumMatches.push({
+                    position: "รองชนะเลิศอันดับ 1", rank: "2nd", code: `${rankKey}2ND`,
+                    team: runnerUp.teamName || runnerUp.player1Name || "-",
+                    player1: runnerUp.player1Name || "-", player2: runnerUp.player2Name,
+                    shuttle: String(f.shuttle || 0)
+                  });
+                }
               }
+            }
 
-              if (winner) {
-                podiumMatches.push({
-                  position: "ชนะเลิศ", rank: "1st", code: `${rankKey}1ST`,
-                  team: winner.teamName || winner.player1Name || "-",
-                  player1: winner.player1Name || "-", player2: winner.player2Name,
-                  shuttle: String(f.shuttle || 0)
-                });
+            const semiRound = Math.max(1, maxRound - 1);
+            const semis = upperMatches.filter(m => m.roundSequence === semiRound);
+            semis.forEach((sm) => {
+              const isSemiDone = sm.status === "FINISHED" || (sm.score1 !== null && sm.score2 !== null);
+              if (isSemiDone) {
+                let loser = null;
+                if (sm.winnerId) {
+                  loser = sm.winnerId == sm.player1Id ? sm.player2 : (sm.winnerId == sm.player2Id ? sm.player1 : null);
+                } else if (sm.score1 !== null && sm.score2 !== null) {
+                  loser = sm.score1 > sm.score2 ? sm.player2 : sm.player1;
+                }
+                if (loser) {
+                  podiumMatches.push({
+                    position: `รองชนะเลิศอันดับ 2`, rank: "3rd", code: `${rankKey}3RD`,
+                    team: loser.teamName || loser.player1Name || "-",
+                    player1: loser.player1Name || "-", player2: loser.player2Name,
+                    shuttle: String(sm.shuttle || 0)
+                  });
+                }
               }
-              if (runnerUp) {
-                podiumMatches.push({
-                  position: "รองชนะเลิศอันดับ 1", rank: "2nd", code: `${rankKey}2ND`,
-                  team: runnerUp.teamName || runnerUp.player1Name || "-",
-                  player1: runnerUp.player1Name || "-", player2: runnerUp.player2Name,
-                  shuttle: String(f.shuttle || 0)
-                });
-              }
+            });
+
+            if (podiumMatches.length > 0) {
+              sections.push({
+                title: `${rankKey} สายบน`,
+                color: RANK_COLORS[rankKey] || "from-gray-100 to-slate-100",
+                type: podiumMatches.some(m => m.player2) ? "double" : "single",
+                matches: podiumMatches
+              });
             }
           }
 
-          const semiRound = Math.max(1, maxRound - 1);
-          const semis = upperMatches.filter(m => m.roundSequence === semiRound);
-          semis.forEach((sm) => {
-            const isSemiDone = sm.status === "FINISHED" || (sm.score1 !== null && sm.score2 !== null);
-            if (isSemiDone) {
-              let loser = null;
-              if (sm.winnerId) {
-                loser = sm.winnerId == sm.player1Id ? sm.player2 : (sm.winnerId == sm.player2Id ? sm.player1 : null);
-              } else if (sm.score1 !== null && sm.score2 !== null) {
-                loser = sm.score1 > sm.score2 ? sm.player2 : sm.player1;
-              }
-              if (loser) {
-                podiumMatches.push({
-                  position: `รองชนะเลิศอันดับ 2`, rank: "3rd", code: `${rankKey}3RD`,
-                  team: loser.teamName || loser.player1Name || "-",
-                  player1: loser.player1Name || "-", player2: loser.player2Name,
-                  shuttle: String(sm.shuttle || 0)
-                });
+          // --- LOWER BRACKET ---
+          const lowerMatches = matches.filter(m => m.stage === 'LOWER');
+          if (lowerMatches.length > 0) {
+            const podiumMatchesLower: Match[] = [];
+            const maxLowerRound = Math.max(...lowerMatches.map(m => m.roundSequence || 0));
+
+            const lowerFinal = lowerMatches.find(m => m.roundSequence === maxLowerRound && m.matchSequence === 1);
+
+            if (lowerFinal) {
+              const f = lowerFinal;
+              const isDone = f.status === "FINISHED" || (f.score1 !== null && f.score2 !== null);
+              if (isDone) {
+                let winner = null, runnerUp = null;
+                if (f.winner) {
+                  winner = f.winner;
+                  runnerUp = (f.winnerId == f.player1Id) ? f.player2 : f.player1;
+                } else if (f.winnerId) {
+                  if (f.winnerId == f.player1Id) { winner = f.player1; runnerUp = f.player2; }
+                  else if (f.winnerId == f.player2Id) { winner = f.player2; runnerUp = f.player1; }
+                } else if (f.score1 !== null && f.score2 !== null) {
+                  if (f.score1 > f.score2) { winner = f.player1; runnerUp = f.player2; }
+                  else if (f.score2 > f.score1) { winner = f.player2; runnerUp = f.player1; }
+                }
+
+                if (winner) {
+                  podiumMatchesLower.push({
+                    position: "ชนะเลิศ", rank: "1st", code: `${rankKey}1ST`,
+                    team: winner.teamName || winner.player1Name || "-",
+                    player1: winner.player1Name || "-", player2: winner.player2Name,
+                    shuttle: String(f.shuttle || 0)
+                  });
+                }
+                if (runnerUp) {
+                  podiumMatchesLower.push({
+                    position: "รองชนะเลิศอันดับ 1", rank: "2nd", code: `${rankKey}2ND`,
+                    team: runnerUp.teamName || runnerUp.player1Name || "-",
+                    player1: runnerUp.player1Name || "-", player2: runnerUp.player2Name,
+                    shuttle: String(f.shuttle || 0)
+                  });
+                }
               }
             }
-          });
 
-          if (podiumMatches.length > 0) {
-            sections.push({
-              title: `${rankKey} สรุปผลการแข่งขัน`,
-              color: RANK_COLORS[rankKey] || "from-gray-100 to-slate-100",
-              type: podiumMatches.some(m => m.player2) ? "double" : "single",
-              matches: podiumMatches
+            const semiLowerRound = Math.max(1, maxLowerRound - 1);
+            const semiLowerMatches = lowerMatches.filter(m => m.roundSequence === semiLowerRound);
+            semiLowerMatches.forEach((sm) => {
+              const isSemiDone = sm.status === "FINISHED" || (sm.score1 !== null && sm.score2 !== null);
+              if (isSemiDone) {
+                let loser = null;
+                if (sm.winnerId) {
+                  loser = sm.winnerId == sm.player1Id ? sm.player2 : (sm.winnerId == sm.player2Id ? sm.player1 : null);
+                } else if (sm.score1 !== null && sm.score2 !== null) {
+                  loser = sm.score1 > sm.score2 ? sm.player2 : sm.player1;
+                }
+                if (loser) {
+                  podiumMatchesLower.push({
+                    position: `รองชนะเลิศอันดับ 2`, rank: "3rd", code: `${rankKey}3RD`,
+                    team: loser.teamName || loser.player1Name || "-",
+                    player1: loser.player1Name || "-", player2: loser.player2Name,
+                    shuttle: String(sm.shuttle || 0)
+                  });
+                }
+              }
             });
+
+            if (podiumMatchesLower.length > 0) {
+              sections.push({
+                title: `${rankKey} สายล่าง`,
+                color: RANK_COLORS[rankKey] || "from-gray-100 to-slate-100",
+                type: podiumMatchesLower.some(m => m.player2) ? "double" : "single",
+                matches: podiumMatchesLower
+              });
+            }
           }
         });
 
