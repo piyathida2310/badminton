@@ -21,7 +21,7 @@ export default function ProfilePage() {
     fullname: " ",
     nickname: " ",
     email: "",
-    avatar: "", 
+    avatar: "",
   });
 
   // ดึงข้อมูลจาก Clerk และ API ของเราเมื่อ component โหลด
@@ -30,7 +30,7 @@ export default function ProfilePage() {
       try {
         const res = await api.get("/auth/me");
         const dbProfile = res.data;
-        
+
         setProfile({
           fullname: `${dbProfile.firstName || ""} ${dbProfile.lastName || ""}`.trim(),
           nickname: dbProfile.userName || "",
@@ -59,26 +59,26 @@ export default function ProfilePage() {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     try {
       setUploading(true);
-      
+
       // บีบอัดรูปภาพก่อนอัปโหลด (ขนาดเล็กลง ประหยัดที่เก็บ)
       const compressedFile = await compressImage(file, {
         maxWidth: 500,
         quality: 0.8
       });
-      
+
       // อัปโหลดรูปไปยัง Minio ผ่าน API ของเรา
       const formData = new FormData();
       formData.append("avatar", compressedFile);
-      
+
       const res = await api.post("/auth/upload-avatar", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
       if (res.data.success) {
         const newImageUrl = res.data.profileImg;
         setProfile((prev) => ({ ...prev, avatar: newImageUrl }));
@@ -103,7 +103,7 @@ export default function ProfilePage() {
       const nameParts = profile.fullname.trim().split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
-      
+
       // อัปเดตข้อมูลใน Clerk (เฉพาะ firstName และ lastName)
       await user?.update({
         firstName: firstName,
@@ -117,15 +117,15 @@ export default function ProfilePage() {
         username: profile.nickname,
         profileImg: profile.avatar
       });
-      
+
       window.dispatchEvent(new CustomEvent("profileUpdated", { detail: { fullname: profile.fullname, avatar: profile.avatar } }));
-      
+
       // ถ้าต้องการอัปเดต username ต้องใช้ method อื่น
       // แต่ในที่นี้จะข้ามการอัปเดต username เพราะ Clerk ไม่รองรับใน update
-      
+
       // ถ้าต้องการอัปเดต email ต้องทำผ่านกระบวนการพิเศษ
       // แต่ในที่นี้จะข้ามการอัปเดต email เพราะต้องการการยืนยัน
-      
+
       Swal.fire("สำเร็จ", "อัปเดตข้อมูลเรียบร้อยแล้ว!", "success");
       setIsEditing(false);
     } catch (err: any) {
@@ -141,10 +141,10 @@ export default function ProfilePage() {
       // ลบข้อมูลจาก localStorage
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userRole");
-      
+
       // ออกจากระบบด้วย Clerk
       await signOut();
-      
+
       // ไปยังหน้าแรก
       router.push("/");
     } catch (error) {
@@ -155,12 +155,12 @@ export default function ProfilePage() {
 
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-b from-[#2ED3B7]/10 via-white to-white flex justify-center items-center">
-  <motion.div
-    initial={{ opacity: 0, y: 25 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row"
-  >
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row"
+      >
 
         {/* LEFT SIDE: AVATAR */}
         <div className=" bg-[#194185]/5 flex flex-col items-center justify-center p-10 relative">
@@ -198,9 +198,8 @@ export default function ProfilePage() {
             />
             <label
               htmlFor="avatar"
-              className={`absolute bottom-2 right-2 bg-white/90 border border-[#194185]/10 p-2 rounded-full shadow-sm cursor-pointer transition ${
-                uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2ED3B7]/10"
-              }`}
+              className={`absolute bottom-2 right-2 bg-white/90 border border-[#194185]/10 p-2 rounded-full shadow-sm cursor-pointer transition ${uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2ED3B7]/10"
+                }`}
             >
               {uploading ? (
                 <div className="w-4 h-4 border-2 border-[#2ED3B7] border-t-[#194185] rounded-full animate-spin"></div>
@@ -230,7 +229,7 @@ export default function ProfilePage() {
             editable={isEditing}
             onChange={(v) => handleChange("fullname", v)}
           />
-          
+
           <div className="pt-6 flex flex-wrap gap-3">
             {isEditing && (
               <motion.button
