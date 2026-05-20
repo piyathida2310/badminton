@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  compiler: {
+    removeConsole: true, // ลบ console.log ใน production
+  },
   output: "standalone",
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
