@@ -521,8 +521,8 @@ export default function StatusPage() {
                     {t('status.team')} {team.teamName}
                   </div>
 
-                  {/* ตาราง */}
-                  <div className="overflow-x-auto">
+                  {/* ตาราง - แสดงเฉพาะบน Desktop */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-center border-collapse text-sm sm:text-base min-w-[600px]">
                       <thead className="bg-[#194185]/5 text-[#194185] font-semibold">
                         <tr>
@@ -551,7 +551,7 @@ export default function StatusPage() {
                                 <div key={m.id}>{mapGender(m.gender, t)}</div>
                               ))}
                             </td>
-                            <td className="p-2 border whitespace-nowrap min-w-[70px]">
+                            <td className="p-3 border whitespace-nowrap min-w-[70px]">
                               {team.members.map((m: any) => (
                                 <div key={m.id} className="leading-relaxed">
                                   {m.age > 0 ? `${m.age} ${t('status.year')}` : "-"}
@@ -700,6 +700,195 @@ export default function StatusPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* การ์ด - แสดงเฉพาะบน Mobile */}
+                  <div className="block md:hidden space-y-4 p-4 text-xs">
+                    {team.members[0].typeRaw === "DOUBLE" ? (
+                      <div className="space-y-4">
+                        <div className="bg-[#194185]/5 p-3 rounded-xl border border-[#194185]/10 space-y-3">
+                          <h4 className="text-xs font-bold text-[#194185] uppercase tracking-wider">
+                            {t('status.typeCol')}: {team.members[0].type} ({team.members[0].rank})
+                          </h4>
+                          {team.members.map((m: any, idx: number) => (
+                            <div key={m.id} className="flex justify-between items-start text-xs border-b border-[#194185]/5 pb-2 last:border-0 last:pb-0">
+                              <div>
+                                <span className="font-bold text-gray-400 text-[10px] uppercase block mb-0.5">{t('status.name')} {idx + 1}</span>
+                                <span className="font-semibold text-[#194185] text-sm">{m.name}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-bold text-gray-400 text-[10px] uppercase block mb-0.5">{t('status.gender')} / {t('status.age')}</span>
+                                <span className="text-gray-700">{mapGender(m.gender, t)} | {m.age > 0 ? `${m.age} ${t('status.year')}` : "-"}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pt-1">
+                          <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-between">
+                            <span className="text-[10px] text-gray-400 font-bold block mb-1">{t('status.regStatus')}</span>
+                            {(() => {
+                              const statuses = team.members.map((m: any) => m.register);
+                              const finalStatus = statuses.includes(t('status.pending'))
+                                ? t('status.pending')
+                                : statuses.includes(t('status.waiting'))
+                                  ? t('status.waiting')
+                                  : statuses.includes(t('status.passed'))
+                                    ? t('status.passed')
+                                    : t('status.failed');
+                              return (
+                                <span
+                                  className={`self-start px-2 py-0.5 rounded text-[11px] font-semibold ${finalStatus === t('status.passed')
+                                    ? "bg-[#10B981]/10 text-[#10B981]"
+                                    : finalStatus === t('status.waiting') || finalStatus === t('status.pending')
+                                      ? "bg-amber-100 text-amber-600"
+                                      : "bg-red-100 text-red-600"
+                                    }`}
+                                >
+                                  {finalStatus}
+                                </span>
+                              );
+                            })()}
+                          </div>
+
+                          <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-between">
+                            <span className="text-[10px] text-gray-400 font-bold block mb-1">{t('status.paymentStatus')}</span>
+                            {(() => {
+                              const payments = team.members.map((m: any) => m.payment);
+                              const finalPay = payments.includes(t('status.waiting'))
+                                ? t('status.waiting')
+                                : payments.includes(t('status.confirmed'))
+                                  ? t('status.confirmed')
+                                  : "—";
+                              return (
+                                <span
+                                  className={`self-start px-2 py-0.5 rounded text-[11px] font-semibold ${finalPay === t('status.waiting')
+                                    ? "bg-amber-100 text-amber-600"
+                                    : finalPay === t('status.confirmed')
+                                      ? "bg-[#10B981]/10 text-[#10B981]"
+                                      : "text-gray-400"
+                                    }`}
+                                >
+                                  {finalPay}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          {team.members[0].register === t('status.passed') && team.userId === currentUserId && (
+                            <button
+                              onClick={() => {
+                                setCurrentRegistrationId(team.registrationId);
+                                setShowPayment(true);
+                              }}
+                              className="flex-1 py-2 bg-gradient-to-r from-[#93E7E1] to-[#66C2F5] hover:opacity-90 text-[#134E4A] font-bold rounded-xl shadow-sm transition-all text-center"
+                            >
+                              {t('status.pay')}
+                            </button>
+                          )}
+                          {team.members[0].cancellationStatus === "REQUESTED" ? (
+                            <span className="flex-1 text-center py-2 text-amber-600 font-semibold bg-amber-50 rounded-xl border border-amber-100">{t('status.pending')}</span>
+                          ) : team.members[0].cancellationStatus === "REFUNDED" || team.members[0].cancellationStatus === "REJECTED" ? (
+                            <button disabled className="flex-1 py-2 bg-gray-200 text-gray-500 rounded-xl font-semibold cursor-not-allowed">{t('status.canceled')}</button>
+                          ) : team.members[0].register !== t('status.failed') && team.userId === currentUserId ? (
+                            <button
+                              onClick={() => handleCancelRegistration(team.registrationId)}
+                              disabled={cancelling}
+                              className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all disabled:opacity-50"
+                            >
+                              {t('status.cancelReg')}
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {team.members.map((m: any) => (
+                          <div key={m.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
+                            <div className="flex justify-between items-start text-xs">
+                              <div>
+                                <span className="font-bold text-gray-400 text-[10px] block mb-0.5">{t('status.name')}</span>
+                                <span className="font-semibold text-[#194185] text-sm">{m.name}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-bold text-gray-400 text-[10px] block mb-0.5">{t('status.gender')} / {t('status.age')}</span>
+                                <span className="text-gray-700">{mapGender(m.gender, t)} | {m.age > 0 ? `${m.age} ${t('status.year')}` : "-"}</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                              <div>
+                                <span className="font-bold text-gray-400 text-[10px] block mb-0.5">{t('status.rankCol')}</span>
+                                <span className="text-[#194185] font-semibold">{m.rank}</span>
+                              </div>
+                              <div>
+                                <span className="font-bold text-gray-400 text-[10px] block mb-0.5">{t('status.typeCol')}</span>
+                                <span className="text-[#194185] font-semibold">{m.type}</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-gray-400 font-bold block mb-1">{t('status.regStatus')}</span>
+                                <span
+                                  className={`self-start px-2 py-0.5 rounded text-[11px] font-semibold ${m.register === t('status.passed')
+                                    ? "bg-[#10B981]/10 text-[#10B981]"
+                                    : m.register === t('status.waiting') || m.register === t('status.pending')
+                                      ? "bg-amber-100 text-amber-600"
+                                      : "bg-red-100 text-red-600"
+                                    }`}
+                                >
+                                  {m.register}
+                                </span>
+                              </div>
+
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-gray-400 font-bold block mb-1">{t('status.paymentStatus')}</span>
+                                <span
+                                  className={`self-start px-2 py-0.5 rounded text-[11px] font-semibold ${m.payment === t('status.waiting')
+                                    ? "bg-amber-100 text-amber-600"
+                                    : m.payment === t('status.confirmed')
+                                      ? "bg-[#10B981]/10 text-[#10B981]"
+                                      : "text-gray-400"
+                                    }`}
+                                >
+                                  {m.payment}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                              {m.register === t('status.passed') && team.userId === currentUserId && (
+                                <button
+                                  onClick={() => {
+                                    setCurrentRegistrationId(team.registrationId);
+                                    setShowPayment(true);
+                                  }}
+                                  className="flex-1 py-2 bg-[#2ED3B7] hover:opacity-90 text-[#194185] font-bold rounded-xl shadow-sm transition-all"
+                                >
+                                  {t('status.pay')}
+                                </button>
+                              )}
+                              {m.cancellationStatus === "REQUESTED" ? (
+                                <span className="flex-1 text-center py-2 text-amber-600 font-semibold bg-amber-50 rounded-xl border border-amber-100">{t('status.pending')}</span>
+                              ) : m.cancellationStatus === "REFUNDED" || m.cancellationStatus === "REJECTED" ? (
+                                <button disabled className="flex-1 py-2 bg-gray-200 text-gray-500 rounded-xl font-semibold cursor-not-allowed">{t('status.canceled')}</button>
+                              ) : m.register !== t('status.failed') && team.userId === currentUserId ? (
+                                <button
+                                  onClick={() => handleCancelRegistration(team.registrationId)}
+                                  disabled={cancelling}
+                                  className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all disabled:opacity-50"
+                                >
+                                  {t('status.cancelReg')}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
           )
@@ -708,8 +897,8 @@ export default function StatusPage() {
 
       {/* 💳 Modal ชำระเงิน */}
       {showPayment && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full relative border border-[#194185]/10">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-6">
+          <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative border border-[#194185]/10">
             <button
               onClick={() => {
                 setShowPayment(false);
@@ -726,14 +915,14 @@ export default function StatusPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
-              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+              <div className="bg-[#F0F9FF] border rounded-xl p-3 sm:p-6 flex flex-col items-center justify-center shadow-sm">
                 {loadingQr ? (
                   <div className="text-gray-500">{t('status.loadingQr')}</div>
                 ) : modalQrCodeUrl ? (
                   <img
                     src={modalQrCodeUrl}
                     alt="QR Code"
-                    className="w-full max-w-[280px] h-auto rounded-xl border-2 border-[#194185]/10 shadow-md object-contain mb-3"
+                    className="w-full max-w-[200px] md:max-w-[280px] h-auto rounded-xl border-2 border-[#194185]/10 shadow-md object-contain mb-3"
                   />
                 ) : (
                   <div className="text-gray-500">{t('status.noQr')}</div>
@@ -741,7 +930,7 @@ export default function StatusPage() {
                 <p className="text-sm text-gray-600 text-center mt-1">{t('status.scanQr')}</p>
               </div>
 
-              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[300px]">
+              <div className="bg-[#F0F9FF] border rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm h-full min-h-[220px] md:min-h-[300px]">
                 {(() => {
                   const team = teams.find((t) => t.registrationId === currentRegistrationId);
                   const paymentStatus = team?.members[0]?.payment;
@@ -752,7 +941,7 @@ export default function StatusPage() {
                       <img
                         src={uploadedSlip}
                         alt="slip"
-                        className="w-full max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#194185]/10 shadow-md mb-2"
+                        className="w-full max-w-[200px] md:max-w-[280px] h-auto object-contain rounded-xl border-2 border-[#194185]/10 shadow-md mb-2"
                       />
                       {isEditable && (
                         <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
