@@ -361,7 +361,11 @@ export default function MatchTableUser({ tournamentId }: MatchTableUserProps) {
                 <p className="text-gray-500 text-[10px] mb-0.5">{mh.mobTeam} {m.team1}</p>
                 {renderPlayers(m.matchType, m.player1A, m.player1B)}
               </div>
-              <p className="text-center font-bold text-gray-600 mt-1 mb-1">⚔️ VS ⚔️</p>
+              <div className="flex items-center justify-center my-2">
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="mx-3 text-[10px] font-bold text-gray-400 tracking-wider uppercase">VS</span>
+                <div className="flex-grow border-t border-gray-200"></div>
+              </div>
               <div>
                 <p className="text-gray-500 text-[10px] mb-0.5">{mh.mobTeam} {m.team2}</p>
                 {renderPlayers(m.matchType, m.player2A, m.player2B)}
