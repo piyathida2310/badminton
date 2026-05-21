@@ -169,14 +169,13 @@ export async function updateProfileHandler(
       throw new HttpError(401, 'User not authenticated', 'UNAUTHORIZED');
     }
 
-    const { fullName = "", email = "", username, profileImg } = req.body ?? {};
-    if (!fullName.trim() || !email.trim()) {
-      throw new HttpError(400, 'fullName and email are required', 'VALIDATION_ERROR');
+    const { fullName = "", username, profileImg } = req.body ?? {};
+    if (!fullName.trim()) {
+      throw new HttpError(400, 'fullName is required', 'VALIDATION_ERROR');
     }
 
     const updated = await updateUserProfile(request.user.sub, {
       fullName,
-      email,
       username,
       profileImg,
     });
@@ -234,4 +233,21 @@ export async function uploadProfileImageHandler(
     next(error);
   }
 }
+
+export async function logoutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('[Auth]: Error occurred while logging out user:', error);
+    next(error);
+  }
+}
+
 

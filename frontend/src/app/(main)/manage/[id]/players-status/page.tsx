@@ -535,7 +535,8 @@ export default function RegisterStatusPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-b-2xl">
+            {/* ตาราง - แสดงเฉพาะบน Desktop */}
+            <div className="hidden xl:block overflow-x-auto rounded-b-2xl">
               <table className="w-full border-collapse text-sm md:text-base text-center min-w-[600px]">
                 <thead className="bg-[#194185]/5 text-[#194185] font-bold">
                   <tr>
@@ -608,7 +609,7 @@ export default function RegisterStatusPage() {
                             {t('playersStatus.watchVideo')}
                           </button>
                         </td>
-                        <td className="border p-2 text-[#194185] font-bold">
+                        <td className="border p-2 text-[#194185] font-bold whitespace-nowrap">
                           {p.score !== undefined && p.score !== null ? `${p.score} / 10` : "-"}
                         </td>
                         <td className="border p-2">
@@ -764,6 +765,249 @@ export default function RegisterStatusPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* การ์ด - แสดงเฉพาะบน Mobile/Tablet */}
+            <div className="block xl:hidden space-y-4 p-4 text-xs">
+              {members.map((p, i) => {
+                const globalIndex = players.findIndex(
+                  (pl) => pl.registrationId === p.registrationId
+                );
+                const safeIndex = globalIndex === -1 ? i : globalIndex;
+                const hasVideo = Boolean(p.videoUrl);
+                const hasSlip = Boolean(p.slipUrl);
+
+                return (
+                  <div
+                    key={p.registrationId}
+                    className={`p-4 rounded-xl border border-slate-100 shadow-sm space-y-4 transition-all ${
+                      p.cancellationStatus === "REQUESTED"
+                        ? "bg-red-50 hover:bg-red-100 border-l-4 border-l-red-400"
+                        : p.cancellationStatus === "REFUNDED"
+                          ? "bg-gray-50 opacity-60"
+                          : "bg-slate-50/50 hover:bg-sky-50/20"
+                    }`}
+                  >
+                    {/* ข้อมูลผู้เล่น */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="font-bold text-gray-400 text-[9px] uppercase block mb-0.5">{t('status.name')}</span>
+                          {p.names.map((n, idx) => (
+                            <div key={idx} className="font-bold text-[#194185] text-sm leading-snug">
+                              {n}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-gray-400 text-[9px] uppercase block mb-0.5">{t('status.gender')} / {t('status.age')}</span>
+                          {p.genders.map((g, idx) => (
+                            <div key={idx} className="text-gray-700 font-semibold leading-snug">
+                              {g} | {p.ages[idx] > 0 ? `${p.ages[idx]} ${t('status.year')}` : "-"}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-200/50">
+                        <div>
+                          <span className="font-bold text-gray-400 text-[9px] block mb-0.5">{t('status.rankCol')}</span>
+                          <span className="text-[#194185] font-semibold">{p.rank}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 text-[9px] block mb-0.5">{t('status.typeCol')}</span>
+                          <span className="text-[#194185] font-semibold">{p.type}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* การประเมินทักษะวิดีโอ */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/60 space-y-3 shadow-2xs">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-[#194185]">{t('playersStatus.video')} & {t('playersStatus.score')}</span>
+                        <button
+                          onClick={() => {
+                            if (!hasVideo || p.status === "PASSED" || p.status === "FAILED") return;
+                            setModalVideo(p.videoUrl || null);
+                            setSelectedPlayerIndex(safeIndex);
+                          }}
+                          disabled={!hasVideo || p.status === "PASSED" || p.status === "FAILED"}
+                          className={`px-3 py-1 bg-[#194185] text-white text-[11px] rounded-md shadow-2xs ${
+                            hasVideo && p.status !== "PASSED" && p.status !== "FAILED" ? "hover:opacity-90 active:scale-95" : "opacity-40 cursor-not-allowed"
+                          }`}
+                        >
+                          {t('playersStatus.watchVideo')}
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-500 text-[10px]">{t('playersStatus.score')}:</span>
+                        <span className="text-[#194185] font-bold text-sm">
+                          {p.score !== undefined && p.score !== null ? `${p.score} / 10` : "-"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold text-gray-500 text-[10px]">{t('playersStatus.comment')}:</label>
+                        <textarea
+                          value={p.comment || ""}
+                          onChange={(e) => handleCommentChange(safeIndex, e.target.value)}
+                          placeholder={t('playersStatus.addComment')}
+                          disabled={p.status === "PASSED" || p.status === "FAILED"}
+                          className={`w-full h-16 p-2 rounded-lg border border-slate-200 bg-slate-50 text-gray-700 text-xs focus:outline-none focus:ring-1 focus:ring-sky-300 resize-none shadow-2xs ${
+                            p.status === "PASSED" || p.status === "FAILED" ? "opacity-50 cursor-not-allowed bg-gray-100" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* การอนุมัติการสมัคร & สลิปชำระเงิน */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/60 space-y-3 shadow-2xs">
+                      {/* อนุมัติการสมัคร */}
+                      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <div>
+                          <span className="font-bold text-gray-400 text-[9px] block">{t('status.regStatus')}</span>
+                          <span className={`text-[11px] font-bold ${evaluationStatusColor[p.status]}`}>
+                            {p.status === "WAITING" ? t('status.waiting') : p.status === "PASSED" ? t('status.passed') : p.status === "FAILED" ? t('status.failed') : p.status}
+                          </span>
+                        </div>
+
+                        {p.status === "WAITING" && (
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleStatusChange(safeIndex, "status", "PASSED");
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-[#2ED3B7]/20 text-[#194185] hover:bg-[#2ED3B7]/40 transition-colors"
+                            >
+                              {t('playersStatus.confirm')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleStatusChange(safeIndex, "status", "FAILED");
+                              }}
+                              className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                            >
+                              {t('playersStatus.cancel')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* การชำระเงิน */}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-bold text-gray-400 text-[9px] block mb-0.5">{t('status.paymentStatus')}</span>
+                          <span className={`text-[11px] font-bold ${paymentStatusColor[p.paymentStatus]}`}>
+                            {p.paymentStatus === "PENDING" ? t('status.waiting') : p.paymentStatus === "CONFIRMED" ? t('status.confirmed') : p.paymentStatus === "REJECTED" ? t('status.failed') : p.paymentStatus}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => hasSlip && setModalImage(p.slipUrl || null)}
+                            disabled={!hasSlip}
+                            className={`px-2.5 py-1 text-[10px] bg-[#2ED3B7] text-[#194185] rounded-md font-bold shadow-2xs ${
+                              hasSlip ? "hover:opacity-90 active:scale-95" : "opacity-40 cursor-not-allowed"
+                            }`}
+                          >
+                            {t('playersStatus.viewImage')}
+                          </button>
+
+                          {p.paymentStatus === "PENDING" && (
+                            <div className="flex gap-1.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleStatusChange(safeIndex, "payment", "CONFIRMED");
+                                }}
+                                className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                              >
+                                {t('playersStatus.confirm')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleStatusChange(safeIndex, "payment", "REJECTED");
+                                }}
+                                className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                              >
+                                {t('playersStatus.cancel')}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* การยกเลิก / คืนเงิน */}
+                    {p.cancellationStatus && p.cancellationStatus !== null && (
+                      <div className="bg-red-50/50 p-3 rounded-xl border border-red-100/60 space-y-2">
+                        <span className="font-bold text-red-600 block text-xs mb-1">{t('playersStatus.cancelRefund')}</span>
+                        {p.cancellationStatus === "REQUESTED" ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-red-700 font-bold">{t('playersStatus.cancelRequested')}</span>
+                              {p.cancelReason && (
+                                <button
+                                  onClick={() => Swal.fire({
+                                    title: `<div class="pt-2 text-2xl font-black text-rose-500 tracking-tight">${t('playersStatus.reason')}</div>`,
+                                    html: `
+                                      <div class="mt-4 px-2">
+                                        <div class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-[2rem] p-6">
+                                          <div class="text-amber-800 text-lg font-bold leading-snug">
+                                            ${p.cancelReason || t('playersStatus.noReason')}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    `,
+                                    showConfirmButton: true,
+                                    confirmButtonText: t('playersStatus.acknowledge'),
+                                    confirmButtonColor: "#fb7185",
+                                    customClass: {
+                                      popup: 'rounded-[2.5rem] p-8 border-4 border-rose-50 shadow-2xl bg-white',
+                                      confirmButton: 'px-10 py-3 rounded-full font-bold text-sm shadow-md'
+                                    }
+                                  })}
+                                  className="text-xs text-blue-600 underline hover:text-blue-800 transition-colors cursor-pointer font-semibold"
+                                >
+                                  {t('playersStatus.viewReason')}
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleRefundAction(safeIndex, "REFUNDED")}
+                                disabled={refunding}
+                                className="flex-1 py-1.5 bg-[#2ED3B7]/20 text-[#194185] rounded-lg font-semibold hover:bg-[#2ED3B7]/40 shadow-sm disabled:opacity-50 transition-colors text-center"
+                              >
+                                {t('playersStatus.refund')}
+                              </button>
+                              <button
+                                onClick={() => handleRefundAction(safeIndex, "REJECTED")}
+                                disabled={refunding}
+                                className="flex-1 py-1.5 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 shadow-sm disabled:opacity-50 transition-colors text-center"
+                              >
+                                {t('playersStatus.noRefund')}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-1 bg-gray-100 text-gray-500 rounded-lg font-semibold cursor-not-allowed">
+                            {t('playersStatus.canceled')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

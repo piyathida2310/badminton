@@ -77,6 +77,12 @@ export default function Navbar({ variant = 'manage' }: NavbarProps) {
 
   //  ออกจากระบบ
   const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดขณะออกจากระบบฝั่งเซิร์ฟเวอร์:", error);
+    }
+
     // ลบข้อมูลใน localStorage
     localStorage.removeItem("accessToken");
     localStorage.removeItem("userRole");

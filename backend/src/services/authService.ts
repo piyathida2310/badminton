@@ -177,7 +177,7 @@ export interface UpdateProfileParams {
 
 export async function updateUserProfile(
   userId: string,
-  { fullName, email, username, profileImg }: UpdateProfileParams
+  { fullName, username, profileImg }: UpdateProfileParams
 ) {
   const numericId = Number(userId);
 
@@ -193,14 +193,6 @@ export async function updateUserProfile(
     lastName = parts.slice(1).join(' ') || '';
   }
 
-  if (email !== undefined) {
-    const emailInUse = await prisma.user.findFirst({
-      where: { email, NOT: { id: numericId } },
-    });
-    if (emailInUse) throw new HttpError(400, 'Email already in use', 'EMAIL_DUPLICATE');
-  }
-  
-
  try {
   const safeUserName =
     username && username.trim() !== ""
@@ -212,7 +204,6 @@ export async function updateUserProfile(
     data: {
       firstName,
       lastName,
-      email: email !== undefined ? email : existingUser.email,
       userName: safeUserName,
       profileImg: profileImg !== undefined ? profileImg : existingUser.profileImg,
     },
