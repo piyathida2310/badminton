@@ -234,3 +234,20 @@ export async function uploadProfileImageHandler(
   }
 }
 
+export async function logoutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('[Auth]: Error occurred while logging out user:', error);
+    next(error);
+  }
+}
+
+

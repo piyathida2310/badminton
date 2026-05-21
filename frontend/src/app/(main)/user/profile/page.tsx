@@ -138,6 +138,13 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
+      // เรียกใช้ API ออกจากระบบของเซิร์ฟเวอร์
+      try {
+        await api.post("/auth/logout");
+      } catch (err) {
+        console.error("เกิดข้อผิดพลาดขณะออกจากระบบฝั่งเซิร์ฟเวอร์:", err);
+      }
+
       // ลบข้อมูลจาก localStorage
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userRole");
