@@ -11,8 +11,12 @@ const swaggerDefinition = {
   },
   servers: [
     {
+      url: 'https://judjang.online/api',
+      description: 'เซิร์ฟเวอร์จริงบน Cloud (Production)',
+    },
+    {
       url: `http://localhost:${process.env.PORT || 8000}`,
-      description: 'เซิร์ฟเวอร์ทดสอบภายในเครื่อง',
+      description: 'เซิร์ฟเวอร์ทดสอบภายในเครื่อง (Development)',
     },
   ],
   components: {

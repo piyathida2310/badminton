@@ -22,6 +22,7 @@ import summaryRouter from './routes/summaryRoutes'
 import { updateManualGroups } from './controllers/tournamentController';
 import { ensureOpenAIConnection } from './config/openAI';
 import authMiddleware from './middleware/authMiddleware';
+import swaggerAuth from './middleware/swaggerAuth';
 
 dotenv.config({
   path: path.join(__dirname, '..', '.env'),
@@ -66,13 +67,18 @@ app.use(limiter);
 
 
 
-  app.use('/api/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use(
+    ['/api/api-docs', '/api-docs'],
+    swaggerAuth,
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec),
+  );
 
   app.use(errorHandler);
 
   await connectPrisma();
   app.listen(appConfig.port, () => {
-    console.log(`🚀 Server is running on ports ${appConfig.port}`);
+    console.log(`🚀 Server is running on port ${appConfig.port}`);
     console.log('📄 Swagger is available at /api-docs');
   });
 }
