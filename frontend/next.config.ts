@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
       {
         source: '/api/:path*',
         destination: process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:8000/api/:path*' // dev
+          ? 'http://localhost/api/:path*' // dev
           : 'https://judjang.online/api/:path*', // prod
       },
       // ลบ /badminton/ ออกจาก rewrites เพื่อให้ Browser วิ่งไปหา Nginx โดยตรง

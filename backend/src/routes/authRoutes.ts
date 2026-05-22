@@ -156,8 +156,92 @@ router.post('/change-password', authMiddleware, changePasswordHandler);
  *         description: ยังไม่ได้เข้าสู่ระบบ
  */
 router.get('/me', authMiddleware, me);
+
+/**
+ * @swagger
+ * /auth/me:
+ *   patch:
+ *     summary: อัปเดตข้อมูลโปรไฟล์ของผู้ใช้ปัจจุบัน
+ *     description: ต้องแนบ JWT ใน Authorization header และส่งข้อมูลที่ต้องการอัปเดต
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *                 example: สมชาย รักดี
+ *               username:
+ *                 type: string
+ *                 example: somchai_new
+ *               profileImg:
+ *                 type: string
+ *                 example: avatars/custom-key.jpg
+ *     responses:
+ *       200:
+ *         description: อัปเดตโปรไฟล์สำเร็จ คืนข้อมูลผู้ใช้ที่ได้รับการปรับปรุง
+ *       400:
+ *         description: ข้อมูลนำเข้าไม่ถูกต้อง
+ *       401:
+ *         description: ยังไม่ได้เข้าสู่ระบบ
+ */
 router.patch('/me', authMiddleware, updateProfileHandler);
+
+/**
+ * @swagger
+ * /auth/upload-avatar:
+ *   post:
+ *     summary: อัปโหลดรูปภาพประจำตัว (Avatar)
+ *     description: ต้องแนบ JWT ใน Authorization header และใช้ Form-Data ในการส่งไฟล์รูปภาพ (คีย์ 'avatar')
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: ไฟล์รูปภาพประจำตัว
+ *     responses:
+ *       200:
+ *         description: อัปโหลดรูปภาพสำเร็จ คืนค่าลิงก์และคีย์ภาพ
+ *       400:
+ *         description: ไม่พบไฟล์ หรือข้อมูลนำเข้าไม่ถูกต้อง
+ *       401:
+ *         description: ยังไม่ได้เข้าสู่ระบบ
+ */
 router.post('/upload-avatar', authMiddleware, upload.single('avatar'), uploadProfileImageHandler);
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: ออกจากระบบ (Logout)
+ *     description: ต้องแนบ JWT ใน Authorization header
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: ออกจากระบบสำเร็จ
+ *       401:
+ *         description: ยังไม่ได้เข้าสู่ระบบ
+ */
 router.post('/logout', authMiddleware, logoutHandler);
 
 export default router;
