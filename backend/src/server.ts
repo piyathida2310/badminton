@@ -72,7 +72,7 @@ app.use(limiter);
 
   await connectPrisma();
   app.listen(appConfig.port, () => {
-    console.log(`🚀 Server is running on port ${appConfig.port}`);
+    console.log(`🚀 Server is running on ports ${appConfig.port}`);
     console.log('📄 Swagger is available at /api-docs');
   });
 }
