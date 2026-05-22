@@ -180,7 +180,7 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
         const updatedComp = [...prev!.competition];
         updatedComp[index] = {
           ...updatedComp[index],
-          time: new Date(`1970-01-01T${compUI.time}:00`).toISOString(), // ทำให้ UI ใช้ได้ทันที
+          time: new Date(`1970-01-01T${compUI.time}:00Z`).toISOString(), // ทำให้ UI ใช้ได้ทันที (force UTC)
           detail: compUI.detail,
           rank: dbRankArray,
         };
@@ -487,10 +487,9 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                     <td
                       onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
+                        const d = new Date(item.time);
                         setCompUI({
-                          time: new Date(item.time)
-                            .toISOString()
-                            .substring(11, 16), // <-- แก้ตรงนี้
+                          time: `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`,
                           rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
@@ -534,10 +533,10 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                         </div>
                       ) : (
                         <>
-                          {new Date(item.time).toLocaleTimeString("th-TH", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}{" "}
+                          {(() => {
+                            const d = new Date(item.time);
+                            return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+                          })()}{" "}
                           น.
                         </>
                       )}
@@ -547,10 +546,9 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                     <td
                       onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
+                        const d2 = new Date(item.time);
                         setCompUI({
-                          time: new Date(item.time)
-                            .toISOString()
-                            .substring(11, 16),
+                          time: `${String(d2.getUTCHours()).padStart(2, '0')}:${String(d2.getUTCMinutes()).padStart(2, '0')}`,
                           rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
@@ -622,10 +620,9 @@ export default function RulesTablesPage({ tournamentId, readOnly = false }: Rule
                     <td
                       onDoubleClick={!readOnly ? () => {
                         setEditingCompet(index);
+                        const d3 = new Date(item.time);
                         setCompUI({
-                          time: new Date(item.time)
-                            .toISOString()
-                            .substring(11, 16),
+                          time: `${String(d3.getUTCHours()).padStart(2, '0')}:${String(d3.getUTCMinutes()).padStart(2, '0')}`,
                           rank: item.rank.map(formatRank).join(" / "),
                           detail: item.detail,
                           openRankDropdown: false,
