@@ -137,7 +137,7 @@ export default function StatusPage() {
 
   const teams = useMemo(() => {
     return registrationsRaw.map((reg: any) => {
-      const isDouble = reg.tournament?.playType === "DOUBLE";
+      const isDouble = reg.tournament?.playType === "DOUBLE" || Boolean(reg.player2Name);
       const members: any[] = [
         {
           id: reg.id,
