@@ -572,25 +572,30 @@ export default function RegisterStatusPage() {
                             : "even:bg-slate-50 odd:bg-[#F8FAFF] hover:bg-[#E9F5FF]"
                           }`}
                       >
-                        <td className="border p-2">
+                        <td className="border p-0">
                           {p.names.map((n, idx) => (
-                            <div key={idx} className="leading-relaxed">
-                              {n}
-                            </div>
+                            <React.Fragment key={idx}>
+                              {idx > 0 && <div className="border-t border-[#194185]" />}
+                              <div className="p-2 leading-relaxed">{n}</div>
+                            </React.Fragment>
                           ))}
                         </td>
-                        <td className="border p-2">
+                        <td className="border p-0">
                           {p.genders.map((g, idx) => (
-                            <div key={idx} className="leading-relaxed">
-                              {g}
-                            </div>
+                            <React.Fragment key={idx}>
+                              {idx > 0 && <div className="border-t border-[#194185]" />}
+                              <div className="p-2 leading-relaxed">{g}</div>
+                            </React.Fragment>
                           ))}
                         </td>
-                        <td className="border p-2 whitespace-nowrap min-w-[70px]">
+                        <td className="border p-0 whitespace-nowrap min-w-[70px]">
                           {p.ages.map((age, idx) => (
-                            <div key={idx} className="leading-relaxed">
-                              {age > 0 ? `${age} ${t('status.year')}` : "-"}
-                            </div>
+                            <React.Fragment key={idx}>
+                              {idx > 0 && <div className="border-t border-[#194185]" />}
+                              <div className="p-2 leading-relaxed">
+                                {age > 0 ? `${age} ${t('status.year')}` : "-"}
+                              </div>
+                            </React.Fragment>
                           ))}
                         </td>
                         <td className="border p-2">{p.rank}</td>
