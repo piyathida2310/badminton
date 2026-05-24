@@ -5,7 +5,8 @@ export const competitionSchema = z.object({
     .string()
     .min(1)
     .transform((val) => {
-      const date = new Date(`1970-01-01T${val}:00`);
+      // Append 'Z' to force UTC — so "10:30" is always stored as 1970-01-01T10:30:00.000Z
+      const date = new Date(`1970-01-01T${val}:00Z`);
       return date;
     }),
 

@@ -49,14 +49,10 @@ export default function Schedule({
 
   const { t } = useLanguage();
 
-  //  Format Time สำหรับ Prisma DateTime
+  //  Format Time สำหรับ Prisma DateTime (use UTC since time is stored as UTC)
   const formatTime = (dateString: string) => {
     const d = new Date(dateString);
-    return d.toLocaleTimeString("th-TH", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   };
 
   const formatRank = (rank: string) => {
@@ -186,7 +182,7 @@ export default function Schedule({
                 {/* เวลา */}
                 <div className="flex flex-col items-center border-r">
                   <span className="font-bold text-[20px]">
-                    {r.time.includes('น.') ? r.time : formatTime(r.time)}
+                    {r.time.includes('น.') ? r.time : `${formatTime(r.time)} น.`}
                   </span>
 
                   <button
