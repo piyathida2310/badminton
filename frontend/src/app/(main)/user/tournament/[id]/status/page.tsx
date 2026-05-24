@@ -391,10 +391,11 @@ export default function StatusPage() {
 
   const teamsInView = useMemo(() => {
     return teams.filter((team) => {
-      if (!tournamentIdFromUrl) return true;
-      return String(team.tournamentId) === String(tournamentIdFromUrl);
+      const matchTournament = !tournamentIdFromUrl || String(team.tournamentId) === String(tournamentIdFromUrl);
+      const isMine = currentUserId !== null && team.userId === currentUserId;
+      return matchTournament && isMine;
     });
-  }, [teams, tournamentIdFromUrl]);
+  }, [teams, tournamentIdFromUrl, currentUserId]);
 
   const rankOptions = useMemo(() => {
     if (tournamentIdFromUrl && tournamentMeta?.rank) {
