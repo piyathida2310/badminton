@@ -31,6 +31,7 @@ export default function TournamentManagePage() {
   const [qrFile, setQrFile] = useState<File | null>(null);
   const [date, setDate] = useState("");
   const [tournamentName, setTournamentName] = useState("");
+  const [registrationPrice, setRegistrationPrice] = useState("");
   const [shuttlecockPrice, setShuttlecockPrice] = useState("");
   const [location, setLocation] = useState("");
   const [bracketLines, setBracketLines] = useState<string[]>([]);
@@ -145,6 +146,7 @@ export default function TournamentManagePage() {
   const isFormComplete =
     date &&
     location &&
+    registrationPrice &&
     shuttlecockPrice &&
     ranks.length > 0 &&
     types.length > 0 &&
@@ -156,6 +158,7 @@ export default function TournamentManagePage() {
       location: location,
       playType: types,
       rank: ranks,
+      price: registrationPrice,
       shuttlePrice: shuttlecockPrice,
       maxPlayers: String(people),
       posterImg: posterFile,
@@ -253,6 +256,7 @@ export default function TournamentManagePage() {
       formData.append("playType", tournament.playType);
       formData.append("rank", JSON.stringify(tournament.rank));
       formData.append("location", tournament.location);
+      formData.append("price", String(tournament.price));
       formData.append("shuttlePrice", String(tournament.shuttlePrice));
       formData.append("maxPlayers", String(tournament.maxPlayers));
       if (tournament.posterImg) formData.append("posterImg", tournament.posterImg);
@@ -312,6 +316,8 @@ export default function TournamentManagePage() {
             setTournamentName={setTournamentName}
             location={location}
             setLocation={setLocation}
+            registrationPrice={registrationPrice}
+            setRegistrationPrice={setRegistrationPrice}
             shuttlecockPrice={shuttlecockPrice}
             setShuttlecockPrice={setShuttlecockPrice}
             ranks={ranks}

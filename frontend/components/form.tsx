@@ -16,6 +16,8 @@ export default function Form({
   tournamentName,
   setTournamentName,
   setLocation,
+  registrationPrice,
+  setRegistrationPrice,
   shuttlecockPrice,
   setShuttlecockPrice,
   ranks,
@@ -78,6 +80,18 @@ export default function Form({
             label={t('manageMatch.location')}
             value={location}
             onChange={(e: any) => setLocation(e.target.value)}
+          />
+
+          <LabeledInput
+            label={t('manageMatch.registrationPrice')}
+            type="number"
+            min={0}
+            value={registrationPrice}
+            onChange={(e: any) => {
+              const val = e.target.value;
+              if (Number(val) < 0) return;
+              setRegistrationPrice(val);
+            }}
           />
 
           <LabeledInput

@@ -54,6 +54,7 @@ CREATE TABLE public.tournaments (
     location TEXT NOT NULL,
     play_type public.play_type_enum NOT NULL,
     rank TEXT[], -- Array of strings
+    registration_price DOUBLE PRECISION NOT NULL DEFAULT 0,
     shuttle_price DOUBLE PRECISION NOT NULL,
     max_players INT NOT NULL,
     poster_img TEXT,

@@ -110,6 +110,7 @@ model Tournament {
   location       String
   playType       PlayType @map("play_type")
   rank           String[]
+  registrationPrice Float    @default(0) @map("registration_price")
   shuttlePrice   Float    @map("shuttle_price")
   maxPlayers     Int      @map("max_players")
   posterImg      String?  @map("poster_img")
