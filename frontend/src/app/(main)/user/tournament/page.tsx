@@ -17,6 +17,7 @@ interface Tournament {
   maxPlayers: number;
   rank: string[];
   registrationStats: Record<string, number>;
+  registrationPrice?: number;
   organizerName?: string;
 }
 
@@ -183,8 +184,19 @@ export default function TournamentPage() {
                       {item.title}
                     </h2>
 
-                    <p className="text-gray-500 mb-3 text-sm">
+                    <p className="text-gray-500 mb-1 text-sm">
                       {t('tournament.date')} {formatThaiDate(item.date)}
+                    </p>
+
+                    <p className="text-gray-500 mb-3 text-sm">
+                      {t('tournament.fee')}:{" "}
+                      <span className="font-semibold text-[#194185]">
+                        {item.registrationPrice === 0
+                          ? language === "en"
+                            ? "Free"
+                            : "ฟรี"
+                          : `${item.registrationPrice?.toLocaleString()} ${language === "en" ? "THB" : "บาท"}`}
+                      </span>
                     </p>
 
                     {(() => {

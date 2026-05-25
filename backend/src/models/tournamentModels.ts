@@ -12,6 +12,12 @@ export const tournamentSchema = z.object({
     .array(z.enum(["BG", "NB", "N", "S", "P_MINUS", "P_PLUS"]))
     .min(1, "ต้องเลือกอย่างน้อย 1 ระดับ"),
   // แปลง string → number อัตโนมัติ
+  price: z
+    .string()
+    .transform((val) => Number(val))
+    .refine((num) => !isNaN(num) && num >= 0, {
+      message: "ค่าสมัครต้องเป็นตัวเลขและมีค่าตั้งแต่ 0 ขึ้นไป",
+    }),
   shuttlePrice: z
     .string()
     .transform((val) => Number(val))
