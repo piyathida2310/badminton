@@ -39,6 +39,7 @@ export default function UserResultSummaryPage() {
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
   const [selectedRank, setSelectedRank] = useState("all");
   const [availableRanks, setAvailableRanks] = useState<string[]>([]);
+  const [shuttlePrice, setShuttlePrice] = useState<number>(0);
   const { t } = useLanguage();
 
   // 1. Get Tournament ID from localStorage
@@ -60,6 +61,7 @@ export default function UserResultSummaryPage() {
         const tRes = await api.get(`/tournament/${tournamentId}`);
         const tData = tRes.data.data;
         setTournamentName(tData.title || "รายการแข่งขัน");
+        setShuttlePrice(tData.shuttlePrice || 0);
         if (tData.rank) {
           if (Array.isArray(tData.rank)) {
             setAvailableRanks(tData.rank);
@@ -305,6 +307,27 @@ export default function UserResultSummaryPage() {
     return sum + section.matches.reduce((acc, m) => acc + (parseInt(m.shuttle || "0") || 0), 0);
   }, 0);
 
+  // Group by team and sum shuttlecock usage
+  const teamCostMap = new Map<string, { team: string; player1: string; player2?: string; shuttleUsed: number }>();
+  filteredResults.forEach((section) => {
+    section.matches.forEach((m) => {
+      const key = `${m.team}-${m.player1}-${m.player2 || ""}`;
+      const shuttles = parseInt(m.shuttle || "0") || 0;
+      if (teamCostMap.has(key)) {
+        teamCostMap.get(key)!.shuttleUsed += shuttles;
+      } else {
+        teamCostMap.set(key, {
+          team: m.team,
+          player1: m.player1,
+          player2: m.player2,
+          shuttleUsed: shuttles,
+        });
+      }
+    });
+  });
+  const teamCosts = Array.from(teamCostMap.values()).sort((a, b) => b.shuttleUsed - a.shuttleUsed);
+  const hasAnyDouble = teamCosts.some((t) => t.player2);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -363,6 +386,7 @@ export default function UserResultSummaryPage() {
 
           <p className="text-[#194185] font-semibold mt-2">
             {t('results.totalShuttle')}: {totalShuttles} ลูก
+            {shuttlePrice > 0 && ` (ราคารวมทั้งหมด ${(totalShuttles * shuttlePrice).toLocaleString()} บาท)`}
           </p>
         </div>
       </div>
@@ -375,8 +399,55 @@ export default function UserResultSummaryPage() {
               title={section.title}
               color={section.color}
               matches={section.matches}
+              shuttlePrice={shuttlePrice}
             />
           ))}
+
+          {/* 📊 ตารางสรุปค่าใช้จ่ายลูกแบต */}
+          {shuttlePrice > 0 && teamCosts.length > 0 && (
+            <section className="rounded-2xl shadow-xl border border-[#194185]/10 bg-white overflow-hidden mt-10">
+              <div className="bg-[#194185] py-3 border-b border-[#194185]/20">
+                <h2 className="text-center text-xl font-bold text-white tracking-wide drop-shadow-sm">
+                  📊 {t('results.shuttleCostSummary')} (ลูกละ {shuttlePrice} บาท)
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-center">
+                  <thead className="bg-[#194185]/5 text-[#194185] font-bold">
+                    <tr className="border-b border-[#194185]/10">
+                      <th className="p-3 border-r border-[#194185]/10">{t('results.order')}</th>
+                      <th className="p-3 border-r border-[#194185]/10">{t('results.teamName')}</th>
+                      <th className="p-3 border-r border-[#194185]/10">{t('results.player1')}</th>
+                      {hasAnyDouble && <th className="p-3 border-r border-[#194185]/10">{t('results.player2')}</th>}
+                      <th className="p-3 border-r border-[#194185]/10">{t('results.shuttleUsed')}</th>
+                      <th className="p-3">{t('results.totalCost')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teamCosts.map((tc, i) => (
+                      <tr
+                        key={i}
+                        className={`border-t border-[#194185]/10 transition ${
+                          i % 2 === 0 ? "bg-white/80" : "bg-[#2ED3B7]/5"
+                        } hover:bg-[#2ED3B7]/10`}
+                      >
+                        <td className="p-3 border-r border-[#194185]/10 font-medium text-gray-700">{i + 1}</td>
+                        <td className="p-3 border-r border-[#194185]/10 text-[#194185] font-semibold">{tc.team}</td>
+                        <td className="p-3 border-r border-[#194185]/10 text-gray-600">{tc.player1}</td>
+                        {hasAnyDouble && (
+                          <td className="p-3 border-r border-[#194185]/10 text-gray-600">{tc.player2 || "-"}</td>
+                        )}
+                        <td className="p-3 border-r border-[#194185]/10 font-semibold text-gray-700">{tc.shuttleUsed} ลูก</td>
+                        <td className="p-3 font-bold text-[#194185]">
+                          {(tc.shuttleUsed * shuttlePrice).toLocaleString()} {t('results.baht')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-10 mt-10">
@@ -391,7 +462,7 @@ export default function UserResultSummaryPage() {
   );
 }
 
-function Section({ title, color, matches }: { title: string; color: string; matches: Match[] }) {
+function Section({ title, color, matches, shuttlePrice }: { title: string; color: string; matches: Match[]; shuttlePrice: number }) {
   const hasDouble = matches.some((m) => m.player2);
 
   const sortedMatches = [...matches].sort((a, b) => {
@@ -416,7 +487,8 @@ function Section({ title, color, matches }: { title: string; color: string; matc
               <th className="p-3 border-r border-[#194185]/10">ชื่อทีม</th>
               <th className="p-3 border-r border-[#194185]/10">ผู้เล่น 1</th>
               {hasDouble && <th className="p-3 border-r border-[#194185]/10">ผู้เล่น 2</th>}
-              <th className="p-3">ลูกใช้</th>
+              <th className={`p-3 ${shuttlePrice > 0 ? "border-r border-[#194185]/10" : ""}`}>ลูกใช้</th>
+              {shuttlePrice > 0 && <th className="p-3">ราคารวม</th>}
             </tr>
           </thead>
           <tbody>
@@ -431,7 +503,12 @@ function Section({ title, color, matches }: { title: string; color: string; matc
                 <td className="p-3 border-r border-[#194185]/10 text-[#194185] font-medium">{m.team}</td>
                 <td className="p-3 border-r border-[#194185]/10">{m.player1}</td>
                 {hasDouble && <td className="p-3 border-r border-[#194185]/10">{m.player2 || "-"}</td>}
-                <td className="p-3">{m.shuttle || "0"}</td>
+                <td className={`p-3 ${shuttlePrice > 0 ? "border-r border-[#194185]/10" : ""}`}>{m.shuttle || "0"}</td>
+                {shuttlePrice > 0 && (
+                  <td className="p-3 font-bold text-[#194185]">
+                    {((parseInt(m.shuttle || "0") || 0) * shuttlePrice).toLocaleString()} บาท
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

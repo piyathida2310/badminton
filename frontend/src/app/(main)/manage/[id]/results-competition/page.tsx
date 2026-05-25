@@ -45,6 +45,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   const [filterType, setFilterType] = useState<"all" | "single" | "double">("all");
   const [selectedRank, setSelectedRank] = useState("all");
   const [availableRanks, setAvailableRanks] = useState<string[]>([]);
+  const [shuttlePrice, setShuttlePrice] = useState<number>(0);
   const { t } = useLanguage();
 
   // 1. Fetch Tournament List
@@ -69,6 +70,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
         const tRes = await api.get(`/tournament/${currentId}`);
         const tData = tRes.data.data;
         setTournamentName(tData.title || "รายการแข่งขัน");
+        setShuttlePrice(tData.shuttlePrice || 0);
         if (tData.rank) setAvailableRanks(tData.rank);
 
         // 🏆 1. Try to fetch Persisted Summary Data (Faster & Persistent)
@@ -310,6 +312,27 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
     return sum + section.matches.reduce((acc, m) => acc + (parseInt(m.shuttle || "0") || 0), 0);
   }, 0);
 
+  // Group by team and sum shuttlecock usage
+  const teamCostMap = new Map<string, { team: string; player1: string; player2?: string; shuttleUsed: number }>();
+  filteredResults.forEach((section) => {
+    section.matches.forEach((m) => {
+      const key = `${m.team}-${m.player1}-${m.player2 || ""}`;
+      const shuttles = parseInt(m.shuttle || "0") || 0;
+      if (teamCostMap.has(key)) {
+        teamCostMap.get(key)!.shuttleUsed += shuttles;
+      } else {
+        teamCostMap.set(key, {
+          team: m.team,
+          player1: m.player1,
+          player2: m.player2,
+          shuttleUsed: shuttles,
+        });
+      }
+    });
+  });
+  const teamCosts = Array.from(teamCostMap.values()).sort((a, b) => b.shuttleUsed - a.shuttleUsed);
+  const hasAnyDouble = teamCosts.some((t) => t.player2);
+
   const handleTournamentChange = (id: number) => {
     setCurrentId(id);
     router.push(`/manage/${id}/results-competition`);
@@ -379,6 +402,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
 
           <p className="text-[#2ED3B7] font-bold mt-2">
             {t('results.totalShuttle')}: {totalShuttles} ลูก
+            {shuttlePrice > 0 && ` (ราคารวมทั้งหมด ${(totalShuttles * shuttlePrice).toLocaleString()} บาท)`}
           </p>
         </div>
       </div>
@@ -393,8 +417,55 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
               title={section.title}
               color={section.color}
               matches={section.matches}
+              shuttlePrice={shuttlePrice}
             />
           ))}
+
+          {/* 📊 ตารางสรุปค่าใช้จ่ายลูกแบต */}
+          {shuttlePrice > 0 && teamCosts.length > 0 && (
+            <section className="rounded-2xl shadow-xl border border-[#2ED3B7]/20 bg-white overflow-hidden mt-10">
+              <div className="bg-[#194185] py-3 animate-fade-in">
+                <h2 className="text-center text-xl font-bold text-white tracking-wide">
+                  📊 {t('results.shuttleCostSummary')} (ลูกละ {shuttlePrice} บาท)
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm text-center">
+                  <thead className="bg-[#2ED3B7]/10 text-[#194185] font-bold">
+                    <tr className="border-b border-[#2ED3B7]/20">
+                      <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.order')}</th>
+                      <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.teamName')}</th>
+                      <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player1')}</th>
+                      {hasAnyDouble && <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player2')}</th>}
+                      <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.shuttleUsed')}</th>
+                      <th className="p-3">{t('results.totalCost')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teamCosts.map((tc, i) => (
+                      <tr
+                        key={i}
+                        className={`border-t border-[#2ED3B7]/20 transition ${
+                          i % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"
+                        } hover:bg-[#2ED3B7]/10`}
+                      >
+                        <td className="p-3 border-r border-[#2ED3B7]/20 font-medium text-gray-700">{i + 1}</td>
+                        <td className="p-3 border-r border-[#2ED3B7]/20 text-[#194185] font-semibold">{tc.team}</td>
+                        <td className="p-3 border-r border-[#2ED3B7]/20 text-gray-600">{tc.player1}</td>
+                        {hasAnyDouble && (
+                          <td className="p-3 border-r border-[#2ED3B7]/20 text-gray-600">{tc.player2 || "-"}</td>
+                        )}
+                        <td className="p-3 border-r border-[#2ED3B7]/20 font-semibold text-gray-700">{tc.shuttleUsed} ลูก</td>
+                        <td className="p-3 font-bold text-[#194185]">
+                          {(tc.shuttleUsed * shuttlePrice).toLocaleString()} {t('results.baht')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-10 mt-10">
@@ -409,7 +480,7 @@ export default function ResultSummaryPage({ params }: { params: Promise<{ id: st
   );
 }
 
-function Section({ title, color, matches }: { title: string; color: string; matches: Match[] }) {
+function Section({ title, color, matches, shuttlePrice }: { title: string; color: string; matches: Match[]; shuttlePrice: number }) {
   const { t } = useLanguage();
   const hasDouble = matches.some((m) => m.player2);
 
@@ -435,7 +506,8 @@ function Section({ title, color, matches }: { title: string; color: string; matc
               <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.teamName')}</th>
               <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player1')}</th>
               {hasDouble && <th className="p-3 border-r border-[#2ED3B7]/20">{t('results.player2')}</th>}
-              <th className="p-3">{t('results.shuttleUsed')}</th>
+              <th className={`p-3 ${shuttlePrice > 0 ? "border-r border-[#2ED3B7]/20" : ""}`}>{t('results.shuttleUsed')}</th>
+              {shuttlePrice > 0 && <th className="p-3">{t('results.totalCost')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -450,7 +522,12 @@ function Section({ title, color, matches }: { title: string; color: string; matc
                 <td className="p-3 border-r border-[#2ED3B7]/20 text-[#194185] font-medium">{m.team}</td>
                 <td className="p-3 border-r border-[#2ED3B7]/20">{m.player1}</td>
                 {hasDouble && <td className="p-3 border-r border-[#2ED3B7]/20">{m.player2 || "-"}</td>}
-                <td className="p-3">{m.shuttle || "0"}</td>
+                <td className={`p-3 ${shuttlePrice > 0 ? "border-r border-[#2ED3B7]/20" : ""}`}>{m.shuttle || "0"}</td>
+                {shuttlePrice > 0 && (
+                  <td className="p-3 font-bold text-[#194185]">
+                    {((parseInt(m.shuttle || "0") || 0) * shuttlePrice).toLocaleString()} {t('results.baht')}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
