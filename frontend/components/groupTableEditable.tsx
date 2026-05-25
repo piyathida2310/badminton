@@ -42,10 +42,13 @@ export function GroupTableEditable({
 
     const newData = [...data];
     const colIdx = headers.indexOf(gm.setCol);
-    let valStr = newData[rowIndex][colIdx];
+    let valStr = newData[rowIndex][colIdx] || "";
 
     let sets = valStr.includes(",") ? valStr.split(",") : [valStr];
-    if (sets.length < 2) sets.push(" : ");
+    sets = sets.slice(0, 2);
+    while (sets.length < 2) {
+      sets.push(" : ");
+    }
 
     const currentSet = sets[setIdx] || " : ";
     const parts = currentSet.split(":");
@@ -173,6 +176,7 @@ export function GroupTableEditable({
               const newData = [...data];
               newData[rowIndex][14] = remarkValue;
               newData[rowIndex][15] = forfeitingTeamIndex;
+
               if (onSave) {
                 onSave(newData);
               }
@@ -258,31 +262,44 @@ export function GroupTableEditable({
                       >
                         {headers[j] === gm.setCol ? (
                           isEditing ? (
-                            <div className="flex flex-col gap-1">
-                              {v.split(",").map((setStr: string, setIdx: number) => (
-                                <div key={setIdx} className="flex flex-row flex-nowrap items-center justify-center gap-1">
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    value={setStr.split(":")[0]?.trim() || ""}
-                                    onChange={(e) => handleSetChange(i, setIdx, 0, e.target.value)}
-                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30 bg-white text-gray-900"
-                                  />
-                                  <span>:</span>
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    value={setStr.split(":")[1]?.trim() || ""}
-                                    onChange={(e) => handleSetChange(i, setIdx, 1, e.target.value)}
-                                    className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30 bg-white text-gray-900"
-                                  />
-                                </div>
-                              ))}
+                            <div className="flex flex-col gap-1 py-1">
+                              {(() => {
+                                let setsArray = v ? (v.includes(",") ? v.split(",") : [v]) : [" : "];
+                                setsArray = setsArray.slice(0, 2);
+                                while (setsArray.length < 2) {
+                                  setsArray.push(" : ");
+                                }
+                                return setsArray.map((setStr: string, setIdx: number) => {
+                                  const parts = setStr.split(":");
+                                  const scoreLeft = parts[0]?.trim() || "";
+                                  const scoreRight = parts[1]?.trim() || "";
+                                  return (
+                                    <div key={setIdx} className="flex flex-row flex-nowrap items-center justify-center gap-1">
+                                      <span className="text-gray-400 text-[10px] font-semibold w-8 text-right mr-0.5">Set {setIdx + 1}:</span>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={scoreLeft}
+                                        onChange={(e) => handleSetChange(i, setIdx, 0, e.target.value)}
+                                        className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30 bg-white text-gray-900 font-mono"
+                                      />
+                                      <span>:</span>
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        value={scoreRight}
+                                        onChange={(e) => handleSetChange(i, setIdx, 1, e.target.value)}
+                                        className="w-10 sm:w-12 text-center border border-gray-300 rounded-md px-1 py-0.5 focus:ring-2 focus:ring-[#194185]/30 bg-white text-gray-900 font-mono"
+                                      />
+                                    </div>
+                                  );
+                                });
+                              })()}
                             </div>
                           ) : (
-                            <div className="flex flex-col gap-1 items-center justify-center">
-                              {v.split(",").map((s: string, idx: number) => (
-                                <div key={idx} className="whitespace-nowrap h-8 flex items-center">
+                            <div className="flex flex-col gap-1 items-center justify-center font-mono">
+                              {v.split(",").slice(0, 2).map((s: string, idx: number) => (
+                                <div key={idx} className="whitespace-nowrap h-6 flex items-center">
                                   {s}
                                 </div>
                               ))}
