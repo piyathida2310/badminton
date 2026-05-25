@@ -264,9 +264,10 @@ model GroupMatch {
   shuttle       Int?
   status        MatchStatus @default(PENDING)
   scheduledTime DateTime?   @map("scheduled_time")
+  remark        String?
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id])
-  group      Group      @relation(fields: [groupId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group      Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   player1 Register? @relation("GroupPlayer1", fields: [player1Id], references: [id])
   player2 Register? @relation("GroupPlayer2", fields: [player2Id], references: [id])
@@ -293,13 +294,14 @@ model BracketMatch {
   shuttle       Int?
   status        MatchStatus @default(PENDING)
   scheduledTime DateTime?   @map("scheduled_time")
+  remark        String?
 
   winnerNextMatchId   Int?       @map("winner_next_match_id")
   winnerNextMatchSlot MatchSlot? @map("winner_next_match_slot")
   loserNextMatchId    Int?       @map("loser_next_match_id")
   loserNextMatchSlot  MatchSlot? @map("loser_next_match_slot")
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   player1 Register? @relation("BracketPlayer1", fields: [player1Id], references: [id])
   player2 Register? @relation("BracketPlayer2", fields: [player2Id], references: [id])

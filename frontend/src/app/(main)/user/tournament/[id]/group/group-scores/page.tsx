@@ -114,7 +114,7 @@ export default function GroupStageScoresPage() {
               title={gm.matchTitle}
               headers={gm.matchHeadings}
               rows={selected.matches.map((row) => {
-                const cleaned = row.slice(0, 13);
+                const cleaned = [...row];
                 // Clean SET column (index 7) — ลบ ", :" ที่ไม่มีตัวเลขออก
                 if (cleaned[7] && typeof cleaned[7] === "string") {
                   cleaned[7] = cleaned[7]

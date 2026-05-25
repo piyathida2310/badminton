@@ -92,6 +92,9 @@ export default function GroupStageScoresPage() {
         const shuttle = row[12];           
         const timeStr = row[0] as string;
 
+        const remark = row[14] as string | undefined;
+        const forfeitTeam = row[15] as string | undefined;
+
         let totalS1 = 0;
         let totalS2 = 0;
         let hasValidScore = false;
@@ -114,7 +117,9 @@ export default function GroupStageScoresPage() {
           score2: s2,
           shuttle: shuttle,
           time: timeStr,
-          sets: setScore
+          sets: setScore,
+          remark: remark,
+          forfeitTeam: forfeitTeam
         });
       });
 
