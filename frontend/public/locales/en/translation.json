@@ -111,6 +111,7 @@
     "fullname": "Full Name",
     "phone": "Phone Number",
     "age": "Age",
+    "birthday": "Date of Birth",
     "gender": "Gender",
     "male": "Male",
     "female": "Female",
@@ -211,7 +212,11 @@
     "shuttleUsed": "Shuttles",
     "champion": "Champion",
     "runnerUp1": "1st Runner-Up",
-    "runnerUp2": "2nd Runner-Up"
+    "runnerUp2": "2nd Runner-Up",
+    "totalCost": "Total Cost",
+    "shuttleCostSummary": "Shuttlecock Cost Summary",
+    "pricePerShuttle": "Price per Shuttle",
+    "baht": "Baht"
   },
   "common": {
     "loading": "Loading...",

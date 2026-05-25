@@ -427,7 +427,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">{t('signup.age')}</label>
+                <label className="block mb-1 font-medium">{t('signup.birthday')}</label>
                 {/* DatePicker แทน input type="date" เดิม */}
                 <DatePicker
                   selected={formData.player1Birthday ? new Date(formData.player1Birthday + "T00:00:00") : null}
@@ -580,7 +580,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">{t('signup.age')}</label>
+                  <label className="block mb-1 font-medium">{t('signup.birthday')}</label>
                   <DatePicker
                     selected={formData.player2Birthday ? new Date(formData.player2Birthday + "T00:00:00") : null}
                     onChange={(date: Date | null) => {
