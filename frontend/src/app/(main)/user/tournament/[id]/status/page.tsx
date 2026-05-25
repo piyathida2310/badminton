@@ -631,7 +631,7 @@ export default function StatusPage() {
                                 <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">{t('status.canceled')}</button>
                               ) : team.members[0].register !== t('status.failed') && team.userId === currentUserId ? (
                                 <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
-                                  {t('status.confirm')}
+                                  {t('common.cancel')}
                                 </button>
                               ) : null}
                             </td>
@@ -691,7 +691,7 @@ export default function StatusPage() {
                                   <button disabled className="px-3 py-1 bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold cursor-not-allowed">{t('status.canceled')}</button>
                                 ) : m.register !== t('status.failed') && team.userId === currentUserId ? (
                                   <button onClick={() => handleCancelRegistration(team.registrationId)} disabled={cancelling} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-semibold hover:bg-red-600 shadow-sm disabled:opacity-50">
-                                    {t('status.confirm')}
+                                    {t('common.cancel')}
                                   </button>
                                 ) : null}
                               </td>

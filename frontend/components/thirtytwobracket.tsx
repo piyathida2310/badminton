@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../src/lib/api";
 import html2canvas from "html2canvas";
-import { Download, Save, X, Edit } from "lucide-react"; 
+import { Download, Save, X, Edit } from "lucide-react";
 import { useLanguage } from "../src/contexts/LanguageContext"; // Added Shuttle icon if available, else use generic
 
 // --- Types ---
@@ -453,13 +453,13 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
     const loadData = async () => {
       setLoading(true);
 
-      // ✅ 1. ล้างข้อมูลเก่าออกก่อนเริ่มดึงใหม่ เพื่อป้องกันข้อมูลมือเดิมค้าง
+      //  1. ล้างข้อมูลเก่าออกก่อนเริ่มดึงใหม่ เพื่อป้องกันข้อมูลมือเดิมค้าง
       const freshMatches: MatchNode[] = [];
       for (let i = 0; i < 15; i++) freshMatches.push({ id: i });
       setMatches(freshMatches);
 
       try {
-        // ✅ 2. Fetch Tournament Info and Bracket Matches (ส่ง rank ไปด้วย)
+        //  2. Fetch Tournament 
         const [tournamentRes, bracketRes] = await Promise.all([
           api.get(`/tournament/${tournamentId}`),
           api.get(`/bracket-matches/${tournamentId}`, { params: { handType: rank } })
@@ -474,25 +474,19 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           console.log(`[Bracket DEBUG] First Match HandType in DB: ${allDbMatches[0].handType}`);
         }
 
-        // ✅ Determine Size & Type (ทำก่อน Early Return เพื่อให้ Layout ถูกต้อง)
+        //  Determine Size & Type (ทำก่อน Early Return เพื่อให้ Layout ถูกต้อง)
         const isSmall = (tournament?.maxPlayers || 32) <= 16;
         setIsSmallBracket(isSmall);
 
-        // ✅ เราจะไม่ Early Return แล้ว เพื่อให้ระบบทำกระบวนการดึงทีมต่อ 
-        // ถ้าไม่มีแมตช์ใน DB มันจะโชว์เป็น "รอผล" ตามโครงสร้างสายปกติ
 
-        // Filter Top/Bottom Bracket
-        // User Request: If no lower bracket, don't show it.
         // We split the matches here.
         const dbMatches = allDbMatches.filter((m: any) => m.stage === 'UPPER' || m.stage === 'GRAND_FINAL');
         const lowerDbMatches = allDbMatches.filter((m: any) => m.stage === 'LOWER');
         setLowerMatches(lowerDbMatches);
 
 
-        // User Logic Final:
-        // isLowerBracket == true -> Show Lower Bracket
-        // isLowerBracket == false -> Hide Lower Bracket
-        // Robust check for string "false" or boolean false
+
+
         const rawLower = tournament?.isLowerBracket;
         const showLower = rawLower === true || rawLower === "true";
         setShowLowerBracket(showLower);
@@ -505,7 +499,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         const lowerQualifiedTeams: Team[] = [];
 
         if (tournament && tournament.groups) {
-          // ✅ Revert: ดึงทุกกลุ่มตามปกติ (ป้องกันเคส registers ไม่โผล่มาในก้อนแรก)
+
           const groups = tournament.groups;
 
           const rankPromises = groups.map((g: any) =>
@@ -516,10 +510,10 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           );
 
           const results = await Promise.all(rankPromises);
-          // ✅ ใช้ natural sort เพื่อให้เรียง G1, G2, G10 ได้ถูกต้อง (แทนที่จะเป็น G1, G10, G2)
+
           results.sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { numeric: true, sensitivity: 'base' }));
 
-          // ✅ Reset lookup and qualified lists to ensure a fresh build
+
           teamLookup.clear();
           qualifiedTeams.length = 0;
           lowerQualifiedTeams.length = 0;
@@ -528,11 +522,11 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             const allRanks = res.ranks || [];
             const isFinished = res.isFinished === true;
 
-            // ✅ ตรวจสอบประเภทมืออย่างเข้มงวด
+            // ตรวจสอบประเภทมืออย่างเข้มงวด
             const groupRank = res.handType || "";
             const isTargetRank = (groupRank === rank) || (groupRank === "" && rank === "BG");
 
-            // ✅ Stable Indexing: ทุกกลุ่มต้อง Push 2 ช่องเสมอ (เพื่อให้ Index ของ G1, G2, G3... นิ่ง)
+            // Stable Indexing: ทุกกลุ่มต้อง Push 2 ช่องเสมอ (เพื่อให้ Index ของ G1, G2, G3... นิ่ง)
             if (isFinished && allRanks.length > 0 && isTargetRank) {
               const t1: Team = { id: Number(allRanks[0][8]), code: allRanks[0][0], name: allRanks[0][2], players: allRanks[0][3] };
               teamLookup.set(t1.id!, t1);
@@ -551,7 +545,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
               qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
             }
 
-            // Lower bracket seeding (Stable Indexing)
+
             if (isFinished && allRanks.length > 2 && isTargetRank) {
               const t3: Team = { id: Number(allRanks[2][8]), code: allRanks[2][0], name: allRanks[2][2], players: allRanks[2][3] };
               teamLookup.set(t3.id!, t3);
@@ -571,7 +565,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           });
         }
 
-        // 3. Map DB Matches to Local State (ใช้ freshMatches เริ่มต้น)
+
         setMatches(() => {
           const newMatches = [...freshMatches];
 
@@ -584,8 +578,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             return -1;
           };
 
-          // Update from DB
-          // FIX: If level is Lower, use lowerDbMatches. Otherwise use Upper.
+
           const targetMatches = (level === "ล่าง" || level === "Lower") ? lowerDbMatches : dbMatches;
 
           targetMatches.forEach(dbm => {
@@ -636,19 +629,18 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
 
             if (dbm && !hasScore) {
-              // ✅ Correct Cross-Group Seeding (Winner G1 vs Runner-up G2)
-              // Group Pair (GP): Match 1&2 use G1&G2, Match 3&4 use G3&G4
+
               const gp = Math.floor(i / 2);
               let t1Idx, t2Idx;
 
               if (i % 2 === 0) {
-                // Match A of pair: Winner G1 vs Runner-up G2
-                t1Idx = (gp * 2) * 2;       // G(2n+1) R1
-                t2Idx = (gp * 2 + 1) * 2 + 1; // G(2n+2) R2
+
+                t1Idx = (gp * 2) * 2;
+                t2Idx = (gp * 2 + 1) * 2 + 1;
               } else {
-                // Match B of pair: Winner G2 vs Runner-up G1
-                t1Idx = (gp * 2 + 1) * 2;     // G(2n+2) R1
-                t2Idx = (gp * 2) * 2 + 1;     // G(2n+1) R2
+                // Match B of  Winner G2 vs Runner-up G1
+                t1Idx = (gp * 2 + 1) * 2;
+                t2Idx = (gp * 2) * 2 + 1;
               }
 
               const t1 = qualifiedTeams[t1Idx] || null;
@@ -686,16 +678,16 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
 
             if (dbm && !hasScore) {
-              // ✅ Correct Lower Cross-Group Seeding (Rank 3 G1 vs Rank 4 G2)
+              // Correct Lower Cross-Group Seeding (Rank 3 G1 vs Rank 4 G2)
               const gp = Math.floor(i / 2);
               let t1Idx, t2Idx;
 
               if (i % 2 === 0) {
-                t1Idx = (gp * 2) * 2;       // G(2n+1) R3
-                t2Idx = (gp * 2 + 1) * 2 + 1; // G(2n+2) R4
+                t1Idx = (gp * 2) * 2;
+                t2Idx = (gp * 2 + 1) * 2 + 1;
               } else {
-                t1Idx = (gp * 2 + 1) * 2;     // G(2n+2) R3
-                t2Idx = (gp * 2) * 2 + 1;     // G(2n+1) R4
+                t1Idx = (gp * 2 + 1) * 2;
+                t2Idx = (gp * 2) * 2 + 1;
               }
 
               const t1 = lowerQualifiedTeams[t1Idx] || null;
@@ -860,9 +852,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // If this is the "Lower" bracket instance:
-  // 1. If disabled (!showLowerBracket), hide it.
-  // 2. If enabled BUT empty (and not loading), hide it too (Smart Hide).
+
   if (level === "ล่าง" || level === "Lower") {
     if (!showLowerBracket) return null;
     if (!loading && lowerMatches.length === 0) return null;
@@ -881,7 +871,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
 
-      {/* Scrollable Container (Viewport) */}
+
       <div
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
@@ -943,6 +933,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
                         </option>
                       ))}
                     </select>
+
                     {/* Custom Arrow for select */}
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style={{ color: "#194185" }}>
                       <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -965,8 +956,8 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
 
-          {/* UPPER BRACKET SECTION (Show for BOTH Upper and Lower levels now) */}
-          {/* If level="ล่าง", we are showing Lower Bracket data in this same structure */}
+
+
           {(level === "บน" || level === "Main" || level === "ล่าง" || level === "Lower" || !level) && (
             <div className="flex flex-col relative px-20"> {/* Added left padding for better visual center */}
               <div className="flex gap-16 mb-6 text-base font-bold uppercase tracking-widest pl-10" style={{ color: "#64748b" }}>
@@ -1102,10 +1093,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
         </div>
       </div >
 
-      {/* Lower Bracket Placeholder (Hidden if empty) */}
-      {/* Lower Bracket Placeholder (Hidden if disabled) */}
-      {/* Lower Bracket Placeholder (Hidden if empty OR if we are showing the full Lower Bracket view) */}
-      {/* If level="ล่าง", we are already showing the bracket above, so hide this placeholder */}
+
       {
         (showLowerBracket && (level === "Main" || !level)) && (
           <div className="mt-20 w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400">

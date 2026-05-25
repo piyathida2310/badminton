@@ -3,6 +3,7 @@ export interface tournament {
     location: string;
     playType: "SINGLE" | "DOUBLE" | any;
     rank: "BG" | "NB" | "N" | "S" | "P_MINUS" | "P_PLUS" | any;
+    price: string;
     shuttlePrice: string;
     maxPlayers: string;
     posterImg: string | File | null;

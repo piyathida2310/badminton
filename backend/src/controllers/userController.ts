@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // ตรวจสอบว่ามีผู้ใช้ในระบบหรือไม่โดยใช้ clerkId
 export const checkUserByClerkId = async (req: Request, res: Response) => {
   try {
-    const { clerkId, email, firstName, lastName, username, imageUrl } = req.body;
+    const { clerkId } = req.body;
 
     // ตรวจสอบว่ามี clerkId หรือไม่
     if (!clerkId) {
@@ -62,16 +62,15 @@ export const checkUserByClerkId = async (req: Request, res: Response) => {
 // สร้างผู้ใช้ใหม่จากข้อมูล Clerk
 export const createUserFromClerk = async (req: Request, res: Response) => {
   try {
-    const { 
-      clerkId, 
-      email, 
-      firstName, 
-      lastName, 
-      username, 
+    const {
+      clerkId,
+      email,
+      firstName,
+      lastName,
       imageUrl,
       age,
       playType,
-      phoneNumber
+
     } = req.body;
 
     // ตรวจสอบข้อมูลที่จำเป็น
