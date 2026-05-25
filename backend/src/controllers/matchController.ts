@@ -170,6 +170,17 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             }
         });
 
+        // Collect forfeited register IDs in this group stage
+        const forfeitedRegIds = new Set<number>();
+        group.groupMatches.forEach(match => {
+            if (match.remark && match.winnerId && match.status === 'FINISHED') {
+                const loserId = match.player1Id === match.winnerId ? match.player2Id : match.player1Id;
+                if (loserId) {
+                    forfeitedRegIds.add(loserId);
+                }
+            }
+        });
+
         // Convert to Array and Sort for Rank Table
         const rankData = Array.from(teamStats.values())
             .map(t => [
@@ -181,10 +192,20 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.won.toString(),
                 t.lost.toString(),
                 t.diff.toString(),
-                t.id.toString()
+                t.id.toString(),
+                forfeitedRegIds.has(t.id) ? "true" : "false" // 9: isForfeited
             ]);
 
         rankData.sort((a, b) => {
+            const idA = Number(a[8]);
+            const idB = Number(b[8]);
+            const forfeitA = forfeitedRegIds.has(idA);
+            const forfeitB = forfeitedRegIds.has(idB);
+
+            if (forfeitA !== forfeitB) {
+                return forfeitA ? 1 : -1; // Forfeited team always goes to the bottom
+            }
+
             const scoreA = parseFloat(a[4]);
             const scoreB = parseFloat(b[4]);
             if (scoreB !== scoreA) return scoreB - scoreA;
@@ -322,7 +343,9 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t2Data.name,   // 10 (Name)
                 t2Players,     // 11
                 shuttle,       // 12
-                matchId        // 13: Real Match ID (Hidden)
+                matchId,       // 13: Real Match ID (Hidden)
+                m.remark || "", // 14: Remark
+                m.remark && m.winnerId ? (m.player1Id !== m.winnerId ? "1" : "2") : "" // 15: Forfeiting Team ("1" or "2")
             ];
         });
 
@@ -351,12 +374,91 @@ export const getGroupDetails = async (req: Request, res: Response) => {
     }
 };
 
+// Helper for automatic cascading forfeits
+async function applyCascadeForfeit(tournamentId: number, loserId: number, remark: string) {
+    if (!loserId || !tournamentId) return;
+
+    const forfeitRemark = `ถอนสิทธิ์/แพ้บายเนื่องจาก: ${remark}`;
+
+    // 1. Forfeit remaining Group Matches
+    const remainingGroupMatches = await prisma.groupMatch.findMany({
+        where: {
+            tournamentId,
+            status: { in: ['PENDING', 'RUNNING'] },
+            OR: [
+                { player1Id: loserId },
+                { player2Id: loserId }
+            ]
+        }
+    });
+
+    for (const gm of remainingGroupMatches) {
+        const isPlayer1 = gm.player1Id === loserId;
+        await prisma.groupMatch.update({
+            where: { id: gm.id },
+            data: {
+                score1: isPlayer1 ? 0 : 42,
+                score2: isPlayer1 ? 42 : 0,
+                sets: isPlayer1 ? "0 : 21, 0 : 21" : "21 : 0, 21 : 0",
+                status: 'FINISHED',
+                winnerId: isPlayer1 ? gm.player2Id : gm.player1Id,
+                remark: forfeitRemark
+            }
+        });
+    }
+
+    // 2. Forfeit remaining Bracket Matches
+    const remainingBracketMatches = await prisma.bracketMatch.findMany({
+        where: {
+            tournamentId,
+            status: { in: ['PENDING', 'RUNNING'] },
+            OR: [
+                { player1Id: loserId },
+                { player2Id: loserId }
+            ]
+        }
+    });
+
+    for (const bm of remainingBracketMatches) {
+        const isPlayer1 = bm.player1Id === loserId;
+        const opponentId = isPlayer1 ? bm.player2Id : bm.player1Id;
+        const winnerId = opponentId;
+
+        const score1 = isPlayer1 ? 0 : 42;
+        const score2 = isPlayer1 ? 42 : 0;
+        const sets = isPlayer1 ? "0 : 21, 0 : 21" : "21 : 0, 21 : 0";
+
+        await prisma.bracketMatch.update({
+            where: { id: bm.id },
+            data: {
+                score1,
+                score2,
+                sets,
+                status: 'FINISHED',
+                winnerId,
+                remark: forfeitRemark
+            }
+        });
+
+        // Advance opponent in bracket
+        if (winnerId && bm.winnerNextMatchId) {
+            const slotField = bm.winnerNextMatchSlot === 'P1' ? 'player1Id' : 'player2Id';
+            await prisma.bracketMatch.update({
+                where: { id: bm.winnerNextMatchId },
+                data: {
+                    [slotField]: winnerId
+                }
+            });
+        }
+    }
+}
+
 // ==================== GROUP MATCH - UPDATE SCORE ====================
 
 export const updateGroupMatchScore = async (req: Request, res: Response) => {
     try {
         const { matchId } = req.params;
-        const { score1, score2, shuttle, time, sets } = req.body;
+        const { score1, score2, shuttle, time, sets, remark, forfeitTeam } = req.body;
 
         const match = await prisma.groupMatch.findUnique({
             where: { id: Number(matchId) },
@@ -381,6 +483,48 @@ export const updateGroupMatchScore = async (req: Request, res: Response) => {
             }
         }
 
+        let calculatedWinnerId: number | null = null;
+        let loserId: number | null = null;
+
+        if (score1 !== undefined && score2 !== undefined) {
+            if (forfeitTeam === "1") {
+                calculatedWinnerId = match.player2Id;
+                loserId = match.player1Id;
+            } else if (forfeitTeam === "2") {
+                calculatedWinnerId = match.player1Id;
+                loserId = match.player2Id;
+            } else {
+                const s1 = Number(score1);
+                const s2 = Number(score2);
+                const setParts = (sets || "").split(/[,;\n\r]+/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+                let s1Wins = 0, s2Wins = 0;
+                setParts.forEach((part: string) => {
+                    const matchPart = part.match(/(\d+)\s*[:\-]\s*(\d+)/);
+                    if (matchPart) {
+                        const val1 = parseInt(matchPart[1]);
+                        const val2 = parseInt(matchPart[2]);
+                        if (val1 > val2) s1Wins++;
+                        else if (val2 > val1) s2Wins++;
+                    }
+                });
+                if (s1Wins > s2Wins) {
+                    calculatedWinnerId = match.player1Id;
+                    loserId = match.player2Id;
+                } else if (s2Wins > s1Wins) {
+                    calculatedWinnerId = match.player2Id;
+                    loserId = match.player1Id;
+                } else {
+                    if (s1 > s2) {
+                        calculatedWinnerId = match.player1Id;
+                        loserId = match.player2Id;
+                    } else if (s2 > s1) {
+                        calculatedWinnerId = match.player2Id;
+                        loserId = match.player1Id;
+                    }
+                }
+            }
+        }
+
         const updated = await prisma.groupMatch.update({
             where: { id: Number(matchId) },
             data: {
@@ -389,9 +533,16 @@ export const updateGroupMatchScore = async (req: Request, res: Response) => {
                 sets: sets !== undefined ? sets : match.sets,
                 shuttle: shuttle !== undefined ? Number(shuttle) : match.shuttle,
                 scheduledTime: newScheduledTime,
-                status: (score1 !== undefined && score2 !== undefined) ? 'FINISHED' : match.status
+                status: (score1 !== undefined && score2 !== undefined) ? 'FINISHED' : match.status,
+                remark: remark !== undefined ? remark : match.remark,
+                winnerId: calculatedWinnerId !== null ? calculatedWinnerId : undefined
             }
         });
+
+        // Trigger cascade forfeit if remark is provided
+        if (remark && loserId) {
+            await applyCascadeForfeit(match.tournamentId, loserId, remark);
+        }
 
         return res.status(200).json({ message: "GroupMatch updated", data: updated });
     } catch (error) {
@@ -402,14 +553,10 @@ export const updateGroupMatchScore = async (req: Request, res: Response) => {
 
 // ==================== BRACKET MATCH - UPDATE SCORE ====================
 
-// ==================== BRACKET MATCH - UPDATE SCORE ====================
-
-// ==================== BRACKET MATCH - UPDATE SCORE ====================
-
 export const updateBracketMatchScore = async (req: Request, res: Response) => {
     try {
         const { matchId } = req.params;
-        const { score1, score2, shuttle, time, sets, player1Id, player2Id } = req.body;
+        const { score1, score2, shuttle, time, sets, player1Id, player2Id, remark, forfeitTeam } = req.body;
 
         const match = await prisma.bracketMatch.findUnique({
             where: { id: Number(matchId) },
@@ -442,21 +589,31 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
         // Determine Winner
         let winnerId = match.winnerId;
         let status = match.status;
+        let loserId: number | null = null;
 
         if (newScore1 !== null && newScore2 !== null) {
             status = 'FINISHED';
-            const [p1, p2] = getPoints(newScore1, newScore2, newSets || "");
-            if (p1 > p2) winnerId = match.player1Id; // Note: Uses current/new player IDs?
-            // Actually if we update player1Id in the SAME call, we should use the new one?
-            // Let's assume standard update. Ideally player update and score update are separate.
-            // But if we do update player, logic below uses `match.player1Id which is OLD`.
-            // Let's rely on stored IDs for winner calculation unless updated.
-            const p1Id = player1Id !== undefined ? Number(player1Id) : match.player1Id;
-            const p2Id = player2Id !== undefined ? Number(player2Id) : match.player2Id;
+            const p1Id = player1Id !== undefined ? (player1Id === null ? null : Number(player1Id)) : match.player1Id;
+            const p2Id = player2Id !== undefined ? (player2Id === null ? null : Number(player2Id)) : match.player2Id;
 
-            if (p1 > p2) winnerId = p1Id;
-            else if (p2 > p1) winnerId = p2Id;
-            else winnerId = null;
+            if (forfeitTeam === "1") {
+                winnerId = p2Id;
+                loserId = p1Id;
+            } else if (forfeitTeam === "2") {
+                winnerId = p1Id;
+                loserId = p2Id;
+            } else {
+                const [p1, p2] = getPoints(newScore1, newScore2, newSets || "");
+                if (p1 > p2) {
+                    winnerId = p1Id;
+                    loserId = p2Id;
+                } else if (p2 > p1) {
+                    winnerId = p2Id;
+                    loserId = p1Id;
+                } else {
+                    winnerId = null;
+                }
+            }
         }
 
         const updated = await prisma.bracketMatch.update({
@@ -469,10 +626,16 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
                 scheduledTime: newScheduledTime,
                 status: status,
                 winnerId: winnerId,
-                player1Id: player1Id !== undefined ? Number(player1Id) : match.player1Id,
-                player2Id: player2Id !== undefined ? Number(player2Id) : match.player2Id,
+                remark: remark !== undefined ? remark : match.remark,
+                player1Id: player1Id !== undefined ? (player1Id === null ? null : Number(player1Id)) : match.player1Id,
+                player2Id: player2Id !== undefined ? (player2Id === null ? null : Number(player2Id)) : match.player2Id,
             }
         });
+
+        // Trigger cascade forfeit if remark is provided
+        if (remark && loserId) {
+            await applyCascadeForfeit(match.tournamentId, loserId, remark);
+        }
 
         // Advance Winner
         if (winnerId && match.winnerNextMatchId) {
@@ -486,7 +649,6 @@ export const updateBracketMatchScore = async (req: Request, res: Response) => {
         }
 
         // 🏆 Refresh Tournament Summary if it's a critical match (Semi-Final or Final)
-        // We do it asynchronously to not block the response
         if (match.roundSequence >= 3) {
             refreshTournamentSummary(match.tournamentId).catch(err => {
                 console.error("Async Summary Refresh Error:", err);
@@ -526,6 +688,35 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                 handType: handType || undefined
             }
         });
+
+        // Find all forfeited register IDs in this tournament
+        const forfeitedGroupMatches = await prisma.groupMatch.findMany({
+            where: {
+                tournamentId: tId,
+                remark: { notIn: [null, "", " "] },
+                winnerId: { not: null }
+            },
+            select: { player1Id: true, player2Id: true, winnerId: true }
+        });
+        const forfeitedBracketMatches = await prisma.bracketMatch.findMany({
+            where: {
+                tournamentId: tId,
+                remark: { notIn: [null, "", " "] },
+                winnerId: { not: null }
+            },
+            select: { player1Id: true, player2Id: true, winnerId: true }
+        });
+
+        const forfeitedRegisterIds = new Set<number>();
+        for (const m of forfeitedGroupMatches) {
+            const loserId = m.player1Id === m.winnerId ? m.player2Id : m.player1Id;
+            if (loserId) forfeitedRegisterIds.add(loserId);
+        }
+        for (const m of forfeitedBracketMatches) {
+            const loserId = m.player1Id === m.winnerId ? m.player2Id : m.player1Id;
+            if (loserId) forfeitedRegisterIds.add(loserId);
+        }
+        const forfeitedRegIdsArr = Array.from(forfeitedRegisterIds);
 
         // 1. Check if matches exist (Filter by HandType if provided AND not fetching all)
         let whereClause: any = { tournamentId: tId };
@@ -609,10 +800,10 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                     orderBy: [{ roundSequence: 'asc' }, { matchSequence: 'asc' }],
                     include: { player1: true, player2: true, winner: true }
                 });
-                return res.status(200).json({ data: allMatches, groupMatchCount });
+                return res.status(200).json({ data: allMatches, groupMatchCount, forfeitedRegisterIds: forfeitedRegIdsArr });
             }
 
-            return res.status(200).json({ data: existingMatches, groupMatchCount });
+            return res.status(200).json({ data: existingMatches, groupMatchCount, forfeitedRegisterIds: forfeitedRegIdsArr });
         }
 
         // 2. Initialize Bracket (If NO matches found for this HandType)
@@ -756,7 +947,7 @@ export const getBracketMatches = async (req: Request, res: Response) => {
             }
         });
 
-        return res.status(201).json({ message: "Bracket initialized", data: allMatches, groupMatchCount });
+        return res.status(201).json({ message: "Bracket initialized", data: allMatches, groupMatchCount, forfeitedRegisterIds: forfeitedRegIdsArr });
 
     } catch (error) {
         console.error("Get Bracket Matches Error:", error);

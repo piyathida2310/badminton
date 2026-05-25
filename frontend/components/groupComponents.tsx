@@ -44,6 +44,7 @@ export function GroupTable({
   headers: string[];
   rows: any[][];
 }) {
+  const { language } = useLanguage();
   return (
     <div className="overflow-x-auto rounded-2xl bg-white/80 backdrop-blur-sm p-5 border border-[#2ED3B7]/20 shadow-md mb-10 transition hover:shadow-lg">
       <h3 className="font-bold text-lg mb-3 text-[#194185]">{title}</h3>
@@ -69,6 +70,15 @@ export function GroupTable({
         </thead>
         <tbody>
           {rows.map((r, i) => {
+            const isMatchTable = headers.length >= 12;
+            const isRankTable = !isMatchTable;
+            const isRankForfeited = isRankTable && r[9] === "true";
+
+            const hasForfeit = isMatchTable && !!r[14];
+            const forfeitedTeam = isMatchTable ? r[15] : undefined;
+            const isTeam1Forfeited = hasForfeit && forfeitedTeam === "1";
+            const isTeam2Forfeited = hasForfeit && forfeitedTeam === "2";
+
             const visibleCells = r.slice(0, headers.length);
             return (
               <tr
@@ -76,18 +86,47 @@ export function GroupTable({
                 className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-[#2ED3B7]/5"
                   } hover:bg-[#2ED3B7]/5 transition`}
               >
-                {visibleCells.map((v, j) => (
-                  <td
-                    key={j}
-                    className={`border border-[#2ED3B7]/20 px-3 py-2 text-center ${j === 0 ? "font-semibold text-[#194185]" : ""
-                      } ${headers[j] === "SET"
-                        ? "whitespace-nowrap font-mono min-w-[80px]"
-                        : ""
+                {visibleCells.map((v, j) => {
+                  const isColTeam1 = j === 3 || j === 4 || j === 5;
+                  const isColTeam2 = j === 9 || j === 10 || j === 11;
+                  const shouldHighlightRed = (isColTeam1 && isTeam1Forfeited) || (isColTeam2 && isTeam2Forfeited) || isRankForfeited;
+
+                  return (
+                    <td
+                      key={j}
+                      className={`border border-[#2ED3B7]/20 px-3 py-2 text-center transition-all ${
+                        j === 0 ? "font-semibold text-[#194185]" : ""
+                      } ${
+                        headers[j] === "SET"
+                          ? "whitespace-nowrap font-mono min-w-[80px]"
+                          : ""
+                      } ${
+                        shouldHighlightRed
+                          ? "bg-rose-50 border-rose-200 text-rose-700 font-semibold"
+                          : ""
                       }`}
-                  >
-                    {v}
-                  </td>
-                ))}
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <span>{v}</span>
+                        {j === 4 && isTeam1Forfeited && (
+                          <span className="block text-[10px] text-rose-600 font-bold mt-1 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200 whitespace-normal max-w-[150px] leading-tight">
+                            {language === "en" ? "⚠️ Forfeited:" : "⚠️ สละสิทธิ์:"} {r[14]}
+                          </span>
+                        )}
+                        {j === 10 && isTeam2Forfeited && (
+                          <span className="block text-[10px] text-rose-600 font-bold mt-1 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200 whitespace-normal max-w-[150px] leading-tight">
+                            {language === "en" ? "⚠️ Forfeited:" : "⚠️ สละสิทธิ์:"} {r[14]}
+                          </span>
+                        )}
+                        {j === 2 && isRankForfeited && (
+                          <span className="block text-[10px] text-rose-600 font-bold mt-1 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200 whitespace-normal max-w-[150px] leading-tight animate-pulse">
+                            {language === "en" ? "⚠️ Forfeited" : "⚠️ สละสิทธิ์"}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}
