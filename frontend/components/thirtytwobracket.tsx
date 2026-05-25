@@ -854,8 +854,20 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
   if (level === "ล่าง" || level === "Lower") {
-    if (!showLowerBracket) return null;
-    if (!loading && lowerMatches.length === 0) return null;
+    if (!showLowerBracket) {
+      return (
+        <div className="w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400 mt-10">
+          <p className="text-gray-500">Tournament has isLowerBracket=false (showLowerBracket is false)</p>
+        </div>
+      );
+    }
+    if (!loading && lowerMatches.length === 0) {
+      return (
+        <div className="w-full text-center p-10 bg-gray-100 rounded-xl border border-dashed border-gray-400 mt-10">
+          <p className="text-gray-500">Lower bracket is enabled but no matches found in DB! (lowerMatches.length === 0)</p>
+        </div>
+      );
+    }
   }
 
   return (
