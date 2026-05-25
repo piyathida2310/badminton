@@ -107,7 +107,17 @@ export function GroupTable({
                       }`}
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <span>{v}</span>
+                        {headers[j] === "SET" && v ? (
+                          <div className="flex flex-col gap-0.5 items-center justify-center font-mono">
+                            {v.split(",").slice(0, 2).map((s: string, idx: number) => (
+                              <div key={idx} className="whitespace-nowrap">
+                                {s.trim()}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span>{v}</span>
+                        )}
                         {j === 4 && isTeam1Forfeited && (
                           <span className="block text-[10px] text-rose-600 font-bold mt-1 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200 whitespace-normal max-w-[150px] leading-tight">
                             {language === "en" ? "⚠️ Forfeited:" : "⚠️ สละสิทธิ์:"} {r[14]}

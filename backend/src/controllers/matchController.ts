@@ -109,6 +109,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             won: number;
             lost: number;
             diff: number;
+            pointDiff: number;
         }>();
 
         group.registers.sort((a, b) => a.id - b.id);
@@ -138,7 +139,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 totalScore: 0,
                 won: 0,
                 lost: 0,
-                diff: 0
+                diff: 0,
+                pointDiff: 0
             });
         });
 
@@ -153,12 +155,27 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 const setScores = match.sets || "";
                 const [pts1, pts2] = getPoints(s1, s2, setScores);
 
+                // Calculate Rally Points from sets string (e.g. "21:15, 21:19")
+                let rallyPoints1 = 0;
+                let rallyPoints2 = 0;
+                if (setScores && setScores.trim()) {
+                    const setParts = setScores.split(/[,;\n\r]+/).map(s => s.trim()).filter(s => s.length > 0);
+                    setParts.forEach(part => {
+                        const mPart = part.match(/(\d+)\s*[:\-]\s*(\d+)/);
+                        if (mPart) {
+                            rallyPoints1 += parseInt(mPart[1]);
+                            rallyPoints2 += parseInt(mPart[2]);
+                        }
+                    });
+                }
+
                 if (p1 && teamStats.has(p1)) {
                     const stats = teamStats.get(p1)!;
                     stats.totalScore += pts1;
                     stats.won += s1;
                     stats.lost += s2;
                     stats.diff += (s1 - s2);
+                    stats.pointDiff += (rallyPoints1 - rallyPoints2);
                 }
                 if (p2 && teamStats.has(p2)) {
                     const stats = teamStats.get(p2)!;
@@ -166,6 +183,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                     stats.won += s2;
                     stats.lost += s1;
                     stats.diff += (s2 - s1);
+                    stats.pointDiff += (rallyPoints2 - rallyPoints1);
                 }
             }
         });
@@ -193,7 +211,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
                 t.lost.toString(),
                 t.diff.toString(),
                 t.id.toString(),
-                forfeitedRegIds.has(t.id) ? "true" : "false" // 9: isForfeited
+                forfeitedRegIds.has(t.id) ? "true" : "false", // 9: isForfeited
+                t.pointDiff.toString() // 10: pointDiff
             ]);
 
         rankData.sort((a, b) => {
@@ -213,6 +232,10 @@ export const getGroupDetails = async (req: Request, res: Response) => {
             const diffA = parseFloat(a[7]);
             const diffB = parseFloat(b[7]);
             if (diffB !== diffA) return diffB - diffA;
+
+            const ptDiffA = parseFloat(a[10]);
+            const ptDiffB = parseFloat(b[10]);
+            if (ptDiffB !== ptDiffA) return ptDiffB - ptDiffA;
 
             const wonA = parseFloat(a[5]);
             const wonB = parseFloat(b[5]);
@@ -397,9 +420,9 @@ async function applyCascadeForfeit(tournamentId: number, loserId: number, remark
         await prisma.groupMatch.update({
             where: { id: gm.id },
             data: {
-                score1: isPlayer1 ? 0 : 42,
-                score2: isPlayer1 ? 42 : 0,
-                sets: isPlayer1 ? "0 : 21, 0 : 21" : "21 : 0, 21 : 0",
+                score1: isPlayer1 ? 0 : 3,
+                score2: isPlayer1 ? 3 : 0,
+                sets: isPlayer1 ? "0:21, 0:21, 0:21" : "21:0, 21:0, 21:0",
                 status: 'FINISHED',
                 winnerId: isPlayer1 ? gm.player2Id : gm.player1Id,
                 remark: forfeitRemark
@@ -424,9 +447,9 @@ async function applyCascadeForfeit(tournamentId: number, loserId: number, remark
         const opponentId = isPlayer1 ? bm.player2Id : bm.player1Id;
         const winnerId = opponentId;
 
-        const score1 = isPlayer1 ? 0 : 42;
-        const score2 = isPlayer1 ? 42 : 0;
-        const sets = isPlayer1 ? "0 : 21, 0 : 21" : "21 : 0, 21 : 0";
+        const score1 = isPlayer1 ? 0 : 3;
+        const score2 = isPlayer1 ? 3 : 0;
+        const sets = isPlayer1 ? "0:21, 0:21, 0:21" : "21:0, 21:0, 21:0";
 
         await prisma.bracketMatch.update({
             where: { id: bm.id },
@@ -693,7 +716,10 @@ export const getBracketMatches = async (req: Request, res: Response) => {
         const forfeitedGroupMatches = await prisma.groupMatch.findMany({
             where: {
                 tournamentId: tId,
-                remark: { notIn: [null, "", " "] },
+                remark: {
+                    not: null,
+                    notIn: ["", " "]
+                },
                 winnerId: { not: null }
             },
             select: { player1Id: true, player2Id: true, winnerId: true }
@@ -701,7 +727,10 @@ export const getBracketMatches = async (req: Request, res: Response) => {
         const forfeitedBracketMatches = await prisma.bracketMatch.findMany({
             where: {
                 tournamentId: tId,
-                remark: { notIn: [null, "", " "] },
+                remark: {
+                    not: null,
+                    notIn: ["", " "]
+                },
                 winnerId: { not: null }
             },
             select: { player1Id: true, player2Id: true, winnerId: true }
@@ -926,13 +955,15 @@ export const getBracketMatches = async (req: Request, res: Response) => {
                 lQFs.push(m);
             }
 
-            // L-R16 (8)
-            for (let i = 0; i < 8; i++) {
-                const parent = lQFs[Math.floor(i / 2)];
-                const slot = (i % 2 === 0) ? 'P1' : 'P2';
-                await prisma.bracketMatch.create({
-                    data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
-                });
+            // L-R16 (8) - ONLY if Not Small
+            if (!isSmallBracket) {
+                for (let i = 0; i < 8; i++) {
+                    const parent = lQFs[Math.floor(i / 2)];
+                    const slot = (i % 2 === 0) ? 'P1' : 'P2';
+                    await prisma.bracketMatch.create({
+                        data: { tournamentId: tId, roundSequence: 1, matchSequence: i + 1, stage: 'LOWER', winnerNextMatchId: parent.id, winnerNextMatchSlot: slot, handType: handType || null }
+                    });
+                }
             }
         }
 
