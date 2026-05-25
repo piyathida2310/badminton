@@ -97,32 +97,17 @@ export function GroupTableEditable({
       const winnerScore = Math.max(val1, val2);
       const loserScore = Math.min(val1, val2);
 
-      if (winnerScore < 21) {
+      // Check if it is a standard winning set score:
+      // 1. 21 points and lead by at least 2 points (e.g. 21-15, 21-19)
+      // 2. >21 and <30 and lead by exactly 2 points (e.g. 22-20, 29-27)
+      // 3. 30 points and lead by 1 or 2 points (30-28, 30-29)
+      const isStandardWin = 
+        (winnerScore === 21 && loserScore <= 19) ||
+        (winnerScore > 21 && winnerScore < 30 && loserScore === winnerScore - 2) ||
+        (winnerScore === 30 && (loserScore === 28 || loserScore === 29));
+
+      if (!isStandardWin) {
         requiresRemark = true;
-      } else if (winnerScore === 21) {
-        if (loserScore > 19) {
-          isDeuceValid = false;
-          deuceErrorMessage = language === "en"
-            ? "Invalid score: Winner has 21, so loser must have 19 or less. Otherwise, it must go to deuce (e.g. 22-20)!"
-            : "คะแนนไม่ถูกต้อง: หากผู้ชนะได้ 21 คะแนน ผู้แพ้ต้องได้ไม่เกิน 19 คะแนน หรือต้องเล่นต่อแบบดิวส์ (เช่น 22-20)!";
-          break;
-        }
-      } else if (winnerScore > 21 && winnerScore < 30) {
-        if (loserScore !== winnerScore - 2) {
-          isDeuceValid = false;
-          deuceErrorMessage = language === "en"
-            ? `Invalid score: For a score of ${winnerScore}, the loser must have exactly ${winnerScore - 2}!`
-            : `คะแนนไม่ถูกต้อง: สำหรับคะแนนชนะ ${winnerScore} ผู้แพ้ต้องได้ ${winnerScore - 2} คะแนนพอดี (ดิวส์)!`;
-          break;
-        }
-      } else if (winnerScore === 30) {
-        if (loserScore !== 28 && loserScore !== 29) {
-          isDeuceValid = false;
-          deuceErrorMessage = language === "en"
-            ? "Invalid score: At 30 points cap, the loser must have 28 or 29 points!"
-            : "คะแนนไม่ถูกต้อง: ที่คะแนนสูงสุด 30 คะแนน ผู้แพ้ต้องได้ 28 หรือ 29 คะแนนเท่านั้น!";
-          break;
-        }
       }
     }
 

@@ -31,6 +31,7 @@ interface MatchNode {
   };
   shuttlesUsed?: number;
   winnerCode?: string;
+  status?: string; // Match status from DB
 }
 
 interface ThirtyTwoBracketProps {
@@ -113,9 +114,10 @@ const MatchCard = ({
 
   const hasScore = scores && (scores.totalA > 0 || scores.totalB > 0 || scores.set1A > 0 || scores.set1B > 0);
 
-  // Determine winner for styling
+  // Determine winner for styling - only highlight when the match is FINISHED
   let winner = null;
-  if (scores) {
+  const isFinished = match?.status === 'FINISHED';
+  if (isFinished && scores) {
     let s1Wins = 0, s2Wins = 0;
     if (scores.set1A > scores.set1B) s1Wins++; else if (scores.set1B > scores.set1A) s2Wins++;
     if (scores.set2A > scores.set2B) s1Wins++; else if (scores.set2B > scores.set2A) s2Wins++;
@@ -140,6 +142,20 @@ const MatchCard = ({
 
   const t1Name = t1?.name === "รอผล" || t1?.name === "รอผล..." ? waitingName : t1?.name || "-";
   const t2Name = t2?.name === "รอผล" || t2?.name === "รอผล..." ? waitingName : t2?.name || "-";
+
+  const isT1Forfeited = t1?.code === "BYE" && t1?.name !== "รอผล" && t1?.name !== "รอผล...";
+  const isT2Forfeited = t2?.code === "BYE" && t2?.name !== "รอผล" && t2?.name !== "รอผล...";
+
+  const p1PlayersDisplay = isT1Forfeited
+    ? (language === "en" ? "Ended" : "สิ้นสุด")
+    : (t1?.players && t1?.players !== "-" ? t1.players : waitingPlayers);
+
+  const p2PlayersDisplay = isT2Forfeited
+    ? (language === "en" ? "Ended" : "สิ้นสุด")
+    : (t2?.players && t2?.players !== "-" ? t2.players : waitingPlayers);
+
+  const p1PlayersColor = isT1Forfeited ? "#ef4444" : "#475569";
+  const p2PlayersColor = isT2Forfeited ? "#ef4444" : "#475569";
 
   return (
     <div
@@ -185,8 +201,8 @@ const MatchCard = ({
             </div>
             {/* Adjusted padding and added Line Height */}
             <div className="pl-12 pt-1 pb-2">
-              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: "#475569", maxWidth: "200px" }}>
-                {t1?.players && t1?.players !== "-" ? t1.players : waitingPlayers}
+              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: p1PlayersColor, maxWidth: "200px" }}>
+                {p1PlayersDisplay}
               </span>
             </div>
           </div>
@@ -216,8 +232,8 @@ const MatchCard = ({
               )}
             </div>
             <div className="pl-12 pt-1 pb-2">
-              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: "#475569", maxWidth: "200px" }}>
-                {t2?.players && t2?.players !== "-" ? t2.players : waitingPlayers}
+              <span className="text-[13px] font-medium block leading-snug break-words whitespace-normal" style={{ color: p2PlayersColor, maxWidth: "200px" }}>
+                {p2PlayersDisplay}
               </span>
             </div>
           </div>
@@ -448,7 +464,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
   }, []);
 
   useEffect(() => {
-    if (!tournamentId) return;
+    if (!tournamentId || !rank) return;
 
     const loadData = async () => {
       setLoading(true);
@@ -528,14 +544,24 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
             // Stable Indexing: ทุกกลุ่มต้อง Push 2 ช่องเสมอ (เพื่อให้ Index ของ G1, G2, G3... นิ่ง)
             if (isFinished && allRanks.length > 0 && isTargetRank) {
-              const t1: Team = { id: Number(allRanks[0][8]), code: allRanks[0][0], name: allRanks[0][2], players: allRanks[0][3] };
-              teamLookup.set(t1.id!, t1);
-              qualifiedTeams.push(t1);
+              const isT1Forfeited = allRanks[0][9] === "true";
+              if (isT1Forfeited) {
+                qualifiedTeams.push({ code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" });
+              } else {
+                const t1: Team = { id: Number(allRanks[0][8]), code: allRanks[0][0], name: allRanks[0][2], players: allRanks[0][3] };
+                teamLookup.set(t1.id!, t1);
+                qualifiedTeams.push(t1);
+              }
 
               if (allRanks.length > 1) {
-                const t2: Team = { id: Number(allRanks[1][8]), code: allRanks[1][0], name: allRanks[1][2], players: allRanks[1][3] };
-                teamLookup.set(t2.id!, t2);
-                qualifiedTeams.push(t2);
+                const isT2Forfeited = allRanks[1][9] === "true";
+                if (isT2Forfeited) {
+                  qualifiedTeams.push({ code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" });
+                } else {
+                  const t2: Team = { id: Number(allRanks[1][8]), code: allRanks[1][0], name: allRanks[1][2], players: allRanks[1][3] };
+                  teamLookup.set(t2.id!, t2);
+                  qualifiedTeams.push(t2);
+                }
               } else {
                 qualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
               }
@@ -547,14 +573,24 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
             if (isFinished && allRanks.length > 2 && isTargetRank) {
-              const t3: Team = { id: Number(allRanks[2][8]), code: allRanks[2][0], name: allRanks[2][2], players: allRanks[2][3] };
-              teamLookup.set(t3.id!, t3);
-              lowerQualifiedTeams.push(t3);
+              const isT3Forfeited = allRanks[2][9] === "true";
+              if (isT3Forfeited) {
+                lowerQualifiedTeams.push({ code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" });
+              } else {
+                const t3: Team = { id: Number(allRanks[2][8]), code: allRanks[2][0], name: allRanks[2][2], players: allRanks[2][3] };
+                teamLookup.set(t3.id!, t3);
+                lowerQualifiedTeams.push(t3);
+              }
 
               if (allRanks.length > 3) {
-                const t4: Team = { id: Number(allRanks[3][8]), code: allRanks[3][0], name: allRanks[3][2], players: allRanks[3][3] };
-                teamLookup.set(t4.id!, t4);
-                lowerQualifiedTeams.push(t4);
+                const isT4Forfeited = allRanks[3][9] === "true";
+                if (isT4Forfeited) {
+                  lowerQualifiedTeams.push({ code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" });
+                } else {
+                  const t4: Team = { id: Number(allRanks[3][8]), code: allRanks[3][0], name: allRanks[3][2], players: allRanks[3][3] };
+                  teamLookup.set(t4.id!, t4);
+                  lowerQualifiedTeams.push(t4);
+                }
               } else {
                 lowerQualifiedTeams.push({ code: "BYE", name: "รอผล", players: "-" });
               }
@@ -565,6 +601,30 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           });
         }
 
+
+        // Helper: สร้าง mapping จาก qualifiedTeams สำหรับ first-round seeding
+        const firstRound = isSmall ? 2 : 1;
+        const seedingMatchCount = isSmall ? 4 : 8;
+        const isUpper = (level === "บน" || level === "Main" || !level);
+        const isLower = (level === "ล่าง" || level === "Lower");
+        const activeQualified = isLower ? lowerQualifiedTeams : qualifiedTeams;
+
+        // สร้าง map: matchSequence -> { t1, t2 } สำหรับ first-round matches
+        const seedMap = new Map<number, { t1: Team | null, t2: Team | null }>();
+        for (let i = 0; i < seedingMatchCount; i++) {
+          const gp = Math.floor(i / 2);
+          let t1Idx: number, t2Idx: number;
+          if (i % 2 === 0) {
+            t1Idx = (gp * 2) * 2;
+            t2Idx = (gp * 2 + 1) * 2 + 1;
+          } else {
+            t1Idx = (gp * 2 + 1) * 2;
+            t2Idx = (gp * 2) * 2 + 1;
+          }
+          const t1 = activeQualified[t1Idx] || null;
+          const t2 = activeQualified[t2Idx] || null;
+          seedMap.set(i + 1, { t1, t2 }); // matchSequence is 1-based
+        }
 
         setMatches(() => {
           const newMatches = [...freshMatches];
@@ -578,8 +638,7 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
             return -1;
           };
 
-
-          const targetMatches = (level === "ล่าง" || level === "Lower") ? lowerDbMatches : dbMatches;
+          const targetMatches = isLower ? lowerDbMatches : dbMatches;
 
           targetMatches.forEach(dbm => {
             const idx = getIndex(dbm.roundSequence, dbm.matchSequence);
@@ -587,15 +646,36 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
               const m = newMatches[idx];
               m.dbId = dbm.id;
               m.shuttlesUsed = dbm.shuttle || 0;
+              m.status = dbm.status; // Map status!
 
-              // Map Players
-              if (dbm.player1Id) m.t1 = teamLookup.get(dbm.player1Id) || { code: "-", name: dbm.player1?.teamName || dbm.player1?.player1Name || "-", players: "-" };
-              if (dbm.player2Id) m.t2 = teamLookup.get(dbm.player2Id) || { code: "-", name: dbm.player2?.teamName || dbm.player2?.player1Name || "-", players: "-" };
+              // First-round matches: ถ้า player ID เป็น null ให้ใช้ qualifiedTeams แทน
+              const isFirstRound = dbm.roundSequence === firstRound;
+              const seed = isFirstRound ? seedMap.get(dbm.matchSequence) : null;
+
+              if (dbm.player1Id) {
+                m.t1 = teamLookup.get(dbm.player1Id) || { code: "-", name: dbm.player1?.teamName || dbm.player1?.player1Name || "-", players: "-" };
+              } else if (seed?.t1 && seed.t1.code !== "BYE") {
+                // DB ยังไม่มี player แต่ qualifiedTeams มีทีมจริง → แสดงทีมนี้
+                m.t1 = seed.t1;
+              } else if (seed?.t1 && seed.t1.code === "BYE" && seed.t1.name !== "รอผล") {
+                // ทีมสละสิทธิ์
+                m.t1 = seed.t1;
+              } else {
+                m.t1 = { code: "BYE", name: language === "en" ? "Waiting..." : "รอผล...", players: "-" };
+              }
+
+              if (dbm.player2Id) {
+                m.t2 = teamLookup.get(dbm.player2Id) || { code: "-", name: dbm.player2?.teamName || dbm.player2?.player1Name || "-", players: "-" };
+              } else if (seed?.t2 && seed.t2.code !== "BYE") {
+                m.t2 = seed.t2;
+              } else if (seed?.t2 && seed.t2.code === "BYE" && seed.t2.name !== "รอผล") {
+                m.t2 = seed.t2;
+              } else {
+                m.t2 = { code: "BYE", name: language === "en" ? "Waiting..." : "รอผล...", players: "-" };
+              }
 
               // Map Scores
               if (dbm.score1 !== null && dbm.score2 !== null) {
-                // Parse sets if available string "21:10, 21:12"
-                // Simple parsing or default
                 const scoreObj = {
                   totalA: dbm.score1, totalB: dbm.score2,
                   set1A: 0, set1B: 0, set2A: 0, set2B: 0, set3A: 0, set3B: 0
@@ -614,71 +694,82 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
           return newMatches;
         });
 
-        // 4. Initial Population & Persistence (Upper)
+        // 4. Initial Seeding Seeding & Persistence (Upper)
         const targetRound = isSmall ? 2 : 1;
         const targetDbMatches = dbMatches.filter((m: any) => m.roundSequence === targetRound).sort((a: any, b: any) => a.matchSequence - b.matchSequence);
         const matchCount = isSmall ? 4 : 8;
 
-        // ONLY seed Upper if level is "บน" or equivalent
         if ((level === "บน" || level === "Main" || !level) && qualifiedTeams.length > 0 && targetDbMatches.length > 0) {
           const updates = [];
-          const half = matchCount / 2;
 
           for (let i = 0; i < matchCount; i++) {
             const dbm = targetDbMatches[i];
-            const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
+            // Guard: ไม่เขียนทับแมตช์ที่มีผู้เล่นและคะแนนอยู่แล้ว
+            const hasExistingData = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm?.player1Id !== null && dbm?.player2Id !== null);
 
-            if (dbm && !hasScore) {
-
+            if (dbm && !hasExistingData) {
               const gp = Math.floor(i / 2);
               let t1Idx, t2Idx;
 
               if (i % 2 === 0) {
-
                 t1Idx = (gp * 2) * 2;
                 t2Idx = (gp * 2 + 1) * 2 + 1;
               } else {
-                // Match B of  Winner G2 vs Runner-up G1
                 t1Idx = (gp * 2 + 1) * 2;
                 t2Idx = (gp * 2) * 2 + 1;
               }
 
               const t1 = qualifiedTeams[t1Idx] || null;
               const t2 = qualifiedTeams[t2Idx] || null;
-              const newP1 = t1?.id; const newP2 = t2?.id;
 
-              if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
-                updates.push(api.put(`/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
-                setMatches(prev => {
-                  const nm = [...prev];
-                  const stateIdx = (isSmall ? 8 : 0) + i;
-                  if (nm[stateIdx]) {
-                    nm[stateIdx].t1 = t1 || { code: "-", name: "-", players: "-" };
-                    nm[stateIdx].t2 = t2 || { code: "-", name: "-", players: "-" };
-                  }
-                  return nm;
-                });
+              // แยกแยะ: BYE เพราะสละสิทธิ์ → ส่ง null, BYE เพราะรอผล → ข้ามไม่ update
+              const isBYEWaiting = (t: any) => t && t.code === "BYE" && t.name === "รอผล";
+              // ถ้าทั้งคู่ยังรอผล ไม่ต้อง update อะไร
+              if (isBYEWaiting(t1) && isBYEWaiting(t2)) continue;
+
+              const newP1 = t1?.id; // undefined สำหรับ BYE → JSON จะไม่ส่งค่านี้ไป
+              const newP2 = t2?.id;
+
+              // สำหรับทีมที่สละสิทธิ์ (BYE Forfeited) ต้องส่ง null ชัดเจน
+              const isForfeited = (t: any) => t && t.code === "BYE" && t.name !== "รอผล";
+              const p1Value = isForfeited(t1) ? null : newP1;
+              const p2Value = isForfeited(t2) ? null : newP2;
+
+              if (dbm.player1Id !== p1Value || dbm.player2Id !== p2Value) {
+                const updateData: any = {};
+                if (p1Value !== undefined) updateData.player1Id = p1Value;
+                if (p2Value !== undefined) updateData.player2Id = p2Value;
+                if (Object.keys(updateData).length > 0) {
+                  updates.push(api.put(`/bracket-matches/${dbm.id}`, updateData));
+                  setMatches(prev => {
+                    const nm = [...prev];
+                    const stateIdx = (isSmall ? 8 : 0) + i;
+                    if (nm[stateIdx]) {
+                      if (t1 && t1.code !== "BYE") nm[stateIdx].t1 = t1;
+                      if (t2 && t2.code !== "BYE") nm[stateIdx].t2 = t2;
+                    }
+                    return nm;
+                  });
+                }
               }
             }
           }
           if (updates.length > 0) await Promise.all(updates);
         }
 
-        // 5. Initial Population & Persistence (Lower)
-        // ONLY seed Lower if level is "ล่าง"
+        // 5. Initial Seeding Seeding & Persistence (Lower)
         if ((level === "ล่าง" || level === "Lower") && showLower && lowerQualifiedTeams.length > 0 && lowerDbMatches.length > 0) {
           const updates = [];
           const targetLowerRound = isSmall ? 2 : 1;
           const targetLowerMatches = lowerDbMatches.filter((m: any) => m.roundSequence === targetLowerRound).sort((a: any, b: any) => a.matchSequence - b.matchSequence);
           const lowerMatchCount = isSmall ? 4 : 8;
-          const half = lowerMatchCount / 2;
 
           for (let i = 0; i < lowerMatchCount; i++) {
             const dbm = targetLowerMatches[i];
-            const hasScore = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm.player1Id !== null && dbm.player2Id !== null);
+            // Guard: ไม่เขียนทับแมตช์ที่มีผู้เล่นและคะแนนอยู่แล้ว
+            const hasExistingData = ((dbm?.score1 !== null || dbm?.score2 !== null) || dbm?.status === 'FINISHED') && (dbm?.player1Id !== null && dbm?.player2Id !== null);
 
-            if (dbm && !hasScore) {
-              // Correct Lower Cross-Group Seeding (Rank 3 G1 vs Rank 4 G2)
+            if (dbm && !hasExistingData) {
               const gp = Math.floor(i / 2);
               let t1Idx, t2Idx;
 
@@ -692,23 +783,152 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
               const t1 = lowerQualifiedTeams[t1Idx] || null;
               const t2 = lowerQualifiedTeams[t2Idx] || null;
-              const newP1 = t1?.id; const newP2 = t2?.id;
 
-              if (dbm.player1Id !== newP1 || dbm.player2Id !== newP2) {
-                updates.push(api.put(`/bracket-matches/${dbm.id}`, { player1Id: newP1, player2Id: newP2 }));
-                setMatches(prev => {
-                  const nm = [...prev];
-                  const stateIdx = (isSmall ? 8 : 0) + i;
-                  if (nm[stateIdx]) {
-                    nm[stateIdx].t1 = t1 || { code: "-", name: "-", players: "-" };
-                    nm[stateIdx].t2 = t2 || { code: "-", name: "-", players: "-" };
-                  }
-                  return nm;
-                });
+              // แยกแยะ: BYE เพราะสละสิทธิ์ → ส่ง null, BYE เพราะรอผล → ข้ามไม่ update
+              const isBYEWaiting = (t: any) => t && t.code === "BYE" && t.name === "รอผล";
+              if (isBYEWaiting(t1) && isBYEWaiting(t2)) continue;
+
+              const newP1 = t1?.id;
+              const newP2 = t2?.id;
+
+              const isForfeited = (t: any) => t && t.code === "BYE" && t.name !== "รอผล";
+              const p1Value = isForfeited(t1) ? null : newP1;
+              const p2Value = isForfeited(t2) ? null : newP2;
+
+              if (dbm.player1Id !== p1Value || dbm.player2Id !== p2Value) {
+                const updateData: any = {};
+                if (p1Value !== undefined) updateData.player1Id = p1Value;
+                if (p2Value !== undefined) updateData.player2Id = p2Value;
+                if (Object.keys(updateData).length > 0) {
+                  updates.push(api.put(`/bracket-matches/${dbm.id}`, updateData));
+                  setMatches(prev => {
+                    const nm = [...prev];
+                    const stateIdx = (isSmall ? 8 : 0) + i;
+                    if (nm[stateIdx]) {
+                      if (t1 && t1.code !== "BYE") nm[stateIdx].t1 = t1;
+                      if (t2 && t2.code !== "BYE") nm[stateIdx].t2 = t2;
+                    }
+                    return nm;
+                  });
+                }
               }
             }
           }
           if (updates.length > 0) await Promise.all(updates);
+        }
+
+        // 6. Auto Bypass / Walkover Logic for BYE matches
+        const bypassUpdates = [];
+        const currentMatchesRes = await api.get(`/bracket-matches/${tournamentId}`, { params: { handType: rank } });
+        const freshDbMatches = currentMatchesRes.data.data || [];
+
+        const firstRoundDbMatches = freshDbMatches.filter((m: any) => 
+          m.status === 'PENDING' && 
+          ((level === "ล่าง" || level === "Lower") ? m.stage === 'LOWER' : (m.stage === 'UPPER' || m.stage === 'GRAND_FINAL')) &&
+          m.roundSequence === (isSmall ? 2 : 1)
+        );
+
+        for (const dbm of firstRoundDbMatches) {
+          const hasP1 = dbm.player1Id !== null;
+          const hasP2 = dbm.player2Id !== null;
+
+          if ((hasP1 && !hasP2) || (!hasP1 && hasP2)) {
+            const isT1Bye = !hasP1;
+            const seed = seedMap.get(dbm.matchSequence);
+            const byeSeed = isT1Bye ? seed?.t1 : seed?.t2;
+
+            // Only auto-bypass if it's a real forfeit BYE, not a waiting placeholder ('รอผล' / 'Waiting')
+            const isWaiting = byeSeed && (byeSeed.name.includes("รอผล") || byeSeed.name.includes("Waiting"));
+            if (!byeSeed || isWaiting) {
+              continue;
+            }
+
+            const setsStr = isT1Bye ? "0:21, 0:21, 0:21" : "21:0, 21:0, 21:0";
+            const score1 = isT1Bye ? 0 : 3;
+            const score2 = isT1Bye ? 3 : 0;
+            const forfeitTeam = isT1Bye ? "1" : "2";
+            const remark = language === "en" ? "Bye-pass" : "ชนะบาย";
+
+            bypassUpdates.push(
+              api.put(`/bracket-matches/${dbm.id}`, {
+                score1,
+                score2,
+                sets: setsStr,
+                shuttle: 0,
+                forfeitTeam,
+                remark
+              })
+            );
+          }
+        }
+
+        if (bypassUpdates.length > 0) {
+          await Promise.all(bypassUpdates);
+          
+          // Re-fetch matches to ensure everything is updated and advanced in database/UI
+          const finalMatchesRes = await api.get(`/bracket-matches/${tournamentId}`, { params: { handType: rank } });
+          const finalDbMatches = finalMatchesRes.data.data || [];
+
+          setMatches(() => {
+            const newMatches = [...freshMatches];
+            const getIndex = (r: number, s: number) => {
+              if (r === 1) return s - 1;
+              if (r === 2) return 8 + (s - 1);
+              if (r === 3) return 12 + (s - 1);
+              if (r === 4) return 14;
+              return -1;
+            };
+
+            const targetMatches = (level === "ล่าง" || level === "Lower") ? 
+              finalDbMatches.filter((m: any) => m.stage === 'LOWER') : 
+              finalDbMatches.filter((m: any) => m.stage === 'UPPER' || m.stage === 'GRAND_FINAL');
+
+            targetMatches.forEach((dbm: any) => {
+              const idx = getIndex(dbm.roundSequence, dbm.matchSequence);
+              if (idx !== -1 && idx < newMatches.length) {
+                const m = newMatches[idx];
+                m.dbId = dbm.id;
+                m.shuttlesUsed = dbm.shuttle || 0;
+                m.status = dbm.status; // Map status!
+
+                const firstRoundSequence = isSmall ? 2 : 1;
+                if (dbm.player1Id) {
+                  m.t1 = teamLookup.get(dbm.player1Id) || { code: "-", name: dbm.player1?.teamName || dbm.player1?.player1Name || "-", players: "-" };
+                } else {
+                  if (dbm.roundSequence === firstRoundSequence) {
+                    m.t1 = { code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" };
+                  } else {
+                    m.t1 = { code: "BYE", name: language === "en" ? "Waiting..." : "รอผล", players: "-" };
+                  }
+                }
+
+                if (dbm.player2Id) {
+                  m.t2 = teamLookup.get(dbm.player2Id) || { code: "-", name: dbm.player2?.teamName || dbm.player2?.player1Name || "-", players: "-" };
+                } else {
+                  if (dbm.roundSequence === firstRoundSequence) {
+                    m.t2 = { code: "BYE", name: language === "en" ? "BYE (Forfeited)" : "บาย (สละสิทธิ์)", players: "-" };
+                  } else {
+                    m.t2 = { code: "BYE", name: language === "en" ? "Waiting..." : "รอผล", players: "-" };
+                  }
+                }
+
+                if (dbm.score1 !== null && dbm.score2 !== null) {
+                  const scoreObj = {
+                    totalA: dbm.score1, totalB: dbm.score2,
+                    set1A: 0, set1B: 0, set2A: 0, set2B: 0, set3A: 0, set3B: 0
+                  };
+                  if (dbm.sets) {
+                    const parts = dbm.sets.split(",").map((s: string) => s.trim());
+                    if (parts[0]) { const [a, b] = parts[0].split(/[:\-]/); scoreObj.set1A = Number(a); scoreObj.set1B = Number(b); }
+                    if (parts[1]) { const [a, b] = parts[1].split(/[:\-]/); scoreObj.set2A = Number(a); scoreObj.set2B = Number(b); }
+                    if (parts[2]) { const [a, b] = parts[2].split(/[:\-]/); scoreObj.set3A = Number(a); scoreObj.set3B = Number(b); }
+                  }
+                  m.scores = scoreObj;
+                }
+              }
+            });
+            return newMatches;
+          });
         }
       } catch (e) {
         console.error("Error fetching bracket data:", e);
@@ -854,8 +1074,10 @@ export default function ThirtyTwoBracket({ level, tournamentId, rank, ranks, onR
 
 
   if (level === "ล่าง" || level === "Lower") {
-    if (!showLowerBracket) return null;
-    if (!loading && lowerMatches.length === 0) return null;
+    // แสดงสายล่างถ้ามี lower matches จริง ๆ ในดาต้าเบส หรือ showLowerBracket เปิดอยู่
+    const hasLowerData = lowerMatches.length > 0;
+    if (!showLowerBracket && !hasLowerData) return null;
+    if (!loading && !hasLowerData) return null;
   }
 
   return (
