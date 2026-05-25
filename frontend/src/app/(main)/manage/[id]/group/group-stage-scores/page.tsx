@@ -95,29 +95,40 @@ export default function GroupStageScoresPage() {
         const remark = row[14] as string | undefined;
         const forfeitTeam = row[15] as string | undefined;
 
-        let totalS1 = 0;
-        let totalS2 = 0;
+        let s1Sets = 0;
+        let s2Sets = 0;
         let hasValidScore = false;
+        const validSets: string[] = [];
 
-        const setStrings = setScore.split(",");
-        setStrings.forEach(s => {
-          const parts = s.split(":").map(v => v.trim());
-          const val1 = parseInt(parts[0]);
-          const val2 = parseInt(parts[1]);
+        if (setScore) {
+          const setStrings = setScore.split(",");
+          setStrings.forEach(s => {
+            const parts = s.split(":").map(v => v.trim());
+            const val1 = parseInt(parts[0]);
+            const val2 = parseInt(parts[1]);
 
-          if (!isNaN(val1)) { totalS1 += val1; hasValidScore = true; }
-          if (!isNaN(val2)) { totalS2 += val2; hasValidScore = true; }
-        });
+            if (!isNaN(val1) && !isNaN(val2)) {
+              validSets.push(`${val1}:${val2}`);
+              hasValidScore = true;
+              if (val1 > val2) {
+                s1Sets++;
+              } else if (val2 > val1) {
+                s2Sets++;
+              }
+            }
+          });
+        }
 
-        let s1 = hasValidScore ? totalS1 : undefined;
-        let s2 = hasValidScore ? totalS2 : undefined;
+        let s1 = hasValidScore ? s1Sets : undefined;
+        let s2 = hasValidScore ? s2Sets : undefined;
+        const cleanedSets = hasValidScore ? validSets.join(", ") : "";
 
         await api.put(`/group-matches/${matchId}`, {
           score1: s1,
           score2: s2,
           shuttle: shuttle,
           time: timeStr,
-          sets: setScore,
+          sets: cleanedSets,
           remark: remark,
           forfeitTeam: forfeitTeam
         });
