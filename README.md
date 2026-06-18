@@ -1,6 +1,6 @@
 # 🏸 Badminton Tournament Management System (ระบบจัดการแข่งขันแบดมินตัน)
 
-ระบบเว็บแอปพลิเคชันสำหรับจัดการทัวร์นาเมนต์และการแข่งขันแบดมินตันแบบครบวงจร รองรับทั้งผู้จัดงาน (Organizer) ในการสร้างทัวร์นาเมนต์ จัดตาราง ประเมินฝีมือ อนุมัติผู้สมัคร และบันทึกคะแนนการแข่งขัน และผู้เข้าแข่งขัน (Player) ในการสมัครเข้าร่วมการแข่งขัน อัปโหลดสลิปชำระเงิน และดูสายการแข่งขัน (Bracket) และผลคะแนนแบบเรียลไทม์
+ระบบเว็บแอปพลิเคชันสำหรับจัดการทัวร์นาเมนต์และการแข่งขันแบดมินตันอัจฉริยะแบบครบวงจร พร้อมระบบ AI ช่วยจัดกลุ่มผู้เล่น (Chain of Thought Grouping) รองรับทั้งผู้จัดงาน (Organizer) ในการสร้างทัวร์นาเมนต์ จัดตาราง ประเมินฝีมือ อนุมัติผู้สมัคร และบันทึกคะแนนการแข่งขัน และผู้เข้าแข่งขัน (Player) ในการสมัครเข้าร่วมการแข่งขัน อัปโหลดสลิปชำระเงิน และดูสายการแข่งขัน (Bracket) และผลคะแนนแบบเรียลไทม์
 
 ---
 
@@ -15,6 +15,17 @@
 *   **Object Storage:** [MinIO](https://min.io/) (S3 Compatible Storage) สำหรับเก็บรูปภาพสลิปชำระเงิน รูปภาพโปสเตอร์การแข่งขัน และรูปคิวอาร์โค้ด
 *   **AI Integration:** [OpenAI API](https://openai.com/) สำหรับฟังก์ชันการช่วยประเมินระดับมือ/ระดับฝีมือนักกีฬา
 
+### โครงสร้างและเซอร์วิสของระบบ (Services Routing)
+
+| Path / Port       | Service           | Description                                  |
+| ----------------- | ----------------- | -------------------------------------------- |
+| `localhost:80`    | **Gateway**       | Nginx Reverse Proxy (เชื่อม Frontend/Backend)|
+| `localhost:80/`   | **Frontend**      | Next.js Web Application UI                   |
+| `/api/*`          | **Backend API**   | Node.js / Express.js API Endpoints           |
+| `localhost:5432`  | **Database**      | PostgreSQL Database                          |
+| `localhost:9000`  | **MinIO API**     | S3 Compatible Object Storage                 |
+| `localhost:9001`  | **MinIO Console** | Web UI สำหรับจัดการไฟล์ (Storage)              |
+
 ---
 
 ## 🌟 คุณสมบัติเด่น (Key Features)
@@ -24,7 +35,7 @@
 *   **ระบบคัดกรองผู้สมัคร:** ตรวจสอบวิดีโอประเมินมือ (Hand Type) ของนักกีฬา อนุมัติหรือปฏิเสธการสมัคร
 *   **ตรวจสอบการชำระเงิน:** ตรวจสอบรูปภาพสลิปที่ส่งมาจากผู้สมัคร และอนุมัติสถานะการจ่ายเงิน
 *   **การจับสลากแบ่งสายและกลุ่ม:**
-    *   สร้างกลุ่ม (Groups) และสายการแข่งขัน (Brackets) แบบ Double-Elimination หรือ Single-Elimination อัตโนมัติ
+    *   สร้างกลุ่ม (Groups) และสายการแข่งขัน (Brackets) แบบ Double-Elimination หรือ Single-Elimination อัตโนมัติ พร้อมระบบ AI ช่วยจัดกลุ่มผู้เล่น
     *   กำหนดเวลาแข่งรายคู่ และอัปเดตสถานะการแข่งขันแบบเรียลไทม์
 *   **บันทึกคะแนนและสรุปผล:** บันทึกผลสกอร์รายเซ็ต จำนวนลูกขนไก่ที่ใช้ และสรุปผลอันดับการแข่งขัน (Summary)
 
@@ -127,21 +138,26 @@ NEXT_PUBLIC_API_URL=/api
 
 วิธีนี้จะจำลองและรันระบบทั้งหมด (Gateway, Frontend, Backend, Database, MinIO) ขึ้นมาโดยอัตโนมัติ
 
-1.  **โคลนโปรเจกต์** และไปที่โฟลเดอร์หลัก:
+1.  **เตรียมโปรเจกต์และไฟล์ Environment**:
     ```bash
     git clone https://github.com/piyathida2310/badminton.git
     cd badminton
+    cp .env.example .env
+    cp backend/.env.example backend/.env
+    cp frontend/.env.example frontend/.env
     ```
-2.  **ตรวจสอบไฟล์ `.env`** ทั้ง 3 จุดตามคู่มือด้านบน (Root, Backend, Frontend)
-3.  **สั่งรันระบบผ่าน Docker Compose**:
+    > [!IMPORTANT]
+    > **อย่าลืม:** แก้ไขไฟล์ `.env` ทั้ง 3 จุด (Root, Backend, Frontend) และใส่ค่าคอนฟิกจริง (เช่น Database, API Keys, Clerk Secrets)
+
+2.  **สั่งรันระบบผ่าน Docker Compose**:
     ```bash
-    docker-compose -f docker-compose.dev.yml up --build
+    docker-compose -f docker-compose.dev.yml up -d --build
     ```
-4.  เมื่อรันเสร็จสิ้น คุณจะสามารถเข้าใช้งานบริการต่างๆ ผ่านทาง Gateway (`http://localhost`):
-    *   **Frontend (Web Application):** [http://localhost](http://localhost)
-    *   **Backend REST APIs:** [http://localhost/api](http://localhost/api)
-    *   **Backend Health Check:** [http://localhost/api/health](http://localhost/api/health)
-    *   **MinIO Object Storage Console:** [http://localhost:9001](http://localhost:9001)
+3.  เมื่อรันเสร็จสิ้น คุณจะสามารถเข้าใช้งานบริการต่างๆ ผ่านทาง Gateway (`http://localhost`):
+    *   **Frontend (Web Application):** [http://localhost]
+    *   **Backend REST APIs:** [http://localhost/api]
+    *   **Backend Health Check:** [http://localhost/api/health]
+    *   **MinIO Object Storage Console:** [http://localhost:9001]
 
 ---
 
@@ -150,7 +166,7 @@ NEXT_PUBLIC_API_URL=/api
 ระบบมีเอกสารคู่มือ API (Swagger UI) ที่สร้างจาก JSDoc บน Express.js โดยอัตโนมัติ
 
 *   เมื่อระบบ backend ทำงานแล้ว คุณสามารถเข้าดูรายละเอียด API, การส่ง Request และทดลองเรียกใช้งาน (Try it out) ได้ที่:
-    *   **Swagger API Docs:** [http://localhost/api/api-docs](http://localhost/api/api-docs) (หรือ [http://localhost:8000/api-docs](http://localhost:8000/api-docs) หากทดสอบ backend โดยตรง)
+    *   **Swagger API Docs:** [http://localhost/api/api-docs] (หรือ [http://localhost:8000/api-docs] หากทดสอบ backend โดยตรง)
 
 ---
 
@@ -188,7 +204,7 @@ NEXT_PUBLIC_API_URL=/api
     ```bash
     npm run dev
     ```
-3.  เข้าใช้งานเว็บแอปพลิเคชันผ่าน [http://localhost:3000](http://localhost:3000)
+3.  เข้าใช้งานเว็บแอปพลิเคชันผ่าน [http://localhost:3000]
 
 ---
 
